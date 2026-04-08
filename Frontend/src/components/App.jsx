@@ -1,13 +1,14 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+    // App.jsx
+    import React from "react";
+    import { BrowserRouter, Routes, Route } from "react-router";
+    import Login from "../pages/Login";
 
-function App() {
-    return(
-        <>
-        <div className=" text-2xl text-indigo-500">Hello World</div>
-        <div className=" text-2xl text-indigo-500">It's a React App</div>
-        </>
-    )
-}
-
-export default App;
+    export default function App() {
+    return (
+        <BrowserRouter>
+        <Routes>
+            <Route path="/" element={<Login />} />
+        </Routes>
+        </BrowserRouter>
+    );
+    }
