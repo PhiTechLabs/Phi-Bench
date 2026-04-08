@@ -5,7 +5,15 @@
 
         function handleSubmit(formData) {
             const data = Object.fromEntries(formData);
-            // console.log(data)
+
+            // Remember Me functionality (frontend only)
+            if (data.remember) {
+                localStorage.setItem("rememberedUser", data.username);
+            } else {
+                localStorage.removeItem("rememberedUser");
+            }
+
+            console.log(data);
         }
 
     return (
@@ -90,7 +98,6 @@
                 <div>
                 <label
                     className="block text-sm font-medium text-gray-600 mb-1"
-                    
                 >
                     Password
                 </label>
@@ -103,6 +110,29 @@
                 />
                 </div>
 
+                {/* REMEMBER + FORGOT */}
+                <div className="flex items-center justify-between text-sm">
+                    
+                    <label className="flex items-center gap-2 text-gray-600">
+                        <input
+                            type="checkbox"
+                            name="remember"
+                            className="accent-blue-600"
+                        />
+                        Remember me
+                    </label>
+
+                    <button
+                        type="button"
+                        className="text-blue-600 hover:underline"
+                        onClick={() => {
+                            console.log("Forgot Credentials clicked");
+                        }}
+                    >
+                        Forgot Credentials?
+                    </button>
+
+                </div>
 
                 {/* BUTTON */}
                 <button
@@ -111,6 +141,19 @@
                 >
                 Sign In
                 </button>
+
+                <p className="text-sm text-center text-gray-600 mt-2">
+                Unable to Login?{" "}
+                <button
+                    type="button"
+                    className="text-blue-600 hover:underline"
+                    onClick={() => {
+                        console.log("Unable to login clicked");
+                    }}
+                >
+                    Get Help
+                </button>
+                </p>
 
             </form>
 
