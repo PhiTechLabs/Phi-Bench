@@ -1,20 +1,46 @@
     // pages/Login.jsx
     import React from "react";
+    import axios from "axios";
+    import { useNavigate } from "react-router-dom";
 
     export default function Login() {
+        const navigate = useNavigate();
 
-        function handleSubmit(formData) {
-            const data = Object.fromEntries(formData);
+        async function handleSubmit(formData) {
+        const data = Object.fromEntries(formData);
 
-            // Remember Me functionality (frontend only)
-            if (data.remember) {
-                localStorage.setItem("rememberedUser", data.username);
+        // Remember Me functionality (frontend only)
+        if (data.remember) {
+            localStorage.setItem("rememberedUser", data.username);
+        } else {
+            localStorage.removeItem("rememberedUser");
+        }
+
+        try {
+            const res = await axios.post("http://localhost:5000/api/auth/login", {
+                username: data.username,
+                password: data.password
+            });
+
+            const { token, user } = res.data;
+
+            // Store token
+            localStorage.setItem("token", token);
+
+            // Redirect based on role
+            if (user.role === "superAdmin") {
+                navigate("/superadmin");
+            } else if (user.role === "admin") {
+                navigate("/admin");
             } else {
-                localStorage.removeItem("rememberedUser");
+                navigate("/client");
             }
 
-            console.log(data);
-        }
+        } catch (error) {
+    console.log(error.response?.data);
+    alert(error.response?.data?.message || "Login Failed");
+}
+    }
 
     return (
         <div
@@ -74,7 +100,11 @@
             {/* FORM */}
             <form
                 className="space-y-5"
-                action={handleSubmit}
+    onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        handleSubmit(formData);
+    }}
             >
 
                 {/* USERNAME */}

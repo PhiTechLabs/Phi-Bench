@@ -1,14 +1,20 @@
-    // App.jsx
-    import React from "react";
-    import { BrowserRouter, Routes, Route } from "react-router";
-    import Login from "../pages/Login";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "../pages/Login";
+import SuperAdmin from "../pages/SuperAdmin";
+import Admin from "../pages/Admin";
+import Client from "../pages/Client";
 
-    export default function App() {
+function App() {
     return (
-        <BrowserRouter>
+        <Router>
         <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/superadmin" element={<SuperAdmin />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/client" element={<Client />} />
         </Routes>
-        </BrowserRouter>
+        </Router>
     );
-    }
+}
+
+export default App;
