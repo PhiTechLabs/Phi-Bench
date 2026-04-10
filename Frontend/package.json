@@ -11,10 +11,15 @@
   "type": "commonjs",
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.2",
+    "axios": "^1.15.0",
     "parcel": "^2.16.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router": "^7.14.0",
+    "react-router-dom": "^7.14.0",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3"
   }
 }
