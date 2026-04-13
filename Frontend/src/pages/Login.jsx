@@ -100,11 +100,11 @@
             {/* FORM */}
             <form
                 className="space-y-5"
-    onSubmit={(e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        handleSubmit(formData);
-    }}
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    handleSubmit(formData);
+                }}
             >
 
                 {/* USERNAME */}
