@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +17,51 @@ export default function Login() {
         } else {
             localStorage.removeItem("rememberedUser");
         }
+=======
+    // pages/Login.jsx
+    import React from "react";
+    import axios from "axios";
+    import { useNavigate } from "react-router-dom";
+
+    export default function Login() {
+        const navigate = useNavigate();
+
+        async function handleSubmit(formData) {
+        const data = Object.fromEntries(formData);
+
+        // Remember Me functionality (frontend only)
+        if (data.remember) {
+            localStorage.setItem("rememberedUser", data.username);
+        } else {
+            localStorage.removeItem("rememberedUser");
+        }
+
+        try {
+            const res = await axios.post("http://localhost:5000/api/auth/login", {
+                username: data.username,
+                password: data.password
+            });
+
+            const { token, user } = res.data;
+
+            // Store token
+            localStorage.setItem("token", token);
+
+            // Redirect based on role
+            if (user.role === "superAdmin") {
+                navigate("/superadmin");
+            } else if (user.role === "admin") {
+                navigate("/admin");
+            } else {
+                navigate("/client");
+            }
+
+        } catch (error) {
+    console.log(error.response?.data);
+    alert(error.response?.data?.message || "Login Failed");
+}
+    }
+>>>>>>> 25d71be73720b4c9ba78ab485da5b00170ff4ca9
 
         console.log(data);
 
@@ -26,8 +72,72 @@ export default function Login() {
     return (
         <div className="min-h-screen flex bg-gray-100">
 
+<<<<<<< HEAD
             {/* LEFT SIDE */}
             <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-blue-900 to-blue-600 text-white p-12 items-center">
+=======
+        {/* LEFT SIDE - FUTURE CONTENT AREA */}
+        <div
+            className="hidden lg:flex w-1/2 bg-linear-to-br from-blue-900 to-blue-600 text-white p-12 items-center"
+        >
+            <div>
+            <h1
+                className="text-4xl font-bold mb-4"
+            >
+                Welcome to Phi Bench
+            </h1>
+
+            <p
+                className="text-lg opacity-80"
+            >
+                {/* Future content goes here */}
+                {/* You can add illustrations, text, or branding content */}
+            </p>
+            </div>
+        </div>
+
+
+        {/* RIGHT SIDE - LOGIN FORM */}
+        <div
+            className="flex w-full lg:w-1/2 items-center justify-center p-8"
+        >
+            <div
+            className="w-full max-w-sm bg-white shadow-xl rounded-2xl p-10"
+            >
+
+            {/* LOGO AREA */}
+            <div
+                className="flex justify-center mb-6"
+            >
+                {/*
+                Uncomment and replace src with your logo path
+                <img
+                    src="/path-to-logo.png"
+                    alt="Phi Bench Logo"
+                    className="h-12"
+                />
+                */}
+
+                <h2
+                className="text-2xl font-semibold text-gray-800"
+                >
+                Phi Bench
+                </h2>
+            </div>
+
+
+            {/* FORM */}
+            <form
+                className="space-y-5"
+    onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        handleSubmit(formData);
+    }}
+            >
+
+                {/* USERNAME */}
+>>>>>>> 25d71be73720b4c9ba78ab485da5b00170ff4ca9
                 <div>
                     <h1 className="text-4xl font-bold mb-4">
                         Welcome to PhiJobs
