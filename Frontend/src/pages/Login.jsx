@@ -2,9 +2,12 @@
     import React from "react";
     import axios from "axios";
     import { useNavigate } from "react-router-dom";
+    import React, { useState } from "react";
+    import { FaEye, FaEyeSlash } from "react-icons/fa";
 
     export default function Login() {
         const navigate = useNavigate();
+        const [showPassword, setShowPassword] = useState(false);
 
         async function handleSubmit(formData) {
         const data = Object.fromEntries(formData);
@@ -132,12 +135,22 @@
                     Password
                 </label>
 
-                <input
-                    type="password"
-                    placeholder="Enter your password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    name="password"
-                />
+                <div className="relative">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                        name="password"
+                    />
+
+                    {/* Eye Icon */}
+                    <span
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                    >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </span>
+                </div>
                 </div>
 
                 {/* REMEMBER + FORGOT */}
