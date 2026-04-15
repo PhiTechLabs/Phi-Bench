@@ -18,7 +18,7 @@
         <div className="p-6 bg-gray-100 min-h-screen">
 
         <button
-            onClick={() => navigate("/client")}
+            onClick={() => navigate("/clients")}
             className="mb-4 text-blue-700 text-sm"
         >
             ← Back

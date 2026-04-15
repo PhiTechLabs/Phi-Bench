@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+    import React, { useState, useEffect } from "react";
+    import { useNavigate } from "react-router-dom";
 
     const Client = () => {
     const navigate = useNavigate();
 
     const [showForm, setShowForm] = useState(false);
-    const [clients, setClients] = useState([]);
+    const [client, setClient] = useState([]);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -20,11 +20,14 @@ import { useNavigate } from "react-router-dom";
         designation: "",
     });
 
-    
+    useEffect(() => {
+        const saved = JSON.parse(localStorage.getItem("clients")) || [];
+        setClient(saved);
+    }, []);
 
     useEffect(() => {
-        localStorage.setItem("clients", JSON.stringify(clients));
-    }, [clients]);
+        localStorage.setItem("clients", JSON.stringify(client));
+    }, [client]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,8 +42,7 @@ import { useNavigate } from "react-router-dom";
         ...formData,
         };
 
-        setClients([newClient, ...clients]);
-
+        setClients([newClient, ...client]);
         setShowForm(false);
     };
 
@@ -53,9 +55,9 @@ import { useNavigate } from "react-router-dom";
 
             <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-lg shadow-md text-sm"
+            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-md text-sm shadow"
             >
-            + Add Client
+            + Add Client 
             </button>
         </div>
 
@@ -76,17 +78,17 @@ import { useNavigate } from "react-router-dom";
             </thead>
 
             <tbody>
-                {clients.length === 0 ? (
+                {client.length === 0 ? (
                 <tr>
                     <td colSpan="6" className="text-center py-10 text-gray-400">
                     No clients yet
                     </td>
                 </tr>
                 ) : (
-                clients.map((client) => (
+                client.map((client) => (
                     <tr
                     key={client.id}
-                    onClick={() => navigate(`/clients/${client.id}`)}
+                    onClick={() => navigate(`/client/${client.id}`)}
                     className="border-t hover:bg-gray-50 cursor-pointer transition"
                     >
                     <td className="px-5 py-4 text-blue-700 font-medium">
@@ -106,15 +108,15 @@ import { useNavigate } from "react-router-dom";
             </table>
         </div>
 
-        {/* ================= PREMIUM FORM ================= */}
+        {/* ================= COMPACT FORM ================= */}
         {showForm && (
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
 
-            <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-5">
 
-                <h2 className="text-xl font-semibold mb-5">Add New Client</h2>
+                <h2 className="text-lg font-semibold mb-4">Add New Client</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
 
                 {/* COMPANY */}
                 <Section title="Company Details">
@@ -129,23 +131,26 @@ import { useNavigate } from "react-router-dom";
                 {/* POC */}
                 <Section title="Point of Contact">
                     <Input label="Name" name="pocName" onChange={handleChange} />
-                    <Input label="Contact Number" name="contact" onChange={handleChange} />
+                    <Input label="Contact" name="contact" onChange={handleChange} />
                     <Input label="Email" name="email" onChange={handleChange} />
                     <Input label="Designation" name="designation" onChange={handleChange} />
                 </Section>
 
-                <div className="flex justify-end gap-3">
+                {/* ACTION */}
+                <div className="flex justify-end gap-2 pt-3 border-t">
+
                     <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="px-4 py-2 border rounded-lg"
+                    className="px-3 py-1.5 text-sm border rounded-md"
                     >
                     Cancel
                     </button>
 
-                    <button className="bg-blue-700 text-white px-5 py-2 rounded-lg shadow-md">
+                    <button className="bg-blue-700 text-white px-4 py-1.5 text-sm rounded-md">
                     Save Client
                     </button>
+
                 </div>
 
                 </form>
@@ -156,18 +161,27 @@ import { useNavigate } from "react-router-dom";
     );
     };
 
+    /* SECTION */
     const Section = ({ title, children }) => (
-    <div className="border rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-blue-700 mb-4">{title}</h3>
-        <div className="grid md:grid-cols-2 gap-4">{children}</div>
+    <div>
+        <h3 className="text-xs font-semibold text-gray-500 mb-3 uppercase">
+        {title}
+        </h3>
+        <div className="grid md:grid-cols-3 gap-3">{children}</div>
     </div>
     );
 
+    /* INPUT */
     const Input = ({ label, ...props }) => (
     <div>
-        <label className="text-sm text-gray-600 mb-1 block">{label}</label>
-        <input {...props} className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500" />
+        <label className="text-xs text-gray-500 mb-1 block">
+        {label}
+        </label>
+        <input
+        {...props}
+        className="w-full border px-2 py-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500"
+        />
     </div>
-);
+    );
 
-export default Client;
+    export default Client;
