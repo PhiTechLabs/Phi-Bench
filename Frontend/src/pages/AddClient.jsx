@@ -1,58 +1,58 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { ClientContext } from "../context/ClientContext";
+    import React, { useState, useContext } from "react";
+    import { useNavigate } from "react-router-dom";
+    import { ClientContext } from "../context/ClientContext";
 
-const AddClient = () => {
-  const navigate = useNavigate();
-  const { clients, setClients } = useContext(ClientContext);
+    const AddClient = () => {
+    const navigate = useNavigate();
+    const { client, setClient } = useContext(ClientContext);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    website: "",
-    industry: "",
-    location: "",
-    pocName: "",
-    contact: "",
-    email: "",
-    designation: "",
-  });
+    const [formData, setFormData] = useState({
+        name: "",
+        website: "",
+        industry: "",
+        location: "",
+        pocName: "",
+        contact: "",
+        email: "",
+        designation: "",
+    });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const newClient = {
-      id: Date.now(),
-      createdAt: new Date(),
-      ...formData,
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    setClients([...clients, newClient]); // 🔥 IMPORTANT
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-    navigate("/clients");
-  };
+        const newClient = {
+        id: Date.now(),
+        createdAt: new Date(),
+        ...formData,
+        };
 
-  return (
-    <div className="p-6">
-      <h1>Add Client</h1>
+        setClient([...client, newClient]); // 🔥 IMPORTANT
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+        navigate("/client");
+    };
 
-        <input name="name" onChange={handleChange} placeholder="Client Name" />
-        <input name="website" onChange={handleChange} placeholder="Website" />
-        <input name="industry" onChange={handleChange} placeholder="Industry" />
-        <input name="location" onChange={handleChange} placeholder="Location" />
+    return (
+        <div className="p-6">
+        <h1>Add Client</h1>
 
-        <button className="bg-blue-700 text-white px-4 py-2">
-          Save
-        </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-      </form>
-    </div>
-  );
-};
+            <input name="name" onChange={handleChange} placeholder="Client Name" />
+            <input name="website" onChange={handleChange} placeholder="Website" />
+            <input name="industry" onChange={handleChange} placeholder="Industry" />
+            <input name="location" onChange={handleChange} placeholder="Location" />
 
-export default AddClient;
+            <button className="bg-blue-700 text-white px-4 py-2">
+            Save
+            </button>
+
+        </form>
+        </div>
+    );
+    };
+
+    export default AddClient;
