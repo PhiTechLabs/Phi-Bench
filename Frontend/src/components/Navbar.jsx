@@ -26,11 +26,11 @@
             {/* Desktop Menu */}
             <div className="hidden md:flex gap-3 text-sm font-medium items-center">
             <Link to="/home" className={linkClass("/home")}>Home</Link>
-            <Link to="/client" className={linkClass("/client")}>Clients</Link>
+            <Link to="/clients" className={linkClass("/clients")}>Clients</Link>
             <Link to="/jobs" className={linkClass("/jobs")}>Jobs</Link>
             <Link to="/candidates" className={linkClass("/candidates")}>Candidates</Link>
             <Link to="/interviews" className={linkClass("/interviews")}>Interviews</Link>
-            
+
 
             <FaUserCircle className="text-2xl ml-4 cursor-pointer" />
             </div>

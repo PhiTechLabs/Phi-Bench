@@ -4,7 +4,7 @@
 
     const AddClient = () => {
     const navigate = useNavigate();
-    const { client, setClient } = useContext(ClientContext);
+    const { clients, setClients } = useContext(ClientContext);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -30,9 +30,9 @@
         ...formData,
         };
 
-        setClient([...client, newClient]); // 🔥 IMPORTANT
+        setClients([...clients, newClient]); //  IMPORTANT
 
-        navigate("/client");
+        navigate("/clients");
     };
 
     return (
