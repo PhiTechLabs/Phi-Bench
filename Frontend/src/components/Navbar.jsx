@@ -5,6 +5,9 @@
     const Navbar = () => {
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+
+    const user = JSON.parse(localStorage.getItem("user"));
 
     const linkClass = (path) =>
         `block px-3 py-2 rounded-md transition ${
@@ -14,7 +17,7 @@
         }`;
 
     return (
-        <nav className="bg-blue-700 text-white px-6 py-3 shadow-md relative">
+        <nav className="bg-blue-700 text-white px-6 py-3 shadow-md relative z-50">
 
         <div className="flex justify-between items-center">
 
@@ -31,9 +34,12 @@
             <Link to="/candidates" className={linkClass("/candidates")}>Candidates</Link>
             <Link to="/interviews" className={linkClass("/interviews")}>Interviews</Link>
 
-
-            <FaUserCircle className="text-2xl ml-4 cursor-pointer" />
+            
             </div>
+            <FaUserCircle 
+            className="text-2xl ml-4 cursor-pointer" 
+            onClick={() => setProfileOpen(true)}
+            />  
 
             {/* Mobile Icons */}
             <div className="flex items-center gap-4 md:hidden">
@@ -72,6 +78,42 @@
 
             </div>
         )}
+
+
+            {profileOpen && (
+            <div className="fixed top-0 right-0 h-full w-80 bg-white text-black shadow-lg z-50 p-6 transition-transform duration-300">
+
+                {/* Close Button */}
+                <button 
+                className="absolute top-4 right-4 text-xl"
+                onClick={() => setProfileOpen(false)}
+                >
+                ✖
+                </button>
+
+                {/* User Info */}
+                <div className="mt-10">
+                <h2 className="text-xl font-semibold mb-2">Profile</h2>
+
+                <p className="mt-4">
+                    <strong>Username:</strong> {user?.username}
+                </p>
+
+                <p className="mt-2">
+                    <strong>Role:</strong> {user?.role}
+                </p>
+                </div>
+
+            </div>
+            )}
+
+            {profileOpen && (
+            <div 
+                className="fixed inset-0 bg-black bg-opacity-30 z-40"
+                onClick={() => setProfileOpen(false)}
+            />
+            )}
+
         </nav>
     );
     };

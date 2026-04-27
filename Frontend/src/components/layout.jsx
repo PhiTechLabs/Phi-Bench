@@ -19,6 +19,9 @@
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
 
+    const [profileOpen, setProfileOpen] = useState(false);
+    const user = JSON.parse(localStorage.getItem("user"));
+
     const menu = [
     { name: "Dashboard", path: "/home", icon: <FaTachometerAlt /> },
     { name: "Bench", path: "/bench", icon: <FaUsers /> },
@@ -79,7 +82,7 @@
         <div className="flex-1">
 
             {/* TOP BAR */}
-            <div className="bg-white p-4 shadow flex justify-between items-center">
+            <div className="bg-white p-4 shadow flex justify-between items-cente relative z-10">
 
             <button
                 onClick={() => setOpen(true)}
@@ -93,15 +96,92 @@
                 className="border px-3 py-2 rounded-lg w-1/2 hidden md:block"
             />
 
-            <div className="text-sm font-medium">
-                👤 Profile
-            </div>
+            <div
+                onClick={() => setProfileOpen(true)}
+                className="flex items-center gap-3 bg-white px-3 py-2 mr-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100"
+                >
+                {/* Avatar */}
+                <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                    {user?.username?.charAt(0)?.toUpperCase()}
+                </div>
+
+                {/* Username */}
+                <div className="hidden sm:flex flex-col leading-tight">
+                    <span className="text-sm font-semibold text-gray-800">
+                    {user?.username}
+                    </span>
+                    <span className="text-xs text-gray-500 capitalize">
+                    {user?.role}
+                    </span>
+                </div>
+                </div>
             </div>
 
             {/* PAGE CONTENT */}
             <div className="p-4">
             <Outlet />
             </div>
+
+            {profileOpen && (
+                <>
+                    {/* Overlay */}
+                    <div
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+                    onClick={() => setProfileOpen(false)}
+                    />
+
+                    {/* Drawer */}
+                    <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300">
+
+                    {/* Header */}
+                    <div className="bg-blue-600 text-white p-6 ">
+                        <div className="flex justify-between items-center">
+                        <h2 className="text-lg font-semibold">Profile</h2>
+                        <button onClick={() => setProfileOpen(false)}>✖</button>
+                        </div>
+
+                        {/* Avatar */}
+                        <div className="mt-6 flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-white text-blue-600 flex items-center justify-center text-xl font-bold shadow-md">
+                            {user?.username?.charAt(0)?.toUpperCase()}
+                        </div>
+
+                        <div>
+                            <p className="font-semibold text-lg">{user?.username}</p>
+                            <p className="text-sm opacity-80 capitalize">{user?.role}</p>
+                        </div>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-4">
+
+                        {/* Info Card */}
+                        <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                        <p className="text-sm text-gray-500">Username</p>
+                        <p className="font-medium text-gray-800">{user?.username}</p>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                        <p className="text-sm text-gray-500">Role</p>
+                        <p className="font-medium text-gray-800 capitalize">{user?.role}</p>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="border-t pt-4"></div>
+
+                        {/* Actions */}
+                        <button className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition">
+                        Logout
+                        </button>
+
+                    </div>
+                    </div>
+                </>
+)}
+
+
+                
 
         </div>
         </div>

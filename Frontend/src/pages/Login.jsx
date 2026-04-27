@@ -2,7 +2,7 @@
     import React from "react";
     import axios from "axios";
     import { useNavigate } from "react-router-dom";
-    import React, { useState } from "react";
+    import { useState } from "react";
     import { FaEye, FaEyeSlash } from "react-icons/fa";
 
     export default function Login() {
@@ -29,6 +29,7 @@
 
             // Store token
             localStorage.setItem("token", token);
+            localStorage.setItem("user", JSON.stringify(user));
 
             // Redirect based on role
             if (user.role === "superAdmin") {
