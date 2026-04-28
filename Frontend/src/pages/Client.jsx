@@ -4,6 +4,9 @@
     const Client = () => {
     const navigate = useNavigate();
 
+    const user = JSON.parse(localStorage.getItem("user"));
+    const roleBase = `/${user?.role}`;
+
     const [showForm, setShowForm] = useState(false);
     const [client, setClient] = useState([]);
 
@@ -42,7 +45,7 @@
         ...formData,
         };
 
-        setClients([newClient, ...client]);
+        setClient([newClient, ...client]);
         setShowForm(false);
     };
 
@@ -88,7 +91,7 @@
                 client.map((client) => (
                     <tr
                     key={client.id}
-                    onClick={() => navigate(`/client/${client.id}`)}
+                    onClick={() => navigate(`${roleBase}/client-list/${client.id}`)}
                     className="border-t hover:bg-gray-50 cursor-pointer transition"
                     >
                     <td className="px-5 py-4 text-blue-700 font-medium">

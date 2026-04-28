@@ -10,11 +10,14 @@
     const Home = () => {
     const navigate = useNavigate();
 
+    const user = JSON.parse(localStorage.getItem("user"));
+    const roleBase = `/${user?.role}`;
+
     const stats = [
-        { title: "Jobs", value: "-", icon: <FaBriefcase />, route: "/jobs" },
-        { title: "Candidates", value: "-", icon: <FaUsers />, route: "/candidates" },
-        { title: "Interviews", value: "-", icon: <FaUserTie />, route: "/interviews" },
-        { title: "Clients", value: "-", icon: <FaHandshake />, route: "/clients" },
+        { title: "Jobs", value: "-", icon: <FaBriefcase />, route: `${roleBase}/jobs` },
+        { title: "Candidates", value: "-", icon: <FaUsers />, route: `${roleBase}/candidates` },
+        { title: "Interviews", value: "-", icon: <FaUserTie />, route: `${roleBase}/interviews` },
+        { title: "Clients", value: "-", icon: <FaHandshake />, route: `${roleBase}/client-list` },
     ];
 
     return (
