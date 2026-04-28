@@ -12,8 +12,9 @@
     FaBuilding,
     FaChartBar,
     FaCog,
-    FaBars,   // ✅ add this
+    FaBars, 
     } from "react-icons/fa";
+    import { RxCross2 } from "react-icons/rx";
 
     const Layout = () => {
     const navigate = useNavigate();
@@ -137,7 +138,9 @@
                     <div className="bg-blue-600 text-white p-6 ">
                         <div className="flex justify-between items-center">
                         <h2 className=" text-lg text-shadow-lg  md:text-lg font-semibold">Profile</h2>
-                        <button onClick={() => setProfileOpen(false)}>✖</button>
+                        <button onClick={() => setProfileOpen(false)}>
+                            <RxCross2 className="text-2xl" />
+                        </button>
                         </div>
 
                         {/* Avatar */}
