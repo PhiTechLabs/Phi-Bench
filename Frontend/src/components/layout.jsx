@@ -131,47 +131,59 @@
                     />
 
                     {/* Drawer */}
-                    <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300">
+                    <div className="fixed top-0 right-0 h-full w-40 md:w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300">
 
                     {/* Header */}
                     <div className="bg-blue-600 text-white p-6 ">
                         <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold">Profile</h2>
+                        <h2 className=" text-lg text-shadow-lg  md:text-lg font-semibold">Profile</h2>
                         <button onClick={() => setProfileOpen(false)}>✖</button>
                         </div>
 
                         {/* Avatar */}
-                        <div className="mt-6 flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full bg-white text-blue-600 flex items-center justify-center text-xl font-bold shadow-md">
+                        <div className="mt-6 flex items-center gap-2 md:gap-4">
+                        <div 
+                        className=" 
+                        w-14 h-9 px-2
+                        md:w-14 md:h-14 
+                        md:rounded-full rounded-xl 
+                        bg-white 
+                        text-blue-600 
+                        flex items-center justify-center 
+                        text-sm 
+                        md:text-xl 
+                        font-bold 
+                        shadow-md
+                        ">
                             {user?.username?.charAt(0)?.toUpperCase()}
                         </div>
 
                         <div>
-                            <p className="font-semibold text-lg">{user?.username}</p>
+                            <p className="font-semibold text-sm md:text-lg">{user?.username}</p>
                             <p className="text-sm opacity-80 capitalize">{user?.role}</p>
                         </div>
                         </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 space-y-4">
+                    <div className="md:p-6 p-4 space-y-4">
 
                         {/* Info Card */}
-                        <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                        <div className="bg-gray-50 p-3 md:p-4 rounded-xl shadow-sm">
                         <p className="text-sm text-gray-500">Username</p>
-                        <p className="font-medium text-gray-800">{user?.username}</p>
+                        <p className="md:font-medium text-sm font-semibold text-gray-800">{user?.username}</p>
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                        <div className="bg-gray-50 p-3 md:p-4 rounded-xl shadow-sm">
                         <p className="text-sm text-gray-500">Role</p>
-                        <p className="font-medium text-gray-800 capitalize">{user?.role}</p>
+                        <p className="md:font-medium text-sm font-semibold text-gray-800 capitalize">{user?.role}</p>
                         </div>
 
                         {/* Divider */}
                         <div className="border-t pt-4"></div>
 
                         {/* Actions */}
-                        <button className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition">
+                        <button className="md:w-full w-[80%] ml-3  bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition">
                         Logout
                         </button>
 
