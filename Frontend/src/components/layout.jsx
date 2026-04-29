@@ -15,6 +15,7 @@
     FaBars, 
     } from "react-icons/fa";
     import { RxCross2 } from "react-icons/rx";
+    import { GoSearch } from "react-icons/go";
 
     const Layout = () => {
     const navigate = useNavigate();
@@ -23,6 +24,7 @@
     const [profileOpen, setProfileOpen] = useState(false);
     const user = JSON.parse(localStorage.getItem("user"));
     const roleBase = `/${user?.role}`;
+    
 
     // const menu = [
     // { name: "Dashboard", path: "/home", icon: <FaTachometerAlt /> },
@@ -45,7 +47,7 @@
         { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
         { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
         { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
-        { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
+        // { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
         { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
         { name: "Settings", path: `${roleBase}/settings`, icon: <FaCog /> },
         ];
@@ -54,7 +56,7 @@
         <div className="flex min-h-screen bg-gray-100">
 
         {/* SIDEBAR */}
-        <div className={`bg-blue-900 text-white w-64 p-5 hidden md:block`}>
+        <div className="bg-blue-900 text-white md:w-[15%] p-5 hidden fixed z-20 h-screen md:block">
             <h1 className="text-xl font-bold mb-8">PhiBench</h1>
 
     <ul className="space-y-3">
@@ -73,43 +75,60 @@
 
         {/* MOBILE SIDEBAR */}
         {open && (
-            <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
-            <div className="bg-blue-900 w-64 h-full p-5 text-white">
-                <h1 className="text-xl font-bold mb-6">PhiJobs</h1>
+    <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
+        <div className="bg-blue-900 w-48 h-full p-5 text-white relative">
 
-                {menu.map((item, i) => (
+            {/* CLOSE BUTTON */}
+            <button
+                onClick={() => setOpen(false)}
+                className="absolute top-5 right-6 text-2xl"
+            >
+                <RxCross2 />
+            </button>
+
+            <h1 className="text-xl font-bold mb-6">PhiBench</h1>
+
+            {menu.map((item, i) => (
                 <div
                     key={i}
                     onClick={() => {
-                    navigate(item.path);
-                    setOpen(false);
+                        navigate(item.path);
+                        setOpen(false);
                     }}
                     className="p-2 rounded hover:bg-blue-700 cursor-pointer"
                 >
                     {item.name}
                 </div>
-                ))}
-            </div>
-            </div>
-        )}
+            ))}
+        </div>
+    </div>
+)}
 
         {/* MAIN CONTENT */}
-        <div className="flex-1">
+        <div className="flex-1 md:w-[85%] md:absolute md:right-0">
 
             {/* TOP BAR */}
-            <div className="bg-white p-4 shadow flex justify-between items-cente relative z-10">
+            <div className="bg-white p-4 shadow flex justify-between items-center relative z-10">
 
             <button
                 onClick={() => setOpen(true)}
-                className="md:hidden text-xl"
+                className="md:hidden text-xl relative z-60"
             >
-                <FaBars />
+                {
+                    open ? <RxCross2 /> : <FaBars />
+                }    
             </button>
 
+            <label htmlFor="search" className="relative mx-auto hidden md:block w-1/2">
+            <GoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+
             <input
+                id="search"
+                type="text"
                 placeholder="Search..."
-                className="border px-3 py-2 rounded-lg w-1/2 hidden md:block"
+                className="w-full border pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
+            </label>
 
             <div
                 onClick={() => setProfileOpen(true)}
@@ -207,14 +226,12 @@
                     </div>
                     </div>
                 </>
-)}
-
-
-                
-
+            )}
         </div>
-        </div>
-    );
-    };
+
+        </div> // End of main container
+        
+        ); // End of return statement
+    }; // End of Layout component
 
     export default Layout;
