@@ -32,13 +32,15 @@
             localStorage.setItem("user", JSON.stringify(user));
 
             // Redirect based on role
-            if (user.role === "superAdmin") {
-                navigate("/superadmin");
-            } else if (user.role === "admin") {
-                navigate("/admin");
-            } else {
-                navigate("/client");
-            }
+            // if (user.role === "superAdmin") {
+            //     navigate("/superadmin");
+            // } else if (user.role === "admin") {
+            //     navigate("/admin");
+            // } else {
+            //     navigate("/client");
+            // }
+
+            navigate(`/${user.role === "superAdmin" ? "superadmin" : user.role}`);
 
         } catch (error) {
     console.log(error.response?.data);

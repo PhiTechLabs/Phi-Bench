@@ -22,19 +22,33 @@
 
     const [profileOpen, setProfileOpen] = useState(false);
     const user = JSON.parse(localStorage.getItem("user"));
+    const roleBase = `/${user?.role}`;
 
-    const menu = [
-    { name: "Dashboard", path: "/home", icon: <FaTachometerAlt /> },
-    { name: "Bench", path: "/bench", icon: <FaUsers /> },
-    { name: "Jobs", path: "/jobs", icon: <FaBriefcase /> },
-    { name: "Candidates", path: "/candidates", icon: <FaUsers /> },
-    { name: "Submissions", path: "/submissions", icon: <FaPaperPlane /> },
-    { name: "Interviews", path: "/interviews", icon: <FaUserTie /> },
-    { name: "Clients", path: "/client", icon: <FaHandshake /> },
-    { name: "Vendors", path: "/vendors", icon: <FaBuilding /> },
-    { name: "Reports", path: "/reports", icon: <FaChartBar /> },
-    { name: "Settings", path: "/settings", icon: <FaCog /> },
-    ];
+    // const menu = [
+    // { name: "Dashboard", path: "/home", icon: <FaTachometerAlt /> },
+    // { name: "Bench", path: "/bench", icon: <FaUsers /> },
+    // { name: "Jobs", path: "/jobs", icon: <FaBriefcase /> },
+    // { name: "Candidates", path: "/candidates", icon: <FaUsers /> },
+    // { name: "Submissions", path: "/submissions", icon: <FaPaperPlane /> },
+    // { name: "Interviews", path: "/interviews", icon: <FaUserTie /> },
+    // { name: "Clients", path: "/client", icon: <FaHandshake /> },
+    // { name: "Vendors", path: "/vendors", icon: <FaBuilding /> },
+    // { name: "Reports", path: "/reports", icon: <FaChartBar /> },
+    // { name: "Settings", path: "/settings", icon: <FaCog /> },
+    // ];
+
+        const menu = [
+        { name: "Dashboard", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
+        { name: "Bench", path: `${roleBase}/bench`, icon: <FaUsers /> },
+        { name: "Jobs", path: `${roleBase}/jobs`, icon: <FaBriefcase /> },
+        { name: "Candidates", path: `${roleBase}/candidates`, icon: <FaUsers /> },
+        { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
+        { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
+        { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
+        { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
+        { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
+        { name: "Settings", path: `${roleBase}/settings`, icon: <FaCog /> },
+        ];
 
     return (
         <div className="flex min-h-screen bg-gray-100">
