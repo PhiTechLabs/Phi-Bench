@@ -11,11 +11,14 @@
     FaPaperPlane,
     FaBuilding,
     FaChartBar,
-    FaCog,
-    FaBars, 
+    FaCog, 
     } from "react-icons/fa";
     import { RxCross2 } from "react-icons/rx";
     import { GoSearch } from "react-icons/go";
+
+    import { useNavigate } from "react-router-dom";
+
+
 
     const Layout = () => {
     const navigate = useNavigate();
@@ -24,7 +27,19 @@
     const [profileOpen, setProfileOpen] = useState(false);
     const user = JSON.parse(localStorage.getItem("user"));
     const roleBase = `/${user?.role}`;
-    
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+    const handleLogout = () => {
+    // clear auth data
+    localStorage.removeItem("token"); 
+    localStorage.removeItem("user");
+
+    // optional: clear everything
+    localStorage.clear();
+
+    // redirect to login
+    navigate("/");
+    };
 
     // const menu = [
     // { name: "Dashboard", path: "/home", icon: <FaTachometerAlt /> },
@@ -120,7 +135,7 @@
             </button>
 
             <label htmlFor="search" className="relative mx-auto hidden md:block w-1/2">
-            <GoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <GoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500" />
 
             <input
                 id="search"
@@ -165,7 +180,7 @@
                     />
 
                     {/* Drawer */}
-                    <div className="fixed top-0 right-0 h-full w-40 md:w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300">
+                    <div className="fixed top-0 right-0 h-full w-45 md:w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300">
 
                     {/* Header */}
                     <div className="bg-blue-600 text-white p-6 ">
@@ -219,12 +234,51 @@
                         <div className="border-t pt-4"></div>
 
                         {/* Actions */}
-                        <button className="md:w-full w-[80%] ml-3  bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition">
-                        Logout
+                        <button
+                            onClick={() => setShowLogoutConfirm(true)}
+                            className="md:w-full w-[80%] ml-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
+                            >
+                            Logout
                         </button>
 
                     </div>
                     </div>
+
+                    {/* Logout Confirm */}
+                    {showLogoutConfirm && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+                        <div className="bg-white rounded-xl shadow-xl p-6 md:w-80 w-60 text-center">
+                        
+                        <h3 className="text-md font-semibold mb-4">
+                            Are you sure you want to logout?
+                        </h3>
+
+                        <div className="flex justify-center gap-3 md:gap-4">
+                            
+                            {/* Cancel */}
+                            <button
+                            onClick={() => setShowLogoutConfirm(false)}
+                            className="md:px-4 md:py-2 px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300"
+                            >
+                            No
+                            </button>
+
+                            {/* Confirm */}
+                            <button
+                            onClick={() => {
+                                setShowLogoutConfirm(false);
+                                setProfileOpen(false);
+                                handleLogout();
+                            }}
+                            className="md:px-4 md:py-2 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                            Yes
+                            </button>
+
+                        </div>
+                        </div>
+                    </div>
+                    )}
                 </>
             )}
         </div>
