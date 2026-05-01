@@ -1,121 +1,314 @@
-    import React, { useState } from "react";
-    import { Link, useLocation } from "react-router-dom";
-    import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
+import React, { useState, useRef, useEffect } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaUsers,
+  FaBriefcase,
+  FaUserTie,
+  FaHandshake,
+  FaChartBar,
+  FaCog,
+  FaPaperPlane,
+  FaBuilding,
+  FaPlus,
+  FaSearch,
+  FaBars,
+} from "react-icons/fa";
+import { RxCross2 } from "react-icons/rx";
+import { MdPeopleAlt } from "react-icons/md";
+import logo from "url:../assets/logo.png";
 
-    const Navbar = () => {
-    const location = useLocation();
-    const [isOpen, setIsOpen] = useState(false);
-    const [profileOpen, setProfileOpen] = useState(false);
+const Navbar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-    const user = JSON.parse(localStorage.getItem("user"));
+  const dropdownRef = useRef(null);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const roleBase = `/${user?.role}`;
 
-    const linkClass = (path) =>
-        `block px-3 py-2 rounded-md transition ${
-        location.pathname === path
-            ? "bg-white text-blue-700"
-            : "hover:bg-blue-600"
-        }`;
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-    return (
-        <nav className="bg-blue-700 text-white px-6 py-3 shadow-md relative z-50">
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
-        <div className="flex justify-between items-center">
+  // PRIMARY NAV — visible in top bar
+  const primaryMenu = [
+    { name: "Dashboard", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
+    { name: "Jobs", path: `${roleBase}/jobs`, icon: <FaBriefcase /> },
+    { name: "Candidates", path: `${roleBase}/candidates`, icon: <FaUsers /> },
+    { name: "Bench", path: `${roleBase}/bench`, icon: <MdPeopleAlt /> },
+  ];
 
-            {/* Logo */}
-            <div className="text-xl font-semibold tracking-wide">
-            Phi-Bench
-            </div>
+  // SECONDARY NAV — inside + dropdown
+  const secondaryMenu = [
+    { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
+    { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
+    { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
+    { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
+    { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
+  ];
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex gap-3 text-sm font-medium items-center">
-            <Link to="/home" className={linkClass("/home")}>Home</Link>
-            <Link to="/clients" className={linkClass("/clients")}>Clients</Link>
-            <Link to="/jobs" className={linkClass("/jobs")}>Jobs</Link>
-            <Link to="/candidates" className={linkClass("/candidates")}>Candidates</Link>
-            <Link to="/interviews" className={linkClass("/interviews")}>Interviews</Link>
+  // Full menu for mobile sidebar
+  const fullMenu = [...primaryMenu, ...secondaryMenu];
 
-            
-            </div>
-            <FaUserCircle 
-            className="text-2xl ml-4 cursor-pointer" 
-            onClick={() => setProfileOpen(true)}
-            />  
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
 
-            {/* Mobile Icons */}
-            <div className="flex items-center gap-4 md:hidden">
-            <FaUserCircle className="text-2xl cursor-pointer" />
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-100">
 
-            {/* Hamburger */}
-            <button onClick={() => setIsOpen(!isOpen)}>
-                {isOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
-            </button>
-            </div>
+      {/* ── TOP NAVBAR ── */}
+      <nav className="bg-blue-900 text-white h-16 flex items-center px-4 md:px-6 shadow-md fixed top-0 left-0 right-0 z-30">
+
+        {/* LEFT: Hamburger (mobile only) */}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="md:hidden text-xl mr-3 text-white"
+        >
+          <FaBars />
+        </button>
+
+        {/* LOGO */}
+        <div
+          onClick={() => navigate(`${roleBase}/home`)}
+          className="flex items-center cursor-pointer mr-8 shrink-0 h-full py-0"
+        >
+          <img
+            src={logo}
+            alt="PhiBench"
+            className="h-full w-auto object-contain"
+          />
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-            <div className="md:hidden mt-4 bg-blue-800 rounded-lg p-4 space-y-2">
+        {/* CENTER: Primary nav links (desktop) */}
+        <div className="hidden md:flex items-center gap-2 flex-1">
+          {primaryMenu.map((item) => (
+            <button
+              key={item.name}
+              onClick={() => navigate(item.path)}
+              className={`relative px-5 py-2 text-base font-medium transition-all group
+                ${isActive(item.path) ? "text-white" : "text-blue-200 hover:text-white"}`}
+            >
+              {item.name}
+              <span
+                className={`absolute left-1/2 -translate-x-1/2 bottom-0 h-0.5 bg-white transition-all duration-300
+                  ${isActive(item.path) ? "w-3/4" : "w-0 group-hover:w-3/4"}`}
+              />
+            </button>
+          ))}
 
-            <Link to="/home" onClick={() => setIsOpen(false)} className={linkClass("/home")}>
-                Home
-            </Link>
+          {/* + MORE DROPDOWN */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen((p) => !p)}
+              className={`relative flex items-center gap-1.5 px-5 py-2 text-base font-medium transition-all group
+                ${dropdownOpen ? "text-white" : "text-blue-200 hover:text-white"}`}
+            >
+              <FaPlus className="text-xs" />
+              More
+              <span
+                className={`absolute left-1/2 -translate-x-1/2 bottom-0 h-0.5 bg-white transition-all duration-300
+                  ${dropdownOpen ? "w-3/4" : "w-0 group-hover:w-3/4"}`}
+              />
+            </button>
 
-            <Link to="/jobs" onClick={() => setIsOpen(false)} className={linkClass("/jobs")}>
-                Jobs
-            </Link>
+            {dropdownOpen && (
+              <div className="absolute top-12 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-50 border border-gray-100">
+                {secondaryMenu.map((item) => (
+                  <button
+                    key={item.name}
+                    onClick={() => {
+                      navigate(item.path);
+                      setDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-50 transition
+                      ${isActive(item.path) ? "text-blue-700 font-semibold bg-blue-50" : "text-gray-700"}`}
+                  >
+                    <span className="text-blue-600">{item.icon}</span>
+                    {item.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
-            <Link to="/candidates" onClick={() => setIsOpen(false)} className={linkClass("/candidates")}>
-                Candidates
-            </Link>
+        {/* RIGHT: Search, Settings, Profile */}
+        <div className="flex items-center gap-1 ml-auto">
 
-            <Link to="/interviews" onClick={() => setIsOpen(false)} className={linkClass("/interviews")}>
-                Interviews
-            </Link>
+          {/* SEARCH */}
+          <div className="relative flex items-center">
+            {searchOpen && (
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search..."
+                onBlur={() => setSearchOpen(false)}
+                className="absolute right-8 w-48 bg-blue-800 text-white placeholder-blue-300 text-sm px-3 py-1.5 rounded-lg outline-none border border-blue-600 transition-all"
+              />
+            )}
+            <button
+              onClick={() => setSearchOpen((p) => !p)}
+              className="p-2 rounded-lg text-blue-200 hover:bg-blue-800 hover:text-white transition text-lg"
+            >
+              <FaSearch />
+            </button>
+          </div>
 
-            <Link to="/clients" onClick={() => setIsOpen(false)} className={linkClass("/clients")}>
-                Clients
-            </Link>
+          {/* SETTINGS */}
+          <button
+            onClick={() => navigate(`${roleBase}/settings`)}
+            className={`p-2 rounded-lg text-lg transition
+              ${isActive(`${roleBase}/settings`)
+                ? "bg-blue-700 text-white"
+                : "text-blue-200 hover:bg-blue-800 hover:text-white"
+              }`}
+          >
+            <FaCog />
+          </button>
 
+          {/* PROFILE AVATAR */}
+          <button
+            onClick={() => setProfileOpen(true)}
+            className="ml-1 w-9 h-9 rounded-full bg-white text-blue-700 font-bold flex items-center justify-center hover:ring-2 hover:ring-blue-400 transition text-sm"
+          >
+            {user?.username?.charAt(0)?.toUpperCase()}
+          </button>
+        </div>
+      </nav>
+
+      {/* ── MOBILE SIDEBAR ── */}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
+          <div className="bg-blue-900 w-56 h-full p-5 text-white relative flex flex-col">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-5 right-5 text-2xl"
+            >
+              <RxCross2 />
+            </button>
+
+            <div className="mb-6 mt-1">
+              <img src={logo} alt="PhiBench" className="h-10 w-auto object-contain" />
             </div>
-        )}
 
-
-            {profileOpen && (
-            <div className="fixed top-0 right-0 h-full w-80 bg-white text-black shadow-lg z-50 p-6 transition-transform duration-300">
-
-                {/* Close Button */}
-                <button 
-                className="absolute top-4 right-4 text-xl"
-                onClick={() => setProfileOpen(false)}
+            <ul className="space-y-1 flex-1">
+              {fullMenu.map((item) => (
+                <li
+                  key={item.name}
+                  onClick={() => {
+                    navigate(item.path);
+                    setMobileOpen(false);
+                  }}
+                  className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition text-sm
+                    ${isActive(item.path) ? "bg-blue-700 text-white" : "hover:bg-blue-800 text-blue-100"}`}
                 >
-                ✖
+                  <span>{item.icon}</span>
+                  {item.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* ── PROFILE DRAWER ── */}
+      {profileOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            onClick={() => setProfileOpen(false)}
+          />
+          <div className="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-50">
+            <div className="bg-blue-600 text-white p-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Profile</h2>
+                <button onClick={() => setProfileOpen(false)}>
+                  <RxCross2 className="text-2xl" />
                 </button>
-
-                {/* User Info */}
-                <div className="mt-10">
-                <h2 className="text-xl font-semibold mb-2">Profile</h2>
-
-                <p className="mt-4">
-                    <strong>Username:</strong> {user?.username}
-                </p>
-
-                <p className="mt-2">
-                    <strong>Role:</strong> {user?.role}
-                </p>
+              </div>
+              <div className="mt-6 flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-white text-blue-600 flex items-center justify-center text-xl font-bold shadow-md">
+                  {user?.username?.charAt(0)?.toUpperCase()}
                 </div>
-
+                <div>
+                  <p className="font-semibold text-lg">{user?.username}</p>
+                  <p className="text-sm opacity-80 capitalize">{user?.role}</p>
+                </div>
+              </div>
             </div>
-            )}
 
-            {profileOpen && (
-            <div 
-                className="fixed inset-0 bg-black bg-opacity-30 z-40"
-                onClick={() => setProfileOpen(false)}
-            />
-            )}
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                <p className="text-sm text-gray-500">Username</p>
+                <p className="font-medium text-gray-800">{user?.username}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                <p className="text-sm text-gray-500">Role</p>
+                <p className="font-medium text-gray-800 capitalize">{user?.role}</p>
+              </div>
+              <div className="border-t pt-4" />
+              <button
+                onClick={() => setShowLogoutConfirm(true)}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
 
-        </nav>
-    );
-    };
+          {showLogoutConfirm && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+              <div className="bg-white rounded-xl shadow-xl p-6 w-72 text-center">
+                <h3 className="text-md font-semibold mb-4">Are you sure you want to logout?</h3>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowLogoutConfirm(false);
+                      setProfileOpen(false);
+                      handleLogout();
+                    }}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
-    export default Navbar;
+      {/* ── PAGE CONTENT ── */}
+      <div className="pt-16 flex-1">
+        <div className="p-4">
+          <Outlet />
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+export default Navbar;
