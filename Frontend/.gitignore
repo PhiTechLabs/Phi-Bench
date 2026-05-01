@@ -17,3 +17,6 @@ build/
 .vscode/
 .idea/  
 .parcel-cache/
+.gitignore
+package-lock.json
+package.json
