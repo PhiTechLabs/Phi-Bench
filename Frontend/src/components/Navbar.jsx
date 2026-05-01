@@ -1,291 +1,316 @@
-    import React, { useState } from "react";
-    import { Outlet, useNavigate } from "react-router-dom";
-    import { FaTachometerAlt } from "react-icons/fa"; // add this
-    import { FaBars } from "react-icons/fa";
-    import {
-    FaTachometerAlt,
-    FaUsers,
-    FaBriefcase,
-    FaUserTie,
-    FaHandshake,
-    FaPaperPlane,
-    FaBuilding,
-    FaChartBar,
-    FaCog, 
-    } from "react-icons/fa";
-    import { RxCross2 } from "react-icons/rx";
-    import { GoSearch } from "react-icons/go";
+import React, { useState, useRef, useEffect } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaUsers,
+  FaBriefcase,
+  FaUserTie,
+  FaHandshake,
+  FaChartBar,
+  FaCog,
+  FaPaperPlane,
+  FaBuilding,
+  FaPlus,
+  FaSearch,
+  FaBars,
+} from "react-icons/fa";
+import { RxCross2 } from "react-icons/rx";
+import { MdPeopleAlt } from "react-icons/md";
+import logo from "url:../assets/logo.png";
 
-    import { useNavigate } from "react-router-dom";
+const Navbar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
+  const dropdownRef = useRef(null);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const roleBase = `/${user?.role}`;
 
-
-    const Navbar = () => {
-    const navigate = useNavigate();
-    const [open, setOpen] = useState(false);
-
-    const [profileOpen, setProfileOpen] = useState(false);
-    const user = JSON.parse(localStorage.getItem("user"));
-    const roleBase = `/${user?.role}`;
-    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-    const handleLogout = () => {
-    // clear auth data
-    localStorage.removeItem("token"); 
-    localStorage.removeItem("user");
-
-    // optional: clear everything
-    localStorage.clear();
-
-    // redirect to login
-    navigate("/");
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
     };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-    // const menu = [
-    // { name: "Dashboard", path: "/home", icon: <FaTachometerAlt /> },
-    // { name: "Bench", path: "/bench", icon: <FaUsers /> },
-    // { name: "Jobs", path: "/jobs", icon: <FaBriefcase /> },
-    // { name: "Candidates", path: "/candidates", icon: <FaUsers /> },
-    // { name: "Submissions", path: "/submissions", icon: <FaPaperPlane /> },
-    // { name: "Interviews", path: "/interviews", icon: <FaUserTie /> },
-    // { name: "Clients", path: "/client", icon: <FaHandshake /> },
-    // { name: "Vendors", path: "/vendors", icon: <FaBuilding /> },
-    // { name: "Reports", path: "/reports", icon: <FaChartBar /> },
-    // { name: "Settings", path: "/settings", icon: <FaCog /> },
-    // ];
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
-        const menu = [
-        { name: "Dashboard", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
-        { name: "Bench", path: `${roleBase}/bench`, icon: <FaUsers /> },
-        { name: "Jobs", path: `${roleBase}/jobs`, icon: <FaBriefcase /> },
-        { name: "Candidates", path: `${roleBase}/candidates`, icon: <FaUsers /> },
-        { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
-        { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
-        { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
-        // { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
-        { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
-        { name: "Settings", path: `${roleBase}/settings`, icon: <FaCog /> },
-        ];
+  // PRIMARY NAV — visible in top bar
+  const primaryMenu = [
+    { name: "Dashboard", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
+    { name: "Jobs", path: `${roleBase}/jobs`, icon: <FaBriefcase /> },
+    { name: "Candidates", path: `${roleBase}/candidates`, icon: <FaUsers /> },
+    { name: "Bench", path: `${roleBase}/bench`, icon: <MdPeopleAlt /> },
+  ];
 
-    return (
-        <div className="flex min-h-screen bg-gray-100">
+  // SECONDARY NAV — inside + dropdown
+  const secondaryMenu = [
+    { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
+    { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
+    { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
+    { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
+    { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
+  ];
 
-        {/* SIDEBAR */}
-        <div className="bg-blue-900 text-white md:w-[15%] p-5 hidden  h-screen md:block">
-            <h1 className="text-xl font-bold mb-8">PhiBench</h1>
+  // Full menu for mobile sidebar
+  const fullMenu = [...primaryMenu, ...secondaryMenu];
 
-    <ul className="space-y-3">
-    {menu.map((item, i) => (
-        <li
-        key={i}
-        onClick={() => navigate(item.path)}
-        className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-700 cursor-pointer"
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-100">
+
+      {/* ── TOP NAVBAR ── */}
+      <nav className="bg-blue-900 text-white h-16 flex items-center px-4 md:px-6 shadow-md fixed top-0 left-0 right-0 z-30">
+
+        {/* LEFT: Hamburger (mobile only) */}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="md:hidden text-xl mr-3 text-white"
         >
-        <span className="text-lg">{item.icon}</span>
-        {item.name}
-        </li>
-    ))}
-    </ul>
-        </div>
+          <FaBars />
+        </button>
 
-        {/* MOBILE SIDEBAR */}
-        {open && (
-    <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
-        <div className="bg-blue-900 w-48 h-full p-5 text-white relative">
-
-            {/* CLOSE BUTTON */}
-            <button
-                onClick={() => setOpen(false)}
-                className="absolute top-5 right-6 text-2xl"
-            >
-                <RxCross2 />
-            </button>
-
-            <h1 className="text-xl font-bold mb-6">PhiBench</h1>
-
-            {menu.map((item, i) => (
-                <div
-                    key={i}
-                    onClick={() => {
-                        navigate(item.path);
-                        setOpen(false);
-                    }}
-                    className="p-2 rounded hover:bg-blue-700 cursor-pointer"
-                >
-                    {item.name}
-                </div>
-            ))}
+        {/* LOGO */}
+        <div
+          onClick={() => navigate(`${roleBase}/home`)}
+          className="flex items-center cursor-pointer mr-8 shrink-0 h-full py-0"
+        >
+          <img
+            src={logo}
+            alt="PhiBench"
+            className="h-full w-auto object-contain"
+          />
         </div>
     </div>
 )}
 
-        {/* MAIN CONTENT */}
-        <div className="flex-1  md:right-0">
-
-            {/* TOP BAR */}
-            <div className="bg-white p-4 shadow flex justify-between items-center relative z-10">
-
+        {/* CENTER: Primary nav links (desktop) */}
+        <div className="hidden md:flex items-center gap-2 flex-1">
+          {primaryMenu.map((item) => (
             <button
-                onClick={() => setOpen(true)}
-                className="md:hidden text-xl relative z-60"
+              key={item.name}
+              onClick={() => navigate(item.path)}
+              className={`relative px-5 py-2 text-base font-medium transition-all group
+                ${isActive(item.path) ? "text-white" : "text-blue-200 hover:text-white"}`}
             >
-                {
-                    open ? <RxCross2 /> : <FaBars />
-                }    
+              {item.name}
+              <span
+                className={`absolute left-1/2 -translate-x-1/2 bottom-0 h-0.5 bg-white transition-all duration-300
+                  ${isActive(item.path) ? "w-3/4" : "w-0 group-hover:w-3/4"}`}
+              />
+            </button>
+          ))}
+
+          {/* + MORE DROPDOWN */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen((p) => !p)}
+              className={`relative flex items-center gap-1.5 px-5 py-2 text-base font-medium transition-all group
+                ${dropdownOpen ? "text-white" : "text-blue-200 hover:text-white"}`}
+            >
+              <FaPlus className="text-xs" />
+              More
+              <span
+                className={`absolute left-1/2 -translate-x-1/2 bottom-0 h-0.5 bg-white transition-all duration-300
+                  ${dropdownOpen ? "w-3/4" : "w-0 group-hover:w-3/4"}`}
+              />
             </button>
 
-            <label htmlFor="search" className="relative mx-auto hidden md:block w-1/2">
-            <GoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500" />
-
-            <input
-                id="search"
-                type="text"
-                placeholder="Search..."
-                className="w-full border pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            </label>
-
-            <div
-                onClick={() => setProfileOpen(true)}
-                className="flex items-center gap-3 bg-white px-3 py-2 mr-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100"
-                >
-                {/* Avatar */}
-                <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                    {user?.username?.charAt(0)?.toUpperCase()}
-                </div>
-
-                {/* Username */}
-                {/* <div className="hidden sm:flex flex-col leading-tight">
-                    <span className="text-sm font-semibold text-gray-800">
-                    {user?.username}
-                    </span>
-                    <span className="text-xs text-gray-500 capitalize">
-                    {user?.role}
-                    </span>
-                </div> */}
-                </div>
-            </div>
-
-            {/* PAGE CONTENT */}
-            <div className="p-4">
-            <Outlet />
-            </div>
-
-            {profileOpen && (
-                <>
-                    {/* Overlay */}
-                    <div
-                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-                    onClick={() => setProfileOpen(false)}
-                    />
-
-                    {/* Drawer */}
-                    <div className="fixed top-0 right-0 h-full w-45 md:w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300">
-
-                    {/* Header */}
-                    <div className="bg-blue-600 text-white p-6 ">
-                        <div className="flex justify-between items-center">
-                        <h2 className=" text-lg text-shadow-lg  md:text-lg font-semibold">Profile</h2>
-                        <button onClick={() => setProfileOpen(false)}>
-                            <RxCross2 className="text-2xl" />
-                        </button>
-                        </div>
-
-                        {/* Avatar */}
-                        <div className="mt-6 flex items-center gap-2 md:gap-4">
-                        <div 
-                        className=" 
-                        w-14 h-9 px-2
-                        md:w-14 md:h-14 
-                        md:rounded-full rounded-xl 
-                        bg-white 
-                        text-blue-600 
-                        flex items-center justify-center 
-                        text-sm 
-                        md:text-xl 
-                        font-bold 
-                        shadow-md
-                        ">
-                            {user?.username?.charAt(0)?.toUpperCase()}
-                        </div>
-
-                        <div>
-                            <p className="font-semibold text-sm md:text-lg">{user?.username}</p>
-                            <p className="text-sm opacity-80 capitalize">{user?.role}</p>
-                        </div>
-                        </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="md:p-6 p-4 space-y-4">
-
-                        {/* Info Card */}
-                        <div className="bg-gray-50 p-3 md:p-4 rounded-xl shadow-sm">
-                        <p className="text-sm text-gray-500">Username</p>
-                        <p className="md:font-medium text-sm font-semibold text-gray-800">{user?.username}</p>
-                        </div>
-
-                        <div className="bg-gray-50 p-3 md:p-4 rounded-xl shadow-sm">
-                        <p className="text-sm text-gray-500">Role</p>
-                        <p className="md:font-medium text-sm font-semibold text-gray-800 capitalize">{user?.role}</p>
-                        </div>
-
-                        {/* Divider */}
-                        <div className="border-t pt-4"></div>
-
-                        {/* Actions */}
-                        <button
-                            onClick={() => setShowLogoutConfirm(true)}
-                            className="md:w-full w-[80%] ml-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
-                            >
-                            Logout
-                        </button>
-
-                    </div>
-                    </div>
-
-                    {/* Logout Confirm */}
-                    {showLogoutConfirm && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-                        <div className="bg-white rounded-xl shadow-xl p-6 md:w-80 w-60 text-center">
-                        
-                        <h3 className="text-md font-semibold mb-4">
-                            Are you sure you want to logout?
-                        </h3>
-
-                        <div className="flex justify-center gap-3 md:gap-4">
-                            
-                            {/* Cancel */}
-                            <button
-                            onClick={() => setShowLogoutConfirm(false)}
-                            className="md:px-4 md:py-2 px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300"
-                            >
-                            No
-                            </button>
-
-                            {/* Confirm */}
-                            <button
-                            onClick={() => {
-                                setShowLogoutConfirm(false);
-                                setProfileOpen(false);
-                                handleLogout();
-                            }}
-                            className="md:px-4 md:py-2 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                            >
-                            Yes
-                            </button>
-
-                        </div>
-                        </div>
-                    </div>
-                    )}
-                </>
+            {dropdownOpen && (
+              <div className="absolute top-12 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-50 border border-gray-100">
+                {secondaryMenu.map((item) => (
+                  <button
+                    key={item.name}
+                    onClick={() => {
+                      navigate(item.path);
+                      setDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-50 transition
+                      ${isActive(item.path) ? "text-blue-700 font-semibold bg-blue-50" : "text-gray-700"}`}
+                  >
+                    <span className="text-blue-600">{item.icon}</span>
+                    {item.name}
+                  </button>
+                ))}
+              </div>
             )}
+          </div>
         </div>
 
-        </div> // End of main container
-        
-        ); // End of return statement
-    }; // End of Layout component
+        {/* RIGHT: Search, Settings, Profile */}
+        <div className="flex items-center gap-1 ml-auto">
 
-    export default Navbar;
+          {/* SEARCH */}
+          <div className="relative flex items-center">
+            {searchOpen && (
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search..."
+                onBlur={() => setSearchOpen(false)}
+                className="absolute right-8 w-48 bg-blue-800 text-white placeholder-blue-300 text-sm px-3 py-1.5 rounded-lg outline-none border border-blue-600 transition-all"
+              />
+            )}
+            <button
+              onClick={() => setSearchOpen((p) => !p)}
+              className="p-2 rounded-lg text-blue-200 hover:bg-blue-800 hover:text-white transition text-lg"
+            >
+              <FaSearch />
+            </button>
+          </div>
+
+          {/* SETTINGS */}
+          <button
+            onClick={() => navigate(`${roleBase}/settings`)}
+            className={`p-2 rounded-lg text-lg transition
+              ${isActive(`${roleBase}/settings`)
+                ? "bg-blue-700 text-white"
+                : "text-blue-200 hover:bg-blue-800 hover:text-white"
+              }`}
+          >
+            <FaCog />
+          </button>
+
+          {/* PROFILE AVATAR */}
+          <button
+            onClick={() => setProfileOpen(true)}
+            className="ml-1 w-9 h-9 rounded-full bg-white text-blue-700 font-bold flex items-center justify-center hover:ring-2 hover:ring-blue-400 transition text-sm"
+          >
+            {user?.username?.charAt(0)?.toUpperCase()}
+          </button>
+        </div>
+      </nav>
+
+      {/* ── MOBILE SIDEBAR ── */}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
+          <div className="bg-blue-900 w-56 h-full p-5 text-white relative flex flex-col">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-5 right-5 text-2xl"
+            >
+              <RxCross2 />
+            </button>
+
+            <div className="mb-6 mt-1">
+              <img src={logo} alt="PhiBench" className="h-10 w-auto object-contain" />
+            </div>
+
+            <ul className="space-y-1 flex-1">
+              {fullMenu.map((item) => (
+                <li
+                  key={item.name}
+                  onClick={() => {
+                    navigate(item.path);
+                    setMobileOpen(false);
+                  }}
+                  className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition text-sm
+                    ${isActive(item.path) ? "bg-blue-700 text-white" : "hover:bg-blue-800 text-blue-100"}`}
+                >
+                  <span>{item.icon}</span>
+                  {item.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* ── PROFILE DRAWER ── */}
+      {profileOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            onClick={() => setProfileOpen(false)}
+          />
+          <div className="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-50">
+            <div className="bg-blue-600 text-white p-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Profile</h2>
+                <button onClick={() => setProfileOpen(false)}>
+                  <RxCross2 className="text-2xl" />
+                </button>
+              </div>
+              <div className="mt-6 flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-white text-blue-600 flex items-center justify-center text-xl font-bold shadow-md">
+                  {user?.username?.charAt(0)?.toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold text-lg">{user?.username}</p>
+                  <p className="text-sm opacity-80 capitalize">{user?.role}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                <p className="text-sm text-gray-500">Username</p>
+                <p className="font-medium text-gray-800">{user?.username}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
+                <p className="text-sm text-gray-500">Role</p>
+                <p className="font-medium text-gray-800 capitalize">{user?.role}</p>
+              </div>
+              <div className="border-t pt-4" />
+              <button
+                onClick={() => setShowLogoutConfirm(true)}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+
+          {showLogoutConfirm && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+              <div className="bg-white rounded-xl shadow-xl p-6 w-72 text-center">
+                <h3 className="text-md font-semibold mb-4">Are you sure you want to logout?</h3>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowLogoutConfirm(false);
+                      setProfileOpen(false);
+                      handleLogout();
+                    }}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── PAGE CONTENT ── */}
+      <div className="pt-16 flex-1">
+        <div className="p-4">
+          <Outlet />
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+export default Navbar;
