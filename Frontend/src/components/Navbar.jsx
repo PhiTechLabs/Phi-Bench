@@ -159,7 +159,12 @@ const Navbar = () => {
                 type="text"
                 placeholder="Search..."
                 onBlur={() => setSearchOpen(false)}
-                className="absolute right-8 w-48 bg-blue-800 text-white placeholder-blue-300 text-sm px-3 py-1.5 rounded-lg outline-none border border-blue-600 transition-all"
+                className="absolute right-8 w-48
+                bg-white text-gray-700
+                placeholder:text-gray-800
+                text-sm px-3 py-1.5 rounded-lg
+                outline-none border
+                border-blue-600 transition-all"
               />
             )}
             <button
