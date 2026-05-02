@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(node server.js)",
-      "PowerShell(cd \"c:\\\\Users\\\\Phite\\\\OneDrive\\\\Desktop\\\\Phi-Bench\\\\Backend\"; $env:NODE_ENV = \"development\"; node server.js 2>&1 | Select-Object -First 30)"
-    ]
-  }
-}
