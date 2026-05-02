@@ -94,8 +94,6 @@ const Navbar = () => {
             className="h-full w-auto object-contain"
           />
         </div>
-    </div>
-)}
 
         {/* CENTER: Primary nav links (desktop) */}
         <div className="hidden md:flex items-center gap-2 flex-1">
