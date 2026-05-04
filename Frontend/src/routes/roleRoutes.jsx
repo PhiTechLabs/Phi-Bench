@@ -10,6 +10,7 @@ import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
 import Client from "../pages/Client";
 import ClientDetails from "../pages/ClientDetails";
+import AddClient from "../pages/AddClient";
 
 export const roleRoutes = [
     { index: true, element: <Home /> },
@@ -28,4 +29,5 @@ export const roleRoutes = [
 
     { path: "client-list", element: <Client /> },
     { path: "client-list/:id", element: <ClientDetails /> },
+    { path: "add-client", element: <AddClient /> },
 ];
