@@ -3,6 +3,7 @@
     // import Layout from "./layout";
     import Navbar from "./Navbar";
     import { roleRoutes } from "../routes/roleRoutes";
+    import Setup from "../pages/Setup";
 
     function App() {
     return (
@@ -11,6 +12,9 @@
 
             {/* LOGIN */}
             <Route path="/" element={<Login />} />
+
+            {/*  SETUP — accessible by all roles, outside Navbar layout */}
+            <Route path="/setup" element={<Setup />} />
 
             {/* CLIENT */}
             <Route path="/client" element={<Navbar />}>

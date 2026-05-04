@@ -1,17 +1,18 @@
 import jwt from "jsonwebtoken";
 
 export const protect = (req, res, next) => {
-    const token = req.headers.authorization;
+    // ✅ Read token from HttpOnly cookie (not Authorization header anymore)
+    const token = req.cookies?.token;
 
     if (!token) {
-        return res.status(401).json({ message: "Not authorized" });
+        return res.status(401).json({ message: "Not authorized, no token" });
     }
 
     try {
-        const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-        req.user = decoded;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded; // { id, role }
         next();
     } catch (error) {
-        res.status(401).json({ message: "Token failed" });
+        res.status(401).json({ message: "Token invalid or expired" });
     }
 };
