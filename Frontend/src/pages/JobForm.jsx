@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 const JobForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({});
-  const [activeSection, setActiveSection] = useState(0);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -12,86 +11,37 @@ const JobForm = ({ setShowForm, onSave }) => {
     onSave(formData);
   };
 
-  const sections = ["Job Info", "Location & Post", "Description"];
-
   return (
-    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", minHeight: "100vh", background: "#F5F4F0" }}>
-
+    <div className="min-h-screen bg-[#F5F4F0] font-sans">
       {/* HEADER */}
-      <div style={{
-        position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid #E8E6E0",
-        padding: "0 2rem",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: "64px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+      <div className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-[#E8E6E0] bg-white/90 px-8 backdrop-blur-md">
+        <div className="flex items-center gap-5">
           <button
             onClick={() => setShowForm(false)}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              width: "36px", height: "36px", borderRadius: "10px",
-              border: "1px solid #E0DDD6", background: "white",
-              cursor: "pointer", color: "#6B6860", fontSize: "18px",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "#F5F4F0"}
-            onMouseLeave={e => e.currentTarget.style.background = "white"}
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E0DDD6] bg-white text-lg text-[#6B6860] transition-all hover:bg-[#F5F4F0]"
           >
             ←
           </button>
           <div>
-            <div style={{ fontSize: "11px", color: "#9B9890", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 500 }}>PhiBench</div>
-            <div style={{ fontSize: "18px", fontWeight: 600, color: "#1C1B18", lineHeight: 1.2, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>New Job Opening</div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
+              PhiBench
+            </div>
+            <div className="text-[18px] font-semibold leading-tight text-[#1C1B18]">
+              New Job Opening
+            </div>
           </div>
         </div>
 
-        {/* STEP INDICATOR */}
-        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-          {sections.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveSection(i)}
-              style={{
-                padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 500,
-                border: "none", cursor: "pointer",
-                background: activeSection === i ? "#1C1B18" : "transparent",
-                color: activeSection === i ? "white" : "#9B9890",
-                transition: "all 0.2s",
-              }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div className="flex gap-2.5">
           <button
             onClick={() => setShowForm(false)}
-            style={{
-              padding: "9px 20px", borderRadius: "10px",
-              border: "1px solid #E0DDD6", background: "white",
-              fontSize: "13px", fontWeight: 500, color: "#4A4845", cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "#F5F4F0"}
-            onMouseLeave={e => e.currentTarget.style.background = "white"}
+            className="rounded-[10px] border border-[#E0DDD6] bg-white px-5 py-2.5 text-[13px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0]"
           >
             Discard
           </button>
           <button
             onClick={handleSubmit}
-            style={{
-              padding: "9px 22px", borderRadius: "10px",
-              border: "none", background: "#1C4ED8",
-              fontSize: "13px", fontWeight: 500, color: "white", cursor: "pointer",
-              transition: "all 0.15s",
-              boxShadow: "0 1px 3px rgba(28,78,216,0.3)",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = "#1741B6"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(28,78,216,0.35)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "#1C4ED8"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(28,78,216,0.3)"; }}
+            className="rounded-[10px] bg-[#1C4ED8] px-[22px] py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)]"
           >
             Save Job Opening →
           </button>
@@ -99,123 +49,80 @@ const JobForm = ({ setShowForm, onSave }) => {
       </div>
 
       {/* MAIN LAYOUT */}
-      <div style={{ maxWidth: "860px", margin: "0 auto", padding: "2rem 2rem" }}>
-
-        {/* FORM AREA */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-
+      <div className="mx-auto max-w-[1280px] px-8 py-8 pb-12">
+        <div className="flex flex-col gap-5">
           {/* SECTION 1: JOB INFO */}
-          <Section title="Job Info" subtitle="Core details about the position and assignment" visible={activeSection === 0}>
-            <TwoCol>
+          <Section title="Job Info" subtitle="Core details about the position and assignment">
+            <Row>
               <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required />
               <Field label="Client Name" name="client" placeholder="Client company name" onChange={handleChange} required />
-            </TwoCol>
-            <TwoCol>
+            </Row>
+            <Row>
               <Field label="Contact Name" name="contact" placeholder="Hiring manager" onChange={handleChange} />
               <Field label="Account Manager" name="manager" placeholder="Internal AM" onChange={handleChange} />
-            </TwoCol>
-            <TwoCol>
+            </Row>
+            <Row>
               <Field label="Assign Recruiter" name="recruiter" placeholder="Recruiter name" onChange={handleChange} />
               <SelectField
-                label="Job Status" name="status"
+                label="Job Status"
+                name="status"
                 options={["Open", "Closed", "On Hold", "Filled"]}
                 onChange={handleChange}
               />
-            </TwoCol>
-            <TwoCol>
+            </Row>
+            <Row>
               <Field label="Date Opened" name="dateOpened" type="date" onChange={handleChange} />
               <Field label="Target Date" name="targetDate" type="date" onChange={handleChange} />
-            </TwoCol>
-            <TwoCol>
+            </Row>
+            <Row>
               <Field label="Job Type" name="jobType" placeholder="Full-time / Contract / C2C" onChange={handleChange} />
               <Field label="Work Experience" name="experience" placeholder="e.g. 5+ years" onChange={handleChange} />
-            </TwoCol>
-            <TwoCol>
+            </Row>
+            <Row>
               <Field label="Industry" name="industry" placeholder="e.g. Fintech, Healthcare" onChange={handleChange} />
               <Field label="Salary / Rate" name="salary" placeholder="e.g. $120k or $65/hr" onChange={handleChange} />
-            </TwoCol>
-            <Field label="Required Skills" name="skills" placeholder="e.g. React, Node.js, AWS, Kubernetes..." onChange={handleChange} full />
+            </Row>
+            <Row>
+              <Field label="Required Skills" name="skills" placeholder="e.g. React, Node.js, AWS, Kubernetes..." onChange={handleChange} full />
+            </Row>
           </Section>
 
           {/* SECTION 2: LOCATION */}
-          <Section title="Location & Posting" subtitle="Where is this role based and how it will be listed" visible={activeSection === 1}>
-            <TwoCol>
+          <Section title="Location & Posting" subtitle="Where is this role based and how it will be listed">
+            <Row>
               <Field label="City" name="city" placeholder="e.g. Austin" onChange={handleChange} />
               <Field label="Country" name="country" placeholder="e.g. United States" onChange={handleChange} />
-            </TwoCol>
-            <Field label="Post Info / Job Board Details" name="postInfo" placeholder="Where should this opening be posted?" onChange={handleChange} full />
+            </Row>
+            <Row>
+              <Field label="Post Info / Job Board" name="postInfo" placeholder="Where should this opening be posted?" onChange={handleChange} full />
+            </Row>
           </Section>
 
           {/* SECTION 3: DESCRIPTION */}
-          <Section title="Job Description" subtitle="Detailed description shown to candidates" visible={activeSection === 2}>
-            <div>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#4A4845", display: "block", marginBottom: "8px", letterSpacing: "0.02em" }}>
-                Description <span style={{ color: "#DC2626" }}>*</span>
-              </label>
-              <textarea
-                name="description"
-                onChange={handleChange}
-                placeholder="Write a detailed job description including responsibilities, qualifications, and any other relevant information..."
-                style={{
-                  width: "100%", minHeight: "280px",
-                  padding: "14px 16px",
-                  border: "1px solid #E0DDD6",
-                  borderRadius: "12px",
-                  fontSize: "14px", lineHeight: "1.7",
-                  color: "#1C1B18",
-                  background: "#FAFAF8",
-                  resize: "vertical",
-                  outline: "none",
-                  fontFamily: "inherit",
-                  boxSizing: "border-box",
-                  transition: "border-color 0.15s, box-shadow 0.15s",
-                }}
-                onFocus={e => { e.target.style.borderColor = "#93AEFF"; e.target.style.boxShadow = "0 0 0 3px rgba(99,130,255,0.12)"; e.target.style.background = "white"; }}
-                onBlur={e => { e.target.style.borderColor = "#E0DDD6"; e.target.style.boxShadow = "none"; e.target.style.background = "#FAFAF8"; }}
-              />
-            </div>
+          <Section title="Job Description" subtitle="Detailed description shown to candidates">
+            <TextAreaField
+              label="Description"
+              name="description"
+              required
+              placeholder="Write a detailed job description including responsibilities, qualifications, and any other relevant information..."
+              onChange={handleChange}
+            />
           </Section>
 
-          {/* NAVIGATION BUTTONS */}
-          <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "8px" }}>
+          {/* FOOTER ACTIONS */}
+          <div className="flex justify-end gap-2.5 pt-2">
             <button
-              onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
-              disabled={activeSection === 0}
-              style={{
-                padding: "10px 20px", borderRadius: "10px",
-                border: "1px solid #E0DDD6", background: "white",
-                fontSize: "13px", fontWeight: 500,
-                color: activeSection === 0 ? "#C0BDB6" : "#4A4845",
-                cursor: activeSection === 0 ? "default" : "pointer",
-              }}
+              onClick={() => setShowForm(false)}
+              className="rounded-[10px] border border-[#E0DDD6] bg-white px-[22px] py-2.5 text-[13px] font-medium text-[#4A4845]"
             >
-              ← Previous
+              Cancel
             </button>
-
-            {activeSection < 2 ? (
-              <button
-                onClick={() => setActiveSection(Math.min(2, activeSection + 1))}
-                style={{
-                  padding: "10px 22px", borderRadius: "10px",
-                  border: "none", background: "#1C1B18",
-                  fontSize: "13px", fontWeight: 500, color: "white", cursor: "pointer",
-                }}
-              >
-                Next → {sections[activeSection + 1]}
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                style={{
-                  padding: "10px 22px", borderRadius: "10px",
-                  border: "none", background: "#1C4ED8",
-                  fontSize: "13px", fontWeight: 500, color: "white", cursor: "pointer",
-                  boxShadow: "0 1px 3px rgba(28,78,216,0.3)",
-                }}
-              >
-                Save Job Opening →
-              </button>
-            )}
+            <button
+              onClick={handleSubmit}
+              className="rounded-[10px] bg-[#1C4ED8] px-6 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)]"
+            >
+              Save Job Opening →
+            </button>
           </div>
         </div>
       </div>
@@ -223,97 +130,70 @@ const JobForm = ({ setShowForm, onSave }) => {
   );
 };
 
-
 export default JobForm;
-
 
 /* ──────────────────── INTERNAL COMPONENTS ──────────────────── */
 
-const Section = ({ title, subtitle, children, visible }) => {
-  if (!visible) return null;
-  return (
-    <div style={{
-      background: "white",
-      borderRadius: "16px",
-      border: "1px solid #E8E6E0",
-      overflow: "hidden",
-    }}>
-      {/* Section Header */}
-      <div style={{
-        padding: "20px 28px 18px",
-        borderBottom: "1px solid #F0EDE8",
-        background: "#FAFAF8",
-      }}>
-        <div style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "#1C1B18", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>{title}</div>
-        {subtitle && <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#9B9890" }}>{subtitle}</p>}
-      </div>
-      {/* Section Body */}
-      <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
-        {children}
-      </div>
+const Section = ({ title, subtitle, children }) => (
+  <div className="overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white">
+    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-8 pt-5 pb-[18px]">
+      <div className="text-[16px] font-semibold text-[#1C1B18]">{title}</div>
+      {subtitle && <p className="mt-1 text-[13px] text-[#9B9890]">{subtitle}</p>}
     </div>
-  );
-};
-
-const TwoCol = ({ children }) => (
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-    {children}
+    <div className="flex flex-col gap-[18px] px-8 py-5">{children}</div>
   </div>
+);
+
+const Row = ({ children }) => (
+  <div className="grid grid-cols-2 items-center gap-x-[72px]">{children}</div>
+);
+
+const fieldInputClass =
+  "min-w-0 flex-1 rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8] px-3.5 py-2.5 text-[14px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20";
+
+const FieldLabel = ({ label, required, alignTop }) => (
+  <label
+    className={`w-[150px] flex-shrink-0 text-[13px] font-medium tracking-[0.01em] text-[#4A4845] ${
+      alignTop ? "pt-3" : ""
+    }`}
+  >
+    {label} {required && <span className="text-[#DC2626]">*</span>}
+  </label>
 );
 
 const Field = ({ label, required, full, ...props }) => (
-  <div style={{ gridColumn: full ? "1 / -1" : undefined }}>
-    <label style={{ fontSize: "12px", fontWeight: 600, color: "#4A4845", display: "block", marginBottom: "8px", letterSpacing: "0.02em" }}>
-      {label} {required && <span style={{ color: "#DC2626" }}>*</span>}
-    </label>
-    <input
-      {...props}
-      style={{
-        width: "100%",
-        padding: "10px 14px",
-        border: "1px solid #E0DDD6",
-        borderRadius: "10px",
-        fontSize: "14px",
-        color: "#1C1B18",
-        background: "#FAFAF8",
-        outline: "none",
-        fontFamily: "inherit",
-      }}
-      onFocus={e => { e.target.style.borderColor = "#93AEFF"; e.target.style.boxShadow = "0 0 0 3px rgba(99,130,255,0.12)"; e.target.style.background = "white"; }}
-      onBlur={e => { e.target.style.borderColor = "#E0DDD6"; e.target.style.boxShadow = "none"; e.target.style.background = "#FAFAF8"; }}
-    />
+  <div className={`flex items-center gap-4 ${full ? "col-span-2" : ""}`}>
+    <FieldLabel label={label} required={required} />
+    <input {...props} className={fieldInputClass} />
   </div>
 );
 
-const SelectField = ({ label, options, ...props }) => (
-  <div>
-    <label style={{ fontSize: "12px", fontWeight: 600, color: "#4A4845", display: "block", marginBottom: "8px", letterSpacing: "0.02em" }}>
-      {label}
-    </label>
+const SelectField = ({ label, options = [], required, full, ...props }) => (
+  <div className={`flex items-center gap-4 ${full ? "col-span-2" : ""}`}>
+    <FieldLabel label={label} required={required} />
     <select
       {...props}
+      className={`${fieldInputClass} cursor-pointer appearance-none bg-[length:12px_12px] bg-[right_14px_center] bg-no-repeat pr-9`}
       style={{
-        width: "100%",
-        padding: "10px 14px",
-        border: "1px solid #E0DDD6",
-        borderRadius: "10px",
-        fontSize: "14px",
-        color: "#1C1B18",
-        background: "#FAFAF8",
-        outline: "none",
-        fontFamily: "inherit",
-        appearance: "none",
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "right 14px center",
-        paddingRight: "36px",
-        boxSizing: "border-box",
       }}
-      onFocus={e => { e.target.style.borderColor = "#93AEFF"; e.target.style.boxShadow = "0 0 0 3px rgba(99,130,255,0.12)"; }}
-      onBlur={e => { e.target.style.borderColor = "#E0DDD6"; e.target.style.boxShadow = "none"; }}
     >
       <option value="">Select status...</option>
-      {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
     </select>
+  </div>
+);
+
+const TextAreaField = ({ label, required, ...props }) => (
+  <div className="flex items-start gap-4">
+    <FieldLabel label={label} required={required} alignTop />
+    <textarea
+      {...props}
+      className="min-h-[260px] min-w-0 flex-1 resize-y rounded-xl border border-[#E0DDD6] bg-[#FAFAF8] px-4 py-3.5 text-[14px] leading-[1.7] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20"
+    />
   </div>
 );
