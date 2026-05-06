@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -15,8 +16,15 @@ import {
   FaBars,
 } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import { MdPeopleAlt } from "react-icons/md";
+import { MdPeopleAlt } from "react-icons/md";9
+
 import logo from "url:../assets/logo.png";
+
+// ✅ withCredentials so the logout call also sends the HttpOnly cookie
+const api = axios.create({
+  baseURL: "http://localhost:5000/api/auth",
+  withCredentials: true,
+});
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -29,9 +37,8 @@ const Navbar = () => {
 
   const dropdownRef = useRef(null);
   const user = JSON.parse(localStorage.getItem("user"));
-  const roleBase = `/${user?.role}`;
+  const roleBase = `/${user?.role === "superAdmin" ? "superadmin" : user?.role}`;
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -42,20 +49,30 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // ✅ Tell backend to clear the HttpOnly cookie
+      await api.post("/logout");
+    } catch (_) {
+      // even if request fails, clear local state
+    }
     localStorage.clear();
     navigate("/");
   };
 
-  // PRIMARY NAV — visible in top bar
+  // ✅ My Account — navigate to /setup (works for all roles)
+  const handleMyAccount = () => {
+    setProfileOpen(false);
+    navigate("/setup");
+  };
+
   const primaryMenu = [
-    { name: "Dashboard", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
+    { name: "Home", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
     { name: "Jobs", path: `${roleBase}/jobs`, icon: <FaBriefcase /> },
     { name: "Candidates", path: `${roleBase}/candidates`, icon: <FaUsers /> },
     { name: "Bench", path: `${roleBase}/bench`, icon: <MdPeopleAlt /> },
   ];
 
-  // SECONDARY NAV — inside + dropdown
   const secondaryMenu = [
     { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
     { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
@@ -64,9 +81,7 @@ const Navbar = () => {
     { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
   ];
 
-  // Full menu for mobile sidebar
   const fullMenu = [...primaryMenu, ...secondaryMenu];
-
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
 
   return (
@@ -75,27 +90,17 @@ const Navbar = () => {
       {/* ── TOP NAVBAR ── */}
       <nav className="bg-blue-900 text-white h-16 flex items-center px-4 md:px-6 shadow-md fixed top-0 left-0 right-0 z-30">
 
-        {/* LEFT: Hamburger (mobile only) */}
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="md:hidden text-xl mr-3 text-white"
-        >
+        <button onClick={() => setMobileOpen(true)} className="md:hidden text-xl mr-3 text-white">
           <FaBars />
         </button>
 
-        {/* LOGO */}
         <div
           onClick={() => navigate(`${roleBase}/home`)}
           className="flex items-center cursor-pointer mr-8 shrink-0 h-full py-0"
         >
-          <img
-            src={logo}
-            alt="PhiBench"
-            className="h-full w-auto object-contain"
-          />
+          <img src={logo} alt="PhiBench" className="h-full w-auto object-contain" />
         </div>
 
-        {/* CENTER: Primary nav links (desktop) */}
         <div className="hidden md:flex items-center gap-2 flex-1">
           {primaryMenu.map((item) => (
             <button
@@ -112,7 +117,6 @@ const Navbar = () => {
             </button>
           ))}
 
-          {/* + MORE DROPDOWN */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen((p) => !p)}
@@ -132,10 +136,7 @@ const Navbar = () => {
                 {secondaryMenu.map((item) => (
                   <button
                     key={item.name}
-                    onClick={() => {
-                      navigate(item.path);
-                      setDropdownOpen(false);
-                    }}
+                    onClick={() => { navigate(item.path); setDropdownOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-50 transition
                       ${isActive(item.path) ? "text-blue-700 font-semibold bg-blue-50" : "text-gray-700"}`}
                   >
@@ -148,10 +149,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* RIGHT: Search, Settings, Profile */}
         <div className="flex items-center gap-1 ml-auto">
-
-          {/* SEARCH */}
           <div className="relative flex items-center">
             {searchOpen && (
               <input
@@ -159,12 +157,7 @@ const Navbar = () => {
                 type="text"
                 placeholder="Search..."
                 onBlur={() => setSearchOpen(false)}
-                className="absolute right-8 w-48
-                bg-white text-gray-700
-                placeholder:text-gray-800
-                text-sm px-3 py-1.5 rounded-lg
-                outline-none border
-                border-blue-600 transition-all"
+                className="absolute right-8 w-48 bg-white text-gray-700 placeholder:text-gray-800 text-sm px-3 py-1.5 rounded-lg outline-none border border-blue-600 transition-all"
               />
             )}
             <button
@@ -175,19 +168,14 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* SETTINGS */}
           <button
             onClick={() => navigate(`${roleBase}/settings`)}
             className={`p-2 rounded-lg text-lg transition
-              ${isActive(`${roleBase}/settings`)
-                ? "bg-blue-700 text-white"
-                : "text-blue-200 hover:bg-blue-800 hover:text-white"
-              }`}
+              ${isActive(`${roleBase}/settings`) ? "bg-blue-700 text-white" : "text-blue-200 hover:bg-blue-800 hover:text-white"}`}
           >
             <FaCog />
           </button>
 
-          {/* PROFILE AVATAR */}
           <button
             onClick={() => setProfileOpen(true)}
             className="ml-1 w-9 h-9 rounded-full bg-white text-blue-700 font-bold flex items-center justify-center hover:ring-2 hover:ring-blue-400 transition text-sm"
@@ -201,25 +189,17 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
           <div className="bg-blue-900 w-56 h-full p-5 text-white relative flex flex-col">
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="absolute top-5 right-5 text-2xl"
-            >
+            <button onClick={() => setMobileOpen(false)} className="absolute top-5 right-5 text-2xl">
               <RxCross2 />
             </button>
-
             <div className="mb-6 mt-1">
               <img src={logo} alt="PhiBench" className="h-10 w-auto object-contain" />
             </div>
-
             <ul className="space-y-1 flex-1">
               {fullMenu.map((item) => (
                 <li
                   key={item.name}
-                  onClick={() => {
-                    navigate(item.path);
-                    setMobileOpen(false);
-                  }}
+                  onClick={() => { navigate(item.path); setMobileOpen(false); }}
                   className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition text-sm
                     ${isActive(item.path) ? "bg-blue-700 text-white" : "hover:bg-blue-800 text-blue-100"}`}
                 >
@@ -256,6 +236,14 @@ const Navbar = () => {
                   <p className="text-sm opacity-80 capitalize">{user?.role}</p>
                 </div>
               </div>
+
+              {/* ✅ My Account button — now navigates to /setup */}
+              <button
+                onClick={handleMyAccount}
+                className="mt-4 w-full text-sm bg-white/20 hover:bg-white/30 text-white py-2 rounded-lg transition font-medium"
+              >
+                My Account
+              </button>
             </div>
 
             <div className="p-6 space-y-4">
@@ -305,13 +293,11 @@ const Navbar = () => {
         </>
       )}
 
-      {/* ── PAGE CONTENT ── */}
       <div className="pt-16 flex-1">
         <div className="p-4">
           <Outlet />
         </div>
       </div>
-
     </div>
   );
 };
