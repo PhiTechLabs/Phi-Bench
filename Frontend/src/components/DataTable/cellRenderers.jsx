@@ -79,11 +79,11 @@ const ChipsCell = ({ value, max }) => {
   return (
     <div className="flex flex-nowrap items-center gap-1 overflow-hidden">
       {all.slice(0, max).map((t, i) => (
-        <span key={i} className="flex-shrink-0 rounded border border-[#E0DDD6] bg-[#FAFAF8] px-1.5 py-0.5 text-[10.5px] font-medium text-[#4A4845]">
+        <span key={i} className="shrink-0 rounded border border-[#E0DDD6] bg-[#FAFAF8] px-1.5 py-0.5 text-[10.5px] font-medium text-[#4A4845]">
           {t}
         </span>
       ))}
-      {all.length > max && <span className="flex-shrink-0 text-[10.5px] text-[#9B9890]">+{all.length - max}</span>}
+      {all.length > max && <span className="shrink-0 text-[10.5px] text-[#9B9890]">+{all.length - max}</span>}
     </div>
   );
 };
@@ -124,13 +124,13 @@ const ToggleCell = ({ on, onToggle }) => (
   <button
     type="button"
     onClick={(e) => { e.stopPropagation(); onToggle(); }}
-    className={`relative inline-flex h-[18px] w-[32px] flex-shrink-0 items-center rounded-full border transition-all ${
+    className={`relative inline-flex h-4.5 w-8 shrink-0 items-center rounded-full border transition-all ${
       on ? "border-[#1C4ED8] bg-[#1C4ED8]" : "border-[#E0DDD6] bg-[#F5F4F0]"
     }`}
   >
     <span
-      className={`inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-transform ${
-        on ? "translate-x-[17px]" : "translate-x-[2px]"
+      className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-transform ${
+        on ? "translate-x-4.25" : "translate-x-0.5"
       }`}
     />
   </button>
@@ -165,7 +165,7 @@ const StatusCell = ({ value, options, onChange }) => {
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-[160px] overflow-hidden rounded-[8px] border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+        <div className="absolute left-0 top-full z-50 mt-1 w-40 overflow-hidden rounded-lg border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
           <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-2.5 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.06em] text-[#9B9890]">
             Update Status
           </div>
