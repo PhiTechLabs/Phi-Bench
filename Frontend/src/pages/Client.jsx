@@ -1,97 +1,137 @@
-    import React, { useState, useEffect } from "react";
-    import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import DataTable from "../components/DataTable/DataTable";
+import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
 
-    const Client = () => {
-    const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem("user"));
-    const roleBase = `/${user?.role}`;
+/* ──────────────────── STATUS PIPELINE ──────────────────── */
+const STATUS_OPTIONS = [
+  { value: "Active",     color: "bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]" },
+  { value: "Prospect",   color: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]" },
+  { value: "Onboarding", color: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]" },
+  { value: "On Hold",    color: "bg-[#F5F4F0] text-[#6B6860] border-[#E0DDD6]" },
+  { value: "Inactive",   color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]" },
+];
 
-    // TODO: replace with API fetch — e.g. useEffect(() => axios.get('/api/clients').then(...), [])
-    const [clients, setClients] = useState([]);
+/* Maps backend `_id` → `id` and flattens nested locations/pocs for table display */
+const shapeClient = (c) => {
+  const loc = c.locations?.[0];
+  const poc = c.pocs?.[0];
+  return {
+    ...c,
+    id:           c._id || c.id,
+    primaryPoc:   poc?.name || "",
+    primaryEmail: poc?.email || "",
+    primaryPhone: poc?.contact || c.contactNumber || "",
+    primaryCity:  loc?.city || c.billingCity || "",
+    primaryState: loc?.state || c.billingState || "",
+  };
+};
 
-    return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+/* ──────────────────── COMPONENT ──────────────────── */
+
+const Client = () => {
+  const [clients, setClients]       = useState([]);
+  const [confirmDel, setConfirmDel] = useState(null);
+  const navigate = useNavigate();
+  const user     = JSON.parse(localStorage.getItem("user"));
+  const roleBase = `/${user?.role === "superAdmin" ? "superadmin" : user?.role}`;
+
+  const refresh = useCallback(async () => {
+    const data = await getAllClients();
+    const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
+    setClients(list.map(shapeClient));
+  }, []);
+  useEffect(() => { refresh(); }, [refresh]);
+
+  /* ── handlers ── */
+  const handleDelete = (row) => setConfirmDel(row);
+  const confirmDelete = async () => {
+    await deleteClient(confirmDel.id);
+    await refresh();
+    setConfirmDel(null);
+  };
+  const handleBulkDelete = async (ids) => {
+    await Promise.all(ids.map((id) => deleteClient(id)));
+    await refresh();
+  };
+  const handleStatusChange = async (id, newStatus) => {
+    setClients((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
+    await updateClient(id, { status: newStatus });
+  };
+
+  /* ── columns ── */
+  const columns = [
+    { key: "sno",            label: "S.No",            width: 56,  type: "sno", fixed: true, removable: false, defaultVisible: true, searchable: false },
+    { key: "clientName",     label: "Client",          width: 200, type: "text", bold: true, link: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
+    { key: "industry",       label: "Industry",        width: 140, type: "text", defaultVisible: true, sortable: true, filterable: true, searchable: true },
+    { key: "primaryCity",    label: "Location",        width: 130, type: "text", defaultVisible: true, sortable: true, filterable: true },
+    { key: "accountManager", label: "Account Manager", width: 160, type: "text", defaultVisible: true, sortable: true, filterable: true, searchable: true },
+    { key: "primaryPhone",   label: "Contact",         width: 140, type: "text", defaultVisible: true, searchable: true },
+    { key: "primaryPoc",     label: "POC Name",        width: 150, type: "text", defaultVisible: true, searchable: true },
+    { key: "primaryEmail",   label: "Email",           width: 200, type: "text", defaultVisible: true, searchable: true },
+    {
+      key: "status", label: "Status", width: 130, type: "status",
+      statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
+      defaultVisible: true, sortable: true, filterable: true,
+    },
+    { key: "createdAt",    label: "Created",      width: 110, type: "date", defaultVisible: true, sortable: true, sortType: "date" },
+    /* ─── Hidden by default ─── */
+    { key: "website",      label: "Website",      width: 180, type: "text" },
+    { key: "primaryState", label: "State",        width: 120, type: "text", filterable: true },
+    { key: "country",      label: "Country",      width: 120, type: "text", filterable: true, sortable: true },
+    { key: "gstNumber",    label: "GST Number",   width: 150, type: "text" },
+    { key: "panNumber",    label: "PAN Number",   width: 130, type: "text" },
+    { key: "updatedAt",    label: "Last Updated", width: 120, type: "date", sortable: true, sortType: "date" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F5F4F0] font-sans">
+      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8 2xl:px-12">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-6">
-            <div>
-            <h1 className="text-xl font-semibold text-gray-800">Clients</h1>
-            <p className="text-xs text-gray-400 mt-0.5">
-                {clients.length} {clients.length === 1 ? "client" : "clients"} total
-            </p>
-            </div>
-            <button
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Clients</h1>
+          <button
             onClick={() => navigate(`${roleBase}/add-client`)}
-            className="bg-blue-700 hover:bg-blue-800 active:scale-95 text-white px-4 py-2 rounded-md text-sm shadow-sm transition-all duration-150 flex items-center gap-1.5"
-            >
-            <span className="text-base leading-none">+</span>
-            Add Client
-            </button>
+            className="flex h-9 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3.5 text-[12.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+          >
+            <span className="text-[15px] leading-none">+</span> Add Client
+          </button>
         </div>
 
         {/* TABLE */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm">
-            <thead>
-                <tr className="border-b border-gray-100">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Client
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Industry
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Location
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Account Manager
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Contact
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Created
-                </th>
-                </tr>
-            </thead>
-            <tbody>
-                {clients.length === 0 ? (
-                <tr>
-                    <td colSpan="6" className="text-center py-16 text-gray-400">
-                    <div className="flex flex-col items-center gap-2">
-                        <span className="text-3xl">🏢</span>
-                        <p className="text-sm font-medium text-gray-500">No clients yet</p>
-                        <p className="text-xs text-gray-400">Add your first client to get started</p>
-                    </div>
-                    </td>
-                </tr>
-                ) : (
-                clients.map((client) => (
-                    <tr
-                    key={client._id}
-                    onClick={() => navigate(`${roleBase}/client-list/${client._id}`)}
-                    className="border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors duration-100 group"
-                    >
-                    <td className="px-5 py-4 text-blue-700 font-medium group-hover:text-blue-800">
-                        {client.clientName}
-                    </td>
-                    <td className="px-5 py-4 text-gray-600">{client.industry || "—"}</td>
-                    <td className="px-5 py-4 text-gray-600">{client.billingCity || "—"}</td>
-                    <td className="px-5 py-4 text-gray-600">{client.accountManager || "—"}</td>
-                    <td className="px-5 py-4 text-gray-600">{client.contactNumber || "—"}</td>
-                    <td className="px-5 py-4 text-gray-400 text-xs">
-                        {client.createdAt
-                        ? new Date(client.createdAt).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    </tr>
-                ))
-                )}
-            </tbody>
-            </table>
-        </div>
-        </div>
-    );
-    };
+        <DataTable
+          columns={columns}
+          data={clients}
+          storageKey="clients_table"
+          onRowClick={(row) => navigate(`${roleBase}/client-list/${row.id}`)}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
+          searchPlaceholder="Search company, contact, manager…"
+          emptyState={{
+            title: "No clients yet",
+            hint: "Click + Add Client to get started",
+          }}
+        />
+      </div>
 
-    export default Client;
+      {/* DELETE CONFIRM */}
+      {confirmDel && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm" onClick={() => setConfirmDel(null)}>
+          <div className="w-full max-w-100 rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-[15px] font-semibold text-[#1C1B18]">Delete client?</div>
+            <p className="mt-1.5 text-[12.5px] leading-normal text-[#6B6860]">
+              <span className="font-medium text-[#1C1B18]">{confirmDel.clientName || "This client"}</span> will be permanently removed. This action cannot be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => setConfirmDel(null)} className="rounded-lg border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">Cancel</button>
+              <button onClick={confirmDelete} className="rounded-lg bg-[#DC2626] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#B91C1C]">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Client;
