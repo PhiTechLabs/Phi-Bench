@@ -16,9 +16,11 @@ import {
   FaBars,
 } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import { MdPeopleAlt } from "react-icons/md";9
+import { MdPeopleAlt } from "react-icons/md";
 
-import logo from "url:../assets/logo.png";
+// import logo from "url:../assets/logo.png";
+// import benchLogo from "../assets/bench-logo.png";
+import favIcon from "url:../assets/favIcon.png";
 
 // ✅ withCredentials so the logout call also sends the HttpOnly cookie
 const api = axios.create({
@@ -98,7 +100,7 @@ const Navbar = () => {
           onClick={() => navigate(`${roleBase}/home`)}
           className="flex items-center cursor-pointer mr-8 shrink-0 h-full py-0"
         >
-          <img src={logo} alt="PhiBench" className="h-full w-auto object-contain" />
+          <img src={favIcon} alt="PhiBench" className="h-full w-auto object-contain" />
         </div>
 
         <div className="hidden md:flex items-center gap-2 flex-1">
@@ -193,7 +195,7 @@ const Navbar = () => {
               <RxCross2 />
             </button>
             <div className="mb-6 mt-1">
-              <img src={logo} alt="PhiBench" className="h-10 w-auto object-contain" />
+              <img src={favIcon} alt="PhiBench" className="h-10 w-auto object-contain" />
             </div>
             <ul className="space-y-1 flex-1">
               {fullMenu.map((item) => (
