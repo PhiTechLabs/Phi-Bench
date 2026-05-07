@@ -11,6 +11,7 @@ import Settings from "../pages/Settings";
 import Client from "../pages/Client";
 import ClientDetails from "../pages/ClientDetails";
 import AddClient from "../pages/AddClient";
+import CandidateDetails from "../pages/CandidateDetails";
 
 export const roleRoutes = [
     { index: true, element: <Home /> },
@@ -20,6 +21,7 @@ export const roleRoutes = [
     { path: "jobs/:id", element: <JobDetails /> },
 
     { path: "candidates", element: <Candidates /> },
+    { path: "candidates/:id", element: <CandidateDetails /> },
     { path: "interviews", element: <Interviews /> },
     { path: "bench", element: <Bench /> },
     { path: "submissions", element: <Submissions /> },
