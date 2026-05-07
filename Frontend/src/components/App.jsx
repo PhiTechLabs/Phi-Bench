@@ -29,6 +29,7 @@
                 <Route key={index} {...route} />
             ))}
             </Route>
+            
 
             {/* SUPERADMIN */}
             <Route path="/superadmin" element={<Navbar />}>

@@ -1,151 +1,152 @@
-    import React, { useState, useEffect } from "react";
-    import CandidateForm from "./CandidateForm";
-    import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import CandidateForm from "./CandidateForm";
+import DataTable from "../components/DataTable/DataTable";
+import {
+  listCandidates,
+  createCandidate,
+  deleteCandidate,
+  toggleBench,
+  updateCandidate,
+  migrateExistingCandidates,
+} from "../api/candidatesApi";
 
-    const Candidates = () => {
-    const [showForm, setShowForm] = useState(false);
-    const [candidates, setCandidates] = useState([]);
-    
-    const navigate = useNavigate();
+/* ──────────────────── STATUS PIPELINE ──────────────────── */
+const STATUS_OPTIONS = [
+  { value: "New",         color: "bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]" },
+  { value: "Screening",   color: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]" },
+  { value: "Shortlisted", color: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]" },
+  { value: "Interview",   color: "bg-[#F5F3FF] text-[#6D28D9] border-[#DDD6FE]" },
+  { value: "Offer",       color: "bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]" },
+  { value: "Hired",       color: "bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]" },
+  { value: "Rejected",    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]" },
+  { value: "On Hold",     color: "bg-[#F5F4F0] text-[#6B6860] border-[#E0DDD6]" },
+  { value: "Withdrawn",   color: "bg-[#FAFAF8] text-[#9B9890] border-[#E0DDD6]" },
+];
 
-    const [filters, setFilters] = useState({
-        skill: "",
-        search: "",
-    });
+/* ──────────────────── COMPONENT ──────────────────── */
 
-    useEffect(() => {
-        const saved = JSON.parse(localStorage.getItem("candidates")) || [];
-        setCandidates(saved);
-    }, []);
+const Candidates = () => {
+  const [showForm, setShowForm]     = useState(false);
+  const [candidates, setCandidates] = useState([]);
+  const [confirmDel, setConfirmDel] = useState(null);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        localStorage.setItem("candidates", JSON.stringify(candidates));
-    }, [candidates]);
+  const refresh = useCallback(async () => {
+    setCandidates(await listCandidates());
+  }, []);
+  useEffect(() => {
+    migrateExistingCandidates();
+    refresh();
+  }, [refresh]);
 
-    // ✅ HANDLE SAVE FROM FORM
-    const handleAddCandidate = (data) => {
-    const newCandidate = {
-    id: Date.now(),
+  /* ── handlers ── */
+  const handleAdd = async (data) => {
+    await createCandidate(data);
+    await refresh();
+    setShowForm(false);
+  };
+  const handleDelete = async (row) => setConfirmDel(row);
+  const confirmDelete = async () => {
+    await deleteCandidate(confirmDel.id);
+    await refresh();
+    setConfirmDel(null);
+  };
+  const handleBulkDelete = async (ids) => {
+    await Promise.all(ids.map((id) => deleteCandidate(id)));
+    await refresh();
+  };
+  const handleToggleBench = async (id) => {
+    await toggleBench(id);
+    await refresh();
+  };
+  const handleStatusChange = async (id, newStatus) => {
+    setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
+    await updateCandidate(id, { status: newStatus });
+  };
 
-    // full name
-    name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
+  /* ── column registry ── */
+  const columns = [
+    { key: "sno",        label: "S.No",     width: 56,  type: "sno",       fixed: true, removable: false, defaultVisible: true, searchable: false },
+    { key: "name",       label: "Name",     width: 170, type: "text",      bold: true, link: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
+    { key: "jobTitle",   label: "Job Title",width: 150, type: "text",      defaultVisible: true, sortable: true, searchable: true, filterable: true },
+    { key: "skills",     label: "Skills",   width: 220, type: "chips",     maxChips: 2, defaultVisible: true, searchable: true },
+    { key: "experience", label: "Exp.",     width: 80,  type: "experience", defaultVisible: true, sortable: true, sortType: "number" },
+    { key: "company",    label: "Company",  width: 140, type: "text",      defaultVisible: true, sortable: true, searchable: true, filterable: true },
+    { key: "city",       label: "Location", width: 130, type: "location",  defaultVisible: true, sortable: true, filterable: true },
+    { key: "email",      label: "Email",    width: 200, type: "text",      defaultVisible: true, searchable: true },
+    { key: "phone",      label: "Phone",    width: 130, type: "text",      defaultVisible: true },
+    {
+      key: "onBench", label: "Bench", width: 80, type: "toggle",
+      onToggle: handleToggleBench, defaultVisible: true, filterable: true,
+    },
+    {
+      key: "status", label: "Status", width: 130, type: "status",
+      statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
+      defaultVisible: true, sortable: true, filterable: true,
+    },
+    { key: "qualification",  label: "Qualification",   width: 140, type: "text",  sortable: true, filterable: true },
+    { key: "linkedin",       label: "LinkedIn",        width: 180, type: "text" },
+    { key: "expectedSalary", label: "Expected Salary", width: 130, type: "money", sortable: true, sortType: "number" },
+    { key: "currentSalary",  label: "Current Salary",  width: 130, type: "money", sortable: true, sortType: "number" },
+    { key: "country",        label: "Country",         width: 120, type: "text",  sortable: true, filterable: true },
+    { key: "state",          label: "State",           width: 120, type: "text",  filterable: true },
+    { key: "noticePeriod",   label: "Notice Period",   width: 120, type: "text",  filterable: true },
+    { key: "createdAt",      label: "Date Added",      width: 120, type: "date",  sortable: true, sortType: "date" },
+  ];
 
-    // initials
-    initials: `${data.firstName?.[0] || ""}${data.lastName?.[0] || ""}`.toUpperCase(),
+  if (showForm) {
+    return <CandidateForm setShowForm={setShowForm} onSave={handleAdd} />;
+  }
 
-    // 👉 IMPORTANT: store ALL fields
-    ...data,
-    };
+  return (
+    <div className="min-h-screen bg-[#F5F4F0] font-sans">
+      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8 2xl:px-12">
 
-        setCandidates([newCandidate, ...candidates]);
-        setShowForm(false);
-    };
-
-    const filtered = candidates.filter((c) => {
-        return (
-        (filters.skill === "" || c.skills?.includes(filters.skill)) &&
-        (filters.search === "" ||
-            c.name.toLowerCase().includes(filters.search.toLowerCase()))
-        );
-    });
-
-    // ✅ SWITCH TO FORM
-    if (showForm) {
-        return (
-        <CandidateForm
-            setShowForm={setShowForm}
-            onSave={handleAddCandidate}
-        />
-        );
-    }
-
-    return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-6">
-            <div>
-            <h1 className="text-2xl font-semibold">Candidates</h1>
-            <p className="text-gray-500 text-sm">
-                Manage and track candidate profiles
-            </p>
-            </div>
-
-            <button
+        {/* PAGE HEADER */}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Candidates</h1>
+          <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
-            >
-            + Add Candidate
-            </button>
-        </div>
-
-        {/* FILTERS */}
-        <div className="bg-white p-4 rounded-xl shadow-sm flex gap-3 mb-6">
-            <input
-            placeholder="Search candidates..."
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            className="border px-3 py-2 rounded-md text-sm w-full"
-            />
+            className="flex h-9 items-center gap-1 rounded-[8px] bg-[#1C4ED8] px-3.5 text-[12.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+          >
+            <span className="text-[15px] leading-none">+</span> Add Candidate
+          </button>
         </div>
 
         {/* TABLE */}
-        <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-            <table className="w-full text-sm">
+        <DataTable
+          columns={columns}
+          data={candidates}
+          storageKey="candidates_table"
+          onRowClick={(row) => navigate(`/candidates/${row.id}`)}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
+          searchPlaceholder="Search name, skill, company…"
+          emptyState={{
+            title: "No candidates yet",
+            hint: "Click + Add Candidate to get started",
+          }}
+        />
+      </div>
 
-            <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                <tr>
-                <th className="px-5 py-3 text-left">Name</th>
-                <th className="px-5 py-3 text-left">Skills</th>
-                <th className="px-5 py-3 text-left">Experience</th>
-                <th className="px-5 py-3 text-left">Company</th>
-                <th className="px-5 py-3 text-left">Notice Period</th>
-                <th className="px-5 py-3 text-left">Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {filtered.length === 0 ? (
-                <tr>
-                    <td colSpan="6" className="text-center py-10 text-gray-400">
-                    No candidates
-                    </td>
-                </tr>
-                ) : (
-                filtered.map((c) => (
-                    <tr key={c.id} className="border-t hover:bg-gray-50">
-
-                    <td className="px-5 py-4 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">
-                        {c.initials}
-                        </div>
-    <span
-    onClick={() => navigate(`/candidates/${c.id}`)}
-    className="text-blue-700 font-medium cursor-pointer hover:underline"
-    >
-    {c.name}
-    </span>
-                    </td>
-
-                    <td className="px-5 py-4">{c.skills}</td>
-                    <td className="px-5 py-4">{c.experience}</td>
-                    <td className="px-5 py-4">{c.company}</td>
-                    <td className="px-5 py-4">{c.noticePeriod}</td>
-
-                    <td className="px-5 py-4">
-                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
-                        {c.status}
-                        </span>
-                    </td>
-
-                    </tr>
-                ))
-                )}
-            </tbody>
-
-            </table>
+      {/* DELETE CONFIRM */}
+      {confirmDel && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm" onClick={() => setConfirmDel(null)}>
+          <div className="w-full max-w-[400px] rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-[15px] font-semibold text-[#1C1B18]">Delete candidate?</div>
+            <p className="mt-1.5 text-[12.5px] leading-[1.5] text-[#6B6860]">
+              <span className="font-medium text-[#1C1B18]">{confirmDel.name || "This candidate"}</span> will be permanently removed. This action cannot be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => setConfirmDel(null)} className="rounded-[8px] border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">Cancel</button>
+              <button onClick={confirmDelete} className="rounded-[8px] bg-[#DC2626] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#B91C1C]">Delete</button>
+            </div>
+          </div>
         </div>
-        </div>
-    );
-    };
+      )}
+    </div>
+  );
+};
 
-    export default Candidates;
+export default Candidates;

@@ -1,138 +1,183 @@
- import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { listBenchCandidates, toggleBench } from "../api/candidatesApi";
 
-    const Bench = () => {
-    const [resources, setResources] = useState([]);
+/* ──────────────────── BENCH PAGE ──────────────────── */
 
-    // ✅ Load from CANDIDATES instead of bench
-    useEffect(() => {
-        const saved = JSON.parse(localStorage.getItem("candidates")) || [];
+const Bench = () => {
+  const [list, setList]     = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-        // Map candidates → bench format
-        const mapped = saved.map((c) => ({
-        id: c.id,
-        name: c.name,
-        skills: c.skills,
-        experience: c.experience,
-        location: c.location || "N/A",
-        benchDays: c.benchDays || "0",
-        status: c.status || "Available",
-        }));
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    const data = await listBenchCandidates();
+    setList(data);
+    setLoading(false);
+  }, []);
 
-        setResources(mapped);
-    }, []);
+  useEffect(() => { refresh(); }, [refresh]);
 
-    // ✅ Update status
-    const updateStatus = (id, newStatus) => {
-        const updated = resources.map((r) =>
-        r.id === id ? { ...r, status: newStatus } : r
-        );
+  const handleRemove = async (id) => {
+    await toggleBench(id);
+    await refresh();
+  };
 
-        setResources(updated);
-
-        // ALSO update in candidates (important)
-        const candidates = JSON.parse(localStorage.getItem("candidates")) || [];
-
-        const updatedCandidates = candidates.map((c) =>
-        c.id === id ? { ...c, status: newStatus } : c
-        );
-
-        localStorage.setItem("candidates", JSON.stringify(updatedCandidates));
-    };
-
-    // Stats
-    const available = resources.filter(r => r.status === "Available").length;
-    const idle = resources.filter(r => r.status === "Idle").length;
-    const screening = resources.filter(r => r.status === "Screening").length;
-    const interview = resources.filter(r => r.status === "Interview").length;
-
+  const filtered = list.filter((c) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+      (c.name || "").toLowerCase().includes(q) ||
+      (c.skills || "").toLowerCase().includes(q) ||
+      (c.jobTitle || "").toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div className="min-h-screen bg-[#F5F4F0] font-sans">
+      <div className="mx-auto max-w-[1280px] px-8 py-8">
 
         {/* HEADER */}
-        <div className="mb-6">
-            <h1 className="text-2xl font-semibold">Bench Resources</h1>
-            <p className="text-gray-500 text-sm">
-            Auto-synced from Candidates
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
+              PhiBench
+            </div>
+            <h1 className="text-[26px] font-semibold leading-tight text-[#1C1B18]">
+              Bench
+            </h1>
+            <p className="mt-1 text-[13px] text-[#9B9890]">
+              Candidates currently available for new opportunities · {filtered.length}
             </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <div className="relative">
+              <SearchIcon />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search bench…"
+                className="h-[40px] w-[280px] rounded-[10px] border border-[#E0DDD6] bg-white pl-9 pr-3 text-[13px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:ring-[3px] focus:ring-[#6382FF]/20"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* STATS */}
-        <div className="grid md:grid-cols-4 gap-4 mb-6">
-            <Card title="Available" value={available} />
-            <Card title="Idle" value={idle} />
-            <Card title="Screening" value={screening} />
-            <Card title="Interview" value={interview} />
-        </div>
-
-        {/* TABLE */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
-            <table className="w-full text-sm">
-
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-                <tr>
-                <th className="px-5 py-3 text-left">Name</th>
-                <th className="px-5 py-3 text-left">Skills</th>
-                <th className="px-5 py-3 text-left">Experience</th>
-                <th className="px-5 py-3 text-left">Location</th>
-                <th className="px-5 py-3 text-left">Bench Days</th>
-                <th className="px-5 py-3 text-left">Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {resources.length === 0 ? (
-                <tr>
-                    <td colSpan="6" className="text-center py-10 text-gray-400">
-                    No candidates available
-                    </td>
-                </tr>
-                ) : (
-                resources.map((r) => (
-                    <tr key={r.id} className="border-t hover:bg-gray-50">
-
-                    <td className="px-5 py-4 font-medium text-blue-700">
-                        {r.name}
-                    </td>
-
-                    <td className="px-5 py-4">{r.skills}</td>
-                    <td className="px-5 py-4">{r.experience}</td>
-                    <td className="px-5 py-4">{r.location}</td>
-                    <td className="px-5 py-4">{r.benchDays}</td>
-
-                    {/* ✅ STATUS EDITABLE */}
-                    <td className="px-5 py-4 flex items-center gap-2">
-
-                        <select
-                        value={r.status}
-                        onChange={(e) => updateStatus(r.id, e.target.value)}
-                        className="px-2 py-1 rounded-lg border border-gray-200 bg-gray-50 text-xs"
-                        >
-                        <option>Available</option>
-                        <option>Idle</option>
-                        <option>Screening</option>
-                        <option>Interview</option>
-                        </select>
-
-                        <span className="text-gray-400 text-xs">✏️</span>
-                    </td>
-
-                    </tr>
-                ))
-                )}
-            </tbody>
-
-            </table>
-        </div>
-
-        </div>
-    );
-    };
-
-    const Card = ({ title, value }) => (
-    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-        <p className="text-gray-500 text-sm">{title}</p>
-        <h2 className="text-xl font-semibold">{value}</h2>
+        {/* CONTENT */}
+        {loading ? (
+          <div className="rounded-2xl border border-[#E8E6E0] bg-white p-16 text-center text-[13px] text-[#9B9890]">
+            Loading…
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((c) => (
+              <BenchCard
+                key={c.id}
+                candidate={c}
+                onOpen={() => navigate(`/candidates/${c.id}`)}
+                onRemove={() => handleRemove(c.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
-    );
+  );
+};
 
-    export default Bench;
+export default Bench;
+
+/* ──────────────────── BENCH CARD ──────────────────── */
+
+const BenchCard = ({ candidate, onOpen, onRemove }) => (
+  <div
+    onClick={onOpen}
+    className="group cursor-pointer overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white p-5 transition-all hover:border-[#BFD3FF] hover:shadow-[0_4px_16px_rgba(28,78,216,0.08)]"
+  >
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1C4ED8] to-[#4F6FE8] text-[14px] font-semibold text-white shadow-[0_2px_4px_rgba(28,78,216,0.25)]">
+          {candidate.initials || "?"}
+        </div>
+        <div className="min-w-0">
+          <div className="truncate text-[14px] font-semibold text-[#1C1B18] group-hover:text-[#1C4ED8]">
+            {candidate.name || "Unnamed"}
+          </div>
+          {candidate.jobTitle && (
+            <div className="truncate text-[12px] text-[#6B6860]">{candidate.jobTitle}</div>
+          )}
+        </div>
+      </div>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        title="Remove from bench"
+        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#9B9890] opacity-0 transition-all hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100"
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <div className="mt-4 flex flex-wrap gap-1">
+      {(candidate.skills || "")
+        .split(",")
+        .slice(0, 4)
+        .map((s, i) => {
+          const t = s.trim();
+          if (!t) return null;
+          return (
+            <span
+              key={i}
+              className="rounded-md border border-[#E0DDD6] bg-[#FAFAF8] px-2 py-0.5 text-[11px] font-medium text-[#4A4845]"
+            >
+              {t}
+            </span>
+          );
+        })}
+    </div>
+
+    <div className="mt-4 flex items-center justify-between border-t border-[#F0EDE8] pt-3 text-[11px] text-[#9B9890]">
+      <span>{candidate.experienceYears ? `${candidate.experienceYears} yrs exp` : "Experience —"}</span>
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-2 py-0.5 font-medium text-[#1D4ED8]">
+        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+        On Bench
+      </span>
+    </div>
+  </div>
+);
+
+/* ──────────────────── EMPTY STATE ──────────────────── */
+
+const EmptyState = () => (
+  <div className="flex flex-col items-center gap-3 rounded-2xl border border-[#E8E6E0] bg-white py-20 text-center">
+    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F4F0] text-[#9B9890]">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M8 12h8M8 8h8M8 16h5" />
+      </svg>
+    </div>
+    <div>
+      <div className="text-[15px] font-semibold text-[#1C1B18]">No candidates on bench</div>
+      <div className="mt-0.5 text-[12px] text-[#9B9890]">
+        Toggle the bench switch on any candidate to add them here
+      </div>
+    </div>
+  </div>
+);
+
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9B9890]">
+    <circle cx="11" cy="11" r="7" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);

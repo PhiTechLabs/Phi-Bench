@@ -1,0 +1,197 @@
+import React, { useState, useEffect, useRef } from "react";
+
+/**
+ * ────────────────────────────────────────────────────────────
+ *  CELL RENDERERS
+ * ────────────────────────────────────────────────────────────
+ *  Built-in cell types for DataTable columns.
+ *
+ *  Usage in a column registry:
+ *    { key: "salary", label: "Salary", type: "money" }
+ *    { key: "skills", label: "Skills", type: "chips" }
+ *    { key: "status", label: "Status", type: "status",
+ *      statusOptions: [...], onChange: (id, newStatus) => {...} }
+ *
+ *  Or pass a fully custom renderer:
+ *    { key: "name", label: "Name", render: (row) => <CustomThing /> }
+ * ────────────────────────────────────────────────────────────
+ */
+
+const Empty = () => <span className="text-[#C8C5BD]">—</span>;
+
+/* Pick the right renderer based on column.type */
+export const renderCell = ({ column, row, rowIndex, pageStart = 0, ctx = {} }) => {
+  // Fully custom renderer overrides type
+  if (typeof column.render === "function") {
+    return column.render(row, { rowIndex, pageStart, ctx });
+  }
+
+  const value = row[column.key];
+
+  switch (column.type) {
+    case "sno":
+      return <SerialNumber index={pageStart + rowIndex + 1} />;
+    case "text":
+    default:
+      return <TextCell value={value} bold={column.bold} link={column.link} />;
+    case "chips":
+      return <ChipsCell value={value} max={column.maxChips || 2} />;
+    case "money":
+      return <MoneyCell value={value} currency={column.currency || "₹"} />;
+    case "date":
+      return <DateCell value={value} format={column.dateFormat} />;
+    case "experience":
+      return <ExperienceCell row={row} valueKey={column.key} />;
+    case "toggle":
+      return <ToggleCell on={!!value} onToggle={() => column.onToggle?.(row.id)} />;
+    case "status":
+      return (
+        <StatusCell
+          value={value}
+          options={column.statusOptions || []}
+          onChange={(s) => column.onStatusChange?.(row.id, s)}
+        />
+      );
+    case "location":
+      return <LocationCell row={row} cityKey={column.cityKey || "city"} stateKey={column.stateKey || "state"} />;
+  }
+};
+
+/* ──────────────────── TEXT ──────────────────── */
+const TextCell = ({ value, bold, link }) => {
+  if (!value) return <Empty />;
+  return (
+    <span className={`block truncate ${bold ? "font-medium text-[#1C1B18]" : ""} ${link ? "group-hover:text-[#1C4ED8]" : ""}`}>
+      {String(value)}
+    </span>
+  );
+};
+
+/* ──────────────────── SERIAL NUMBER ──────────────────── */
+const SerialNumber = ({ index }) => (
+  <span>{String(index).padStart(2, "0")}</span>
+);
+
+/* ──────────────────── CHIPS (comma-separated) ──────────────────── */
+const ChipsCell = ({ value, max }) => {
+  if (!value) return <Empty />;
+  const all = String(value).split(",").map((s) => s.trim()).filter(Boolean);
+  return (
+    <div className="flex flex-nowrap items-center gap-1 overflow-hidden">
+      {all.slice(0, max).map((t, i) => (
+        <span key={i} className="flex-shrink-0 rounded border border-[#E0DDD6] bg-[#FAFAF8] px-1.5 py-0.5 text-[10.5px] font-medium text-[#4A4845]">
+          {t}
+        </span>
+      ))}
+      {all.length > max && <span className="flex-shrink-0 text-[10.5px] text-[#9B9890]">+{all.length - max}</span>}
+    </div>
+  );
+};
+
+/* ──────────────────── MONEY ──────────────────── */
+const MoneyCell = ({ value, currency }) => {
+  if (!value) return <Empty />;
+  const num = Number(value);
+  if (Number.isNaN(num)) return <span>{String(value)}</span>;
+  return <span>{currency}{num.toLocaleString("en-IN")}</span>;
+};
+
+/* ──────────────────── DATE ──────────────────── */
+const DateCell = ({ value, format }) => {
+  if (!value) return <Empty />;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return <span>{String(value)}</span>;
+  const opts = format || { day: "2-digit", month: "short", year: "2-digit" };
+  return <span>{d.toLocaleDateString("en-IN", opts)}</span>;
+};
+
+/* ──────────────────── EXPERIENCE ──────────────────── */
+const ExperienceCell = ({ row, valueKey }) => {
+  const v = row[valueKey];
+  const years = row.experienceYears;
+  if (!v && !years) return <Empty />;
+  return <span>{years ? `${years}y` : v}</span>;
+};
+
+/* ──────────────────── LOCATION ──────────────────── */
+const LocationCell = ({ row, cityKey, stateKey }) => {
+  const parts = [row[cityKey], row[stateKey]].filter(Boolean).join(", ");
+  return parts ? <span className="block truncate">{parts}</span> : <Empty />;
+};
+
+/* ──────────────────── TOGGLE ──────────────────── */
+const ToggleCell = ({ on, onToggle }) => (
+  <button
+    type="button"
+    onClick={(e) => { e.stopPropagation(); onToggle(); }}
+    className={`relative inline-flex h-[18px] w-[32px] flex-shrink-0 items-center rounded-full border transition-all ${
+      on ? "border-[#1C4ED8] bg-[#1C4ED8]" : "border-[#E0DDD6] bg-[#F5F4F0]"
+    }`}
+  >
+    <span
+      className={`inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-transform ${
+        on ? "translate-x-[17px]" : "translate-x-[2px]"
+      }`}
+    />
+  </button>
+);
+
+/* ──────────────────── STATUS DROPDOWN ──────────────────── */
+const StatusCell = ({ value, options, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  const current = value || options[0]?.value || "";
+  const currentOption = options.find((o) => o.value === current);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => setOpen((s) => !s)}
+        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium transition-all hover:shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
+          currentOption?.color || "bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]"
+        }`}
+      >
+        <span className="h-1 w-1 rounded-full bg-current" />
+        {current || "—"}
+        <svg width="8" height="8" viewBox="0 0 12 12" className="opacity-60">
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-[160px] overflow-hidden rounded-[8px] border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+          <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-2.5 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.06em] text-[#9B9890]">
+            Update Status
+          </div>
+          <div className="py-1">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={`flex w-full items-center justify-between px-2.5 py-1 text-left text-[11px] transition-colors hover:bg-[#FAFAF8] ${
+                  opt.value === current ? "bg-[#F0F5FF]" : ""
+                }`}
+              >
+                <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${opt.color}`}>
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                  {opt.value}
+                </span>
+                {opt.value === current && (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1C4ED8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
