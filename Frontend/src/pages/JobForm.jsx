@@ -2,12 +2,31 @@ import React, { useState } from "react";
 
 const JobForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error for this field as user types
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: undefined });
+    }
+  };
+
+  const validate = () => {
+    const next = {};
+    if (!formData.title?.trim())       next.title = "Position title is required";
+    if (!formData.client?.trim())      next.client = "Client name is required";
+    if (!formData.description?.trim()) next.description = "Job description is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
   const handleSubmit = () => {
+    if (!validate()) {
+      // Scroll to top so user sees error highlights
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     onSave(formData);
   };
 
@@ -50,12 +69,24 @@ const JobForm = ({ setShowForm, onSave }) => {
 
       {/* MAIN LAYOUT */}
       <div className="mx-auto max-w-[1280px] px-8 py-8 pb-12">
+        {/* Inline error summary */}
+        {Object.keys(errors).length > 0 && (
+          <div className="mb-5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#B91C1C]">
+            <div className="font-semibold">Please fix the following before saving:</div>
+            <ul className="mt-1 list-disc pl-5">
+              {Object.values(errors).filter(Boolean).map((msg, i) => (
+                <li key={i}>{msg}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="flex flex-col gap-5">
           {/* SECTION 1: JOB INFO */}
           <Section title="Job Info" subtitle="Core details about the position and assignment">
             <Row>
-              <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required />
-              <Field label="Client Name" name="client" placeholder="Client company name" onChange={handleChange} required />
+              <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required error={errors.title} />
+              <Field label="Client Name" name="client" placeholder="Client company name" onChange={handleChange} required error={errors.client} />
             </Row>
             <Row>
               <Field label="Contact Name" name="contact" placeholder="Hiring manager" onChange={handleChange} />
@@ -104,6 +135,7 @@ const JobForm = ({ setShowForm, onSave }) => {
               label="Description"
               name="description"
               required
+              error={errors.description}
               placeholder="Write a detailed job description including responsibilities, qualifications, and any other relevant information..."
               onChange={handleChange}
             />
@@ -148,8 +180,15 @@ const Row = ({ children }) => (
   <div className="grid grid-cols-2 items-center gap-x-[72px]">{children}</div>
 );
 
-const fieldInputClass =
-  "min-w-0 flex-1 rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8] px-3.5 py-2.5 text-[14px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20";
+const baseInputClass =
+  "min-w-0 flex-1 rounded-[10px] border bg-[#FAFAF8] px-3.5 py-2.5 text-[14px] text-[#1C1B18] outline-none transition-all focus:bg-white focus:ring-[3px]";
+
+const inputClass = (hasError) =>
+  `${baseInputClass} ${
+    hasError
+      ? "border-[#FCA5A5] focus:border-[#DC2626] focus:ring-[#DC2626]/15"
+      : "border-[#E0DDD6] focus:border-[#93AEFF] focus:ring-[#6382FF]/20"
+  }`;
 
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
@@ -161,39 +200,52 @@ const FieldLabel = ({ label, required, alignTop }) => (
   </label>
 );
 
-const Field = ({ label, required, full, ...props }) => (
-  <div className={`flex items-center gap-4 ${full ? "col-span-2" : ""}`}>
+const Field = ({ label, required, full, error, ...props }) => (
+  <div className={`flex items-start gap-4 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
-    <input {...props} className={fieldInputClass} />
+    <div className="flex min-w-0 flex-1 flex-col">
+      <input {...props} className={inputClass(!!error)} />
+      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+    </div>
   </div>
 );
 
-const SelectField = ({ label, options = [], required, full, ...props }) => (
-  <div className={`flex items-center gap-4 ${full ? "col-span-2" : ""}`}>
+const SelectField = ({ label, options = [], required, full, error, ...props }) => (
+  <div className={`flex items-start gap-4 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
-    <select
-      {...props}
-      className={`${fieldInputClass} cursor-pointer appearance-none bg-[length:12px_12px] bg-[right_14px_center] bg-no-repeat pr-9`}
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-      }}
-    >
-      <option value="">Select status...</option>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
-    </select>
+    <div className="flex min-w-0 flex-1 flex-col">
+      <select
+        {...props}
+        className={`${inputClass(!!error)} cursor-pointer appearance-none bg-[length:12px_12px] bg-[right_14px_center] bg-no-repeat pr-9`}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+        }}
+      >
+        <option value="">Select status...</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+    </div>
   </div>
 );
 
-const TextAreaField = ({ label, required, ...props }) => (
+const TextAreaField = ({ label, required, error, ...props }) => (
   <div className="flex items-start gap-4">
     <FieldLabel label={label} required={required} alignTop />
-    <textarea
-      {...props}
-      className="min-h-[260px] min-w-0 flex-1 resize-y rounded-xl border border-[#E0DDD6] bg-[#FAFAF8] px-4 py-3.5 text-[14px] leading-[1.7] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20"
-    />
+    <div className="flex min-w-0 flex-1 flex-col">
+      <textarea
+        {...props}
+        className={`min-h-[260px] resize-y rounded-xl border bg-[#FAFAF8] px-4 py-3.5 text-[14px] leading-[1.7] text-[#1C1B18] outline-none transition-all focus:bg-white focus:ring-[3px] ${
+          error
+            ? "border-[#FCA5A5] focus:border-[#DC2626] focus:ring-[#DC2626]/15"
+            : "border-[#E0DDD6] focus:border-[#93AEFF] focus:ring-[#6382FF]/20"
+        }`}
+      />
+      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+    </div>
   </div>
 );

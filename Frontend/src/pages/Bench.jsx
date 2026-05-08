@@ -1,183 +1,154 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { listBenchCandidates, toggleBench } from "../api/candidatesApi";
+import DataTable from "../components/DataTable/DataTable";
+import {
+  listBench,
+  toggleBenchStatus,
+  updateBenchEntry,
+  removeFromBench,
+} from "../api/benchApi";
 
-/* ──────────────────── BENCH PAGE ──────────────────── */
+/* ──────────────────── STATUS PIPELINE ──────────────────── */
+const STATUS_OPTIONS = [
+  { value: "New",         color: "bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]" },
+  { value: "Screening",   color: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]" },
+  { value: "Shortlisted", color: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]" },
+  { value: "Interview",   color: "bg-[#F5F3FF] text-[#6D28D9] border-[#DDD6FE]" },
+  { value: "Offer",       color: "bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]" },
+  { value: "Hired",       color: "bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]" },
+  { value: "Rejected",    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]" },
+  { value: "On Hold",     color: "bg-[#F5F4F0] text-[#6B6860] border-[#E0DDD6]" },
+  { value: "Withdrawn",   color: "bg-[#FAFAF8] text-[#9B9890] border-[#E0DDD6]" },
+];
+
+/* ──────────────────── COMPONENT ──────────────────── */
 
 const Bench = () => {
-  const [list, setList]     = useState([]);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [list, setList]               = useState([]);
+  const [confirmRemove, setConfirmRemove] = useState(null);
   const navigate = useNavigate();
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    const data = await listBenchCandidates();
-    setList(data);
-    setLoading(false);
+    setList(await listBench());
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const handleRemove = async (id) => {
-    await toggleBench(id);
+  /* ── handlers ── */
+  const handleRemove = (row) => setConfirmRemove(row);
+  const confirmRemoveAction = async () => {
+    await removeFromBench(confirmRemove.id);
+    await refresh();
+    setConfirmRemove(null);
+  };
+  const handleBulkRemove = async (ids) => {
+    await Promise.all(ids.map((id) => removeFromBench(id)));
     await refresh();
   };
+  const handleToggleBench = async (id) => {
+    // Flipping bench off here removes the row from this view on next refresh.
+    await toggleBenchStatus(id);
+    await refresh();
+  };
+  const handleStatusChange = async (id, newStatus) => {
+    setList((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
+    await updateBenchEntry(id, { status: newStatus });
+  };
 
-  const filtered = list.filter((c) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      (c.name || "").toLowerCase().includes(q) ||
-      (c.skills || "").toLowerCase().includes(q) ||
-      (c.jobTitle || "").toLowerCase().includes(q)
-    );
-  });
+  /* ── column registry ── */
+  const columns = [
+    { key: "sno",        label: "S.No",     width: 56,  type: "sno",        fixed: true, removable: false, defaultVisible: true, searchable: false },
+    { key: "name",       label: "Name",     width: 170, type: "text",       bold: true, link: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
+    { key: "jobTitle",   label: "Job Title",width: 150, type: "text",       defaultVisible: true, sortable: true, searchable: true, filterable: true },
+    { key: "skills",     label: "Skills",   width: 240, type: "chips",      maxChips: 3, defaultVisible: true, searchable: true },
+    { key: "experience", label: "Exp.",     width: 80,  type: "experience", defaultVisible: true, sortable: true, sortType: "number" },
+    { key: "company",    label: "Last Company", width: 150, type: "text",   defaultVisible: true, sortable: true, searchable: true, filterable: true },
+    { key: "city",       label: "Location", width: 130, type: "location",   defaultVisible: true, sortable: true, filterable: true },
+    { key: "expectedSalary", label: "Expected", width: 120, type: "money",  defaultVisible: true, sortable: true, sortType: "number" },
+    { key: "noticePeriod",   label: "Notice",   width: 110, type: "text",   defaultVisible: true, filterable: true },
+    {
+      key: "onBench", label: "Bench", width: 80, type: "toggle",
+      onToggle: handleToggleBench, defaultVisible: true,
+    },
+    {
+      key: "status", label: "Status", width: 130, type: "status",
+      statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
+      defaultVisible: true, sortable: true, filterable: true,
+    },
+    { key: "email",         label: "Email",         width: 200, type: "text", searchable: true },
+    { key: "phone",         label: "Phone",         width: 130, type: "text" },
+    { key: "qualification", label: "Qualification", width: 140, type: "text", sortable: true, filterable: true },
+    { key: "linkedin",      label: "LinkedIn",      width: 180, type: "text" },
+    { key: "currentSalary", label: "Current Salary",width: 130, type: "money", sortable: true, sortType: "number" },
+    { key: "country",       label: "Country",       width: 120, type: "text",  sortable: true, filterable: true },
+    { key: "state",         label: "State",         width: 120, type: "text",  filterable: true },
+    { key: "createdAt",     label: "Date Added",    width: 120, type: "date",  sortable: true, sortType: "date" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      <div className="mx-auto max-w-[1280px] px-8 py-8">
+      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8 2xl:px-12">
 
-        {/* HEADER */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        {/* PAGE HEADER */}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
-              PhiBench
-            </div>
-            <h1 className="text-[26px] font-semibold leading-tight text-[#1C1B18]">
-              Bench
-            </h1>
-            <p className="mt-1 text-[13px] text-[#9B9890]">
-              Candidates currently available for new opportunities · {filtered.length}
+            <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Bench</h1>
+            <p className="mt-0.5 text-[12px] text-[#9B9890]">
+              Candidates currently available for new opportunities
             </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <SearchIcon />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search bench…"
-                className="h-[40px] w-[280px] rounded-[10px] border border-[#E0DDD6] bg-white pl-9 pr-3 text-[13px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:ring-[3px] focus:ring-[#6382FF]/20"
-              />
-            </div>
           </div>
         </div>
 
-        {/* CONTENT */}
-        {loading ? (
-          <div className="rounded-2xl border border-[#E8E6E0] bg-white p-16 text-center text-[13px] text-[#9B9890]">
-            Loading…
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((c) => (
-              <BenchCard
-                key={c.id}
-                candidate={c}
-                onOpen={() => navigate(`/candidates/${c.id}`)}
-                onRemove={() => handleRemove(c.id)}
-              />
-            ))}
-          </div>
-        )}
+        {/* TABLE */}
+        <DataTable
+          columns={columns}
+          data={list}
+          storageKey="bench_table"
+          onRowClick={(row) => navigate(`/candidates/${row.id}`)}
+          onDelete={handleRemove}
+          onBulkDelete={handleBulkRemove}
+          searchPlaceholder="Search name, skill, company…"
+          emptyState={{
+            title: "No candidates on bench",
+            hint: "Toggle the bench switch on any candidate to add them here",
+          }}
+        />
       </div>
+
+      {/* REMOVE FROM BENCH CONFIRM */}
+      {confirmRemove && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+          onClick={() => setConfirmRemove(null)}
+        >
+          <div
+            className="w-full max-w-[400px] rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[15px] font-semibold text-[#1C1B18]">Remove from bench?</div>
+            <p className="mt-1.5 text-[12.5px] leading-[1.5] text-[#6B6860]">
+              <span className="font-medium text-[#1C1B18]">{confirmRemove.name || "This candidate"}</span>{" "}
+              will be removed from the bench. They'll remain in your candidates list.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmRemove(null)}
+                className="rounded-[8px] border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRemoveAction}
+                className="rounded-[8px] bg-[#1C4ED8] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#1741B6]"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Bench;
-
-/* ──────────────────── BENCH CARD ──────────────────── */
-
-const BenchCard = ({ candidate, onOpen, onRemove }) => (
-  <div
-    onClick={onOpen}
-    className="group cursor-pointer overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white p-5 transition-all hover:border-[#BFD3FF] hover:shadow-[0_4px_16px_rgba(28,78,216,0.08)]"
-  >
-    <div className="flex items-start justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1C4ED8] to-[#4F6FE8] text-[14px] font-semibold text-white shadow-[0_2px_4px_rgba(28,78,216,0.25)]">
-          {candidate.initials || "?"}
-        </div>
-        <div className="min-w-0">
-          <div className="truncate text-[14px] font-semibold text-[#1C1B18] group-hover:text-[#1C4ED8]">
-            {candidate.name || "Unnamed"}
-          </div>
-          {candidate.jobTitle && (
-            <div className="truncate text-[12px] text-[#6B6860]">{candidate.jobTitle}</div>
-          )}
-        </div>
-      </div>
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        title="Remove from bench"
-        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#9B9890] opacity-0 transition-all hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100"
-      >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-    </div>
-
-    <div className="mt-4 flex flex-wrap gap-1">
-      {(candidate.skills || "")
-        .split(",")
-        .slice(0, 4)
-        .map((s, i) => {
-          const t = s.trim();
-          if (!t) return null;
-          return (
-            <span
-              key={i}
-              className="rounded-md border border-[#E0DDD6] bg-[#FAFAF8] px-2 py-0.5 text-[11px] font-medium text-[#4A4845]"
-            >
-              {t}
-            </span>
-          );
-        })}
-    </div>
-
-    <div className="mt-4 flex items-center justify-between border-t border-[#F0EDE8] pt-3 text-[11px] text-[#9B9890]">
-      <span>{candidate.experienceYears ? `${candidate.experienceYears} yrs exp` : "Experience —"}</span>
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-2 py-0.5 font-medium text-[#1D4ED8]">
-        <span className="h-1.5 w-1.5 rounded-full bg-current" />
-        On Bench
-      </span>
-    </div>
-  </div>
-);
-
-/* ──────────────────── EMPTY STATE ──────────────────── */
-
-const EmptyState = () => (
-  <div className="flex flex-col items-center gap-3 rounded-2xl border border-[#E8E6E0] bg-white py-20 text-center">
-    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F4F0] text-[#9B9890]">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <path d="M8 12h8M8 8h8M8 16h5" />
-      </svg>
-    </div>
-    <div>
-      <div className="text-[15px] font-semibold text-[#1C1B18]">No candidates on bench</div>
-      <div className="mt-0.5 text-[12px] text-[#9B9890]">
-        Toggle the bench switch on any candidate to add them here
-      </div>
-    </div>
-  </div>
-);
-
-const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9B9890]">
-    <circle cx="11" cy="11" r="7" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
