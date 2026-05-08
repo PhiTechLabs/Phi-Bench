@@ -87,7 +87,7 @@ const Bench = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      <div className="mx-auto max-w-7xl px-8 py-8">
+      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8 2xl:px-12">
 
         {/* PAGE HEADER */}
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -96,18 +96,6 @@ const Bench = () => {
             <p className="mt-0.5 text-[12px] text-[#9B9890]">
               Candidates currently available for new opportunities
             </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <SearchIcon />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search bench…"
-                className="h-10 w-70 rounded-[10px] border border-[#E0DDD6] bg-white pl-9 pr-3 text-[13px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:ring-[3px] focus:ring-[#6382FF]/20"
-              />
-            </div>
           </div>
         </div>
 
@@ -127,75 +115,38 @@ const Bench = () => {
         />
       </div>
 
-const BenchCard = ({ candidate, onOpen, onRemove }) => (
-  <div
-    onClick={onOpen}
-    className="group cursor-pointer overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white p-5 transition-all hover:border-[#BFD3FF] hover:shadow-[0_4px_16px_rgba(28,78,216,0.08)]"
-  >
-    <div className="flex items-start justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#1C4ED8] to-[#4F6FE8] text-[14px] font-semibold text-white shadow-[0_2px_4px_rgba(28,78,216,0.25)]">
-          {candidate.initials || "?"}
-        </div>
-        <div className="min-w-0">
-          <div className="truncate text-[14px] font-semibold text-[#1C1B18] group-hover:text-[#1C4ED8]">
-            {candidate.name || "Unnamed"}
+      {/* REMOVE FROM BENCH CONFIRM */}
+      {confirmRemove && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+          onClick={() => setConfirmRemove(null)}
+        >
+          <div
+            className="w-full max-w-100 rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[15px] font-semibold text-[#1C1B18]">Remove from bench?</div>
+            <p className="mt-1.5 text-[12.5px] leading-normal text-[#6B6860]">
+              <span className="font-medium text-[#1C1B18]">{confirmRemove.name || "This candidate"}</span>{" "}
+              will be removed from the bench. They'll remain in your candidates list.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmRemove(null)}
+                className="rounded-lg border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRemoveAction}
+                className="rounded-lg bg-[#1C4ED8] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#1741B6]"
+              >
+                Remove
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        title="Remove from bench"
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#9B9890] opacity-0 transition-all hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100"
-      >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-    </div>
-
-    <div className="mt-4 flex flex-wrap gap-1">
-      {(candidate.skills || "")
-        .split(",")
-        .slice(0, 4)
-        .map((s, i) => {
-          const t = s.trim();
-          if (!t) return null;
-          return (
-            <span
-              key={i}
-              className="rounded-md border border-[#E0DDD6] bg-[#FAFAF8] px-2 py-0.5 text-[11px] font-medium text-[#4A4845]"
-            >
-              {t}
-            </span>
-          );
-        })}
-    </div>
-
-    <div className="mt-4 flex items-center justify-between border-t border-[#F0EDE8] pt-3 text-[11px] text-[#9B9890]">
-      <span>{candidate.experienceYears ? `${candidate.experienceYears} yrs exp` : "Experience —"}</span>
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-2 py-0.5 font-medium text-[#1D4ED8]">
-        <span className="h-1.5 w-1.5 rounded-full bg-current" />
-        On Bench
-      </span>
-    </div>
-  </div>
-);
-
-/* ──────────────────── EMPTY STATE ──────────────────── */
-
-const EmptyState = () => (
-  <div className="flex flex-col items-center gap-3 rounded-2xl border border-[#E8E6E0] bg-white py-20 text-center">
-    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F4F0] text-[#9B9890]">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <path d="M8 12h8M8 8h8M8 16h5" />
-      </svg>
+      )}
     </div>
   );
 };
