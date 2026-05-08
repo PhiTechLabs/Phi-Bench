@@ -128,7 +128,7 @@ const JobOpenings = () => {
           <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Job Openings</h1>
           <button
             onClick={() => setShowForm(true)}
-            className="flex h-9 items-center gap-1 rounded-[8px] bg-[#1C4ED8] px-3.5 text-[12.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+            className="flex h-9 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3.5 text-[12.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
           >
             <span className="text-[15px] leading-none">+</span> Add Job
           </button>
@@ -153,15 +153,15 @@ const JobOpenings = () => {
       {/* DELETE CONFIRM */}
       {confirmDel && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
           onClick={() => setConfirmDel(null)}
         >
           <div
-            className="w-full max-w-[400px] rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl"
+            className="w-full max-w-100 rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-[15px] font-semibold text-[#1C1B18]">Delete job opening?</div>
-            <p className="mt-1.5 text-[12.5px] leading-[1.5] text-[#6B6860]">
+            <p className="mt-1.5 text-[12.5px] leading-normal text-[#6B6860]">
               <span className="font-medium text-[#1C1B18]">
                 {confirmDel.title || "This job"}
               </span>{" "}
@@ -170,13 +170,13 @@ const JobOpenings = () => {
             <div className="mt-5 flex justify-end gap-2">
               <button
                 onClick={() => setConfirmDel(null)}
-                className="rounded-[8px] border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]"
+                className="rounded-lg border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="rounded-[8px] bg-[#DC2626] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#B91C1C]"
+                className="rounded-lg bg-[#DC2626] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#B91C1C]"
               >
                 Delete
               </button>
