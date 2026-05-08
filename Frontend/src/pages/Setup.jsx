@@ -34,7 +34,7 @@ const Toast = ({ msg, type, onClose }) => {
     }, []);
 
     return (
-        <div className={`fixed bottom-6 right-6 z-[999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-white text-sm font-medium animate-slide-up
+        <div className={`fixed bottom-6 right-6 z-999 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-white text-sm font-medium animate-slide-up
             ${type === "success" ? "bg-green-600" : "bg-red-500"}`}>
             {type === "success" ? <FaCheck /> : <FaTimes />}
             <span>{msg}</span>
@@ -45,7 +45,7 @@ const Toast = ({ msg, type, onClose }) => {
 
 // ─── CONFIRM DIALOG ───────────────────────────────────────────────────────────
 const ConfirmDialog = ({ msg, onConfirm, onCancel }) => (
-    <div className="fixed inset-0 bg-black/50 z-[998] flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 z-998 flex items-center justify-center">
         <div className="bg-white rounded-2xl shadow-2xl p-6 w-80 text-center">
             <div className="flex justify-center mb-3">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -107,7 +107,7 @@ const UserModal = ({ mode, user, onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[998] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-998 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
 
                 {/* Header */}

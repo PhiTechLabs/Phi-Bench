@@ -36,7 +36,7 @@ const Bench = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      <div className="mx-auto max-w-[1280px] px-8 py-8">
+      <div className="mx-auto max-w-7xl px-8 py-8">
 
         {/* HEADER */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -59,7 +59,7 @@ const Bench = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search bench…"
-                className="h-[40px] w-[280px] rounded-[10px] border border-[#E0DDD6] bg-white pl-9 pr-3 text-[13px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:ring-[3px] focus:ring-[#6382FF]/20"
+                className="h-10 w-70 rounded-[10px] border border-[#E0DDD6] bg-white pl-9 pr-3 text-[13px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:ring-[3px] focus:ring-[#6382FF]/20"
               />
             </div>
           </div>
@@ -100,7 +100,7 @@ const BenchCard = ({ candidate, onOpen, onRemove }) => (
   >
     <div className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1C4ED8] to-[#4F6FE8] text-[14px] font-semibold text-white shadow-[0_2px_4px_rgba(28,78,216,0.25)]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#1C4ED8] to-[#4F6FE8] text-[14px] font-semibold text-white shadow-[0_2px_4px_rgba(28,78,216,0.25)]">
           {candidate.initials || "?"}
         </div>
         <div className="min-w-0">
@@ -119,7 +119,7 @@ const BenchCard = ({ candidate, onOpen, onRemove }) => (
           onRemove();
         }}
         title="Remove from bench"
-        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#9B9890] opacity-0 transition-all hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#9B9890] opacity-0 transition-all hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18" />

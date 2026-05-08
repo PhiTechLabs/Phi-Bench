@@ -86,7 +86,7 @@ const DataTable = ({
           {t.hasActiveFilters && (
             <button
               onClick={t.clearAllFilters}
-              className="flex h-9 items-center gap-1 rounded-[8px] border border-[#FED7AA] bg-[#FFF7ED] px-2.5 text-[12px] font-medium text-[#C2410C] transition-all hover:bg-[#FFEDD5]"
+              className="flex h-9 items-center gap-1 rounded-lg border border-[#FED7AA] bg-[#FFF7ED] px-2.5 text-[12px] font-medium text-[#C2410C] transition-all hover:bg-[#FFEDD5]"
             >
               Clear filters
             </button>
@@ -118,7 +118,7 @@ const DataTable = ({
               <button
                 key={i}
                 onClick={() => action.onClick(Array.from(t.selectedIds))}
-                className="flex items-center gap-1 rounded-[8px] border border-[#BFD3FF] bg-white px-3 py-1.5 text-[12px] font-medium text-[#1C4ED8] transition-all hover:bg-[#F0F5FF]"
+                className="flex items-center gap-1 rounded-lg border border-[#BFD3FF] bg-white px-3 py-1.5 text-[12px] font-medium text-[#1C4ED8] transition-all hover:bg-[#F0F5FF]"
               >
                 {action.label}
               </button>
@@ -131,7 +131,7 @@ const DataTable = ({
                     t.clearSelection();
                   }
                 }}
-                className="flex items-center gap-1 rounded-[8px] border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] transition-all hover:bg-[#FEF2F2]"
+                className="flex items-center gap-1 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] transition-all hover:bg-[#FEF2F2]"
               >
                 Delete selected
               </button>
@@ -164,7 +164,7 @@ const DataTable = ({
             <button
             onClick={t.resetColumns}
             title="Reset to default columns"
-            className="flex h-9 items-center gap-1 rounded-[8px] border border-[#E0DDD6] bg-white px-2.5 text-[12px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0]"
+            className="flex h-9 items-center gap-1 rounded-lg border border-[#E0DDD6] bg-white px-2.5 text-[12px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0]"
           >
             <ResetIcon /> Reset
           </button>
@@ -216,8 +216,8 @@ const DataTable = ({
                           : "cursor-grab hover:bg-[#F5F4F0] active:cursor-grabbing"
                       } ${isDragging ? "opacity-40" : ""} ${idx !== t.columns.length - 1 ? "border-r border-[#F0EDE8]" : ""}`}
                     >
-                      {isOver && t.dropSide === "left"  && <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-[#1C4ED8]" />}
-                      {isOver && t.dropSide === "right" && <span className="pointer-events-none absolute right-0 top-0 h-full w-[3px] bg-[#1C4ED8]" />}
+                      {isOver && t.dropSide === "left"  && <span className="pointer-events-none absolute left-0 top-0 h-full w-0.75 bg-[#1C4ED8]" />}
+                      {isOver && t.dropSide === "right" && <span className="pointer-events-none absolute right-0 top-0 h-full w-0.75 bg-[#1C4ED8]" />}
 
                       <div className="flex items-center justify-between gap-1">
                         <span
@@ -250,7 +250,7 @@ const DataTable = ({
                             <button
                               onClick={(e) => { e.stopPropagation(); t.removeColumn(col.key); }}
                               title="Remove column"
-                              className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded text-[#C8C5BD] opacity-0 transition-all hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100"
+                              className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[#C8C5BD] opacity-0 transition-all hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100"
                             >
                               <XIcon />
                             </button>
@@ -422,11 +422,11 @@ const AddColumnDropdown = ({ options, onPick, onClose }) => {
   }, [onClose]);
 
   return (
-    <div ref={ref} className="absolute right-0 top-full z-50 mt-1 w-[210px] overflow-hidden rounded-[8px] border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+    <div ref={ref} className="absolute right-0 top-full z-50 mt-1 w-52.5 overflow-hidden rounded-lg border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
       <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-3 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.06em] text-[#9B9890]">
         Add Column ({options.length})
       </div>
-      <div className="max-h-[400px] overflow-y-auto py-1">
+      <div className="max-h-100 overflow-y-auto py-1">
         {options.map((col) => (
           <button
             key={col.key}
@@ -463,7 +463,7 @@ const FilterButton = ({ active, open, onToggle, options, selected, onChange, onC
       <button
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
         title="Filter"
-        className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded transition-all ${
+        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded transition-all ${
           active
             ? "text-[#1C4ED8] opacity-100"
             : "text-[#C8C5BD] opacity-0 hover:bg-[#F0F5FF] hover:text-[#1C4ED8] group-hover:opacity-100"
@@ -472,7 +472,7 @@ const FilterButton = ({ active, open, onToggle, options, selected, onChange, onC
         <FilterIcon />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-[200px] overflow-hidden rounded-[8px] border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute right-0 top-full z-50 mt-1 w-50 overflow-hidden rounded-lg border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between border-b border-[#F0EDE8] bg-[#FAFAF8] px-2.5 py-1.5">
             <span className="text-[9.5px] font-semibold uppercase tracking-[0.06em] text-[#9B9890]">Filter</span>
             {selected.length > 0 && (
@@ -484,7 +484,7 @@ const FilterButton = ({ active, open, onToggle, options, selected, onChange, onC
               </button>
             )}
           </div>
-          <div className="max-h-[260px] overflow-y-auto py-1">
+          <div className="max-h-65 overflow-y-auto py-1">
             {options.map((opt) => (
               <label
                 key={opt}
