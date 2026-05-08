@@ -2,12 +2,31 @@ import React, { useState } from "react";
 
 const JobForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error for this field as user types
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: undefined });
+    }
+  };
+
+  const validate = () => {
+    const next = {};
+    if (!formData.title?.trim())       next.title = "Position title is required";
+    if (!formData.client?.trim())      next.client = "Client name is required";
+    if (!formData.description?.trim()) next.description = "Job description is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
   const handleSubmit = () => {
+    if (!validate()) {
+      // Scroll to top so user sees error highlights
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     onSave(formData);
   };
 
@@ -54,8 +73,8 @@ const JobForm = ({ setShowForm, onSave }) => {
           {/* SECTION 1: JOB INFO */}
           <Section title="Job Info" subtitle="Core details about the position and assignment">
             <Row>
-              <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required />
-              <Field label="Client Name" name="client" placeholder="Client company name" onChange={handleChange} required />
+              <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required error={errors.title} />
+              <Field label="Client Name" name="client" placeholder="Client company name" onChange={handleChange} required error={errors.client} />
             </Row>
             <Row>
               <Field label="Contact Name" name="contact" placeholder="Hiring manager" onChange={handleChange} />
@@ -104,6 +123,7 @@ const JobForm = ({ setShowForm, onSave }) => {
               label="Description"
               name="description"
               required
+              error={errors.description}
               placeholder="Write a detailed job description including responsibilities, qualifications, and any other relevant information..."
               onChange={handleChange}
             />
@@ -148,8 +168,15 @@ const Row = ({ children }) => (
   <div className="grid grid-cols-2 items-center gap-x-18">{children}</div>
 );
 
-const fieldInputClass =
-  "min-w-0 flex-1 rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8] px-3.5 py-2.5 text-[14px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20";
+const baseInputClass =
+  "min-w-0 flex-1 rounded-[10px] border bg-[#FAFAF8] px-3.5 py-2.5 text-[14px] text-[#1C1B18] outline-none transition-all focus:bg-white focus:ring-[3px]";
+
+const inputClass = (hasError) =>
+  `${baseInputClass} ${
+    hasError
+      ? "border-[#FCA5A5] focus:border-[#DC2626] focus:ring-[#DC2626]/15"
+      : "border-[#E0DDD6] focus:border-[#93AEFF] focus:ring-[#6382FF]/20"
+  }`;
 
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
@@ -161,15 +188,18 @@ const FieldLabel = ({ label, required, alignTop }) => (
   </label>
 );
 
-const Field = ({ label, required, full, ...props }) => (
-  <div className={`flex items-center gap-4 ${full ? "col-span-2" : ""}`}>
+const Field = ({ label, required, full, error, ...props }) => (
+  <div className={`flex items-start gap-4 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
-    <input {...props} className={fieldInputClass} />
+    <div className="flex min-w-0 flex-1 flex-col">
+      <input {...props} className={inputClass(!!error)} />
+      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+    </div>
   </div>
 );
 
-const SelectField = ({ label, options = [], required, full, ...props }) => (
-  <div className={`flex items-center gap-4 ${full ? "col-span-2" : ""}`}>
+const SelectField = ({ label, options = [], required, full, error, ...props }) => (
+  <div className={`flex items-start gap-4 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
     <select
       {...props}
@@ -188,7 +218,7 @@ const SelectField = ({ label, options = [], required, full, ...props }) => (
   </div>
 );
 
-const TextAreaField = ({ label, required, ...props }) => (
+const TextAreaField = ({ label, required, error, ...props }) => (
   <div className="flex items-start gap-4">
     <FieldLabel label={label} required={required} alignTop />
     <textarea

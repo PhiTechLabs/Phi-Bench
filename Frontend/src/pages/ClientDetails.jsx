@@ -63,4 +63,5 @@
     </div>
     );
 
-    export default ClientDetails;
+    export default ClientDetails; 
+    
