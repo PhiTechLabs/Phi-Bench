@@ -60,7 +60,7 @@ const JobForm = ({ setShowForm, onSave }) => {
           </button>
           <button
             onClick={handleSubmit}
-            className="rounded-[10px] bg-[#1C4ED8] px-[22px] py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)]"
+            className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)]"
           >
             Save Job Opening →
           </button>
@@ -68,19 +68,7 @@ const JobForm = ({ setShowForm, onSave }) => {
       </div>
 
       {/* MAIN LAYOUT */}
-      <div className="mx-auto max-w-[1280px] px-8 py-8 pb-12">
-        {/* Inline error summary */}
-        {Object.keys(errors).length > 0 && (
-          <div className="mb-5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#B91C1C]">
-            <div className="font-semibold">Please fix the following before saving:</div>
-            <ul className="mt-1 list-disc pl-5">
-              {Object.values(errors).filter(Boolean).map((msg, i) => (
-                <li key={i}>{msg}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
+      <div className="mx-auto max-w-7xl px-8 py-8 pb-12">
         <div className="flex flex-col gap-5">
           {/* SECTION 1: JOB INFO */}
           <Section title="Job Info" subtitle="Core details about the position and assignment">
@@ -145,7 +133,7 @@ const JobForm = ({ setShowForm, onSave }) => {
           <div className="flex justify-end gap-2.5 pt-2">
             <button
               onClick={() => setShowForm(false)}
-              className="rounded-[10px] border border-[#E0DDD6] bg-white px-[22px] py-2.5 text-[13px] font-medium text-[#4A4845]"
+              className="rounded-[10px] border border-[#E0DDD6] bg-white px-5.5 py-2.5 text-[13px] font-medium text-[#4A4845]"
             >
               Cancel
             </button>
@@ -168,16 +156,16 @@ export default JobForm;
 
 const Section = ({ title, subtitle, children }) => (
   <div className="overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white">
-    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-8 pt-5 pb-[18px]">
+    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-8 pt-5 pb-4.5">
       <div className="text-[16px] font-semibold text-[#1C1B18]">{title}</div>
       {subtitle && <p className="mt-1 text-[13px] text-[#9B9890]">{subtitle}</p>}
     </div>
-    <div className="flex flex-col gap-[18px] px-8 py-5">{children}</div>
+    <div className="flex flex-col gap-4.5 px-8 py-5">{children}</div>
   </div>
 );
 
 const Row = ({ children }) => (
-  <div className="grid grid-cols-2 items-center gap-x-[72px]">{children}</div>
+  <div className="grid grid-cols-2 items-center gap-x-18">{children}</div>
 );
 
 const baseInputClass =
@@ -192,7 +180,7 @@ const inputClass = (hasError) =>
 
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
-    className={`w-[150px] flex-shrink-0 text-[13px] font-medium tracking-[0.01em] text-[#4A4845] ${
+    className={`w-37.5 shrink-0 text-[13px] font-medium tracking-[0.01em] text-[#4A4845] ${
       alignTop ? "pt-3" : ""
     }`}
   >
@@ -213,39 +201,29 @@ const Field = ({ label, required, full, error, ...props }) => (
 const SelectField = ({ label, options = [], required, full, error, ...props }) => (
   <div className={`flex items-start gap-4 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
-    <div className="flex min-w-0 flex-1 flex-col">
-      <select
-        {...props}
-        className={`${inputClass(!!error)} cursor-pointer appearance-none bg-[length:12px_12px] bg-[right_14px_center] bg-no-repeat pr-9`}
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-        }}
-      >
-        <option value="">Select status...</option>
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
-      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
-    </div>
+    <select
+      {...props}
+      className={`${fieldInputClass} cursor-pointer appearance-none bg-size-[12px_12px] bg-position-[right_14px_center] bg-no-repeat pr-9`}
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+      }}
+    >
+      <option value="">Select status...</option>
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </select>
   </div>
 );
 
 const TextAreaField = ({ label, required, error, ...props }) => (
   <div className="flex items-start gap-4">
     <FieldLabel label={label} required={required} alignTop />
-    <div className="flex min-w-0 flex-1 flex-col">
-      <textarea
-        {...props}
-        className={`min-h-[260px] resize-y rounded-xl border bg-[#FAFAF8] px-4 py-3.5 text-[14px] leading-[1.7] text-[#1C1B18] outline-none transition-all focus:bg-white focus:ring-[3px] ${
-          error
-            ? "border-[#FCA5A5] focus:border-[#DC2626] focus:ring-[#DC2626]/15"
-            : "border-[#E0DDD6] focus:border-[#93AEFF] focus:ring-[#6382FF]/20"
-        }`}
-      />
-      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
-    </div>
+    <textarea
+      {...props}
+      className="min-h-65 min-w-0 flex-1 resize-y rounded-xl border border-[#E0DDD6] bg-[#FAFAF8] px-4 py-3.5 text-[14px] leading-[1.7] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20"
+    />
   </div>
 );

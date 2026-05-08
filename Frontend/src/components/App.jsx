@@ -1,6 +1,5 @@
     import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
     import Login from "../pages/Login";
-    // import Layout from "./layout";
     import Navbar from "./Navbar";
     import { roleRoutes } from "../routes/roleRoutes";
     import Setup from "../pages/Setup";
