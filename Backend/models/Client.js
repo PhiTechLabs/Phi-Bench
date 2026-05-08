@@ -49,6 +49,11 @@ const clientSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    status: {
+    type: String,
+    enum: ["Active", "Prospect", "Onboarding", "On Hold", "Inactive"],
+    default: "Active",
+    },
 }, { timestamps: true });
 
 export default mongoose.model("Client", clientSchema);

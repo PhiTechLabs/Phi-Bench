@@ -8,7 +8,7 @@ import {
 } from "../controllers/clientController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
-import { createClientRules, validate } from "../validators/clientValidator.js";
+import { createClientRules,updateClientRules, validate } from "../validators/clientValidator.js";
 
 const router = express.Router();
 
@@ -29,7 +29,7 @@ router.put(
     "/:id",
     protect,
     authorizeRoles("superAdmin", "admin"),
-    createClientRules,
+    updateClientRules,
     validate,
     updateClient
 );

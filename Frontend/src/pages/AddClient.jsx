@@ -5,24 +5,25 @@ import useClientForm from "../hooks/useClientForm";
 import { validateClientForm } from "../utils/clientValidation";
 import { createClient } from "../api/clientApi";
 
-import ClientFormHeader from "../components/client/ClientFormHeader";
+import FormHeader from "../components/shared/FormHeader";
 import ClientInfoSection from "../components/client/ClientInfoSection";
 import LocationList from "../components/client/LocationList";
 import PocList from "../components/client/PocList";
-import AttachmentSection from "../components/client/AttachmentSection";
+import AttachmentSection from "../components/shared/AttachmentSection";
 import Btn from "../components/ui/Btn";
+import useRoleBase from "../hooks/useRoleBase.";
 
-const user = JSON.parse(localStorage.getItem("user"));
-const roleBase = `/${user?.role === "superAdmin" ? "superadmin" : user?.role}`;
+
 
 // ─── ADD CLIENT PAGE ──────────────────────────────────────────────────────────
 const AddClient = () => {
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
 
+    const roleBase = useRoleBase();
+
     // ALL form state + handlers come from the hook
     const form = useClientForm();
-
     // ─── SUBMIT HANDLER ───────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         if (e?.preventDefault) e.preventDefault();
@@ -65,7 +66,8 @@ const AddClient = () => {
     // ─── RENDER ───────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen font-sans" style={{ backgroundColor: "#f7f5f2" }}>
-            <ClientFormHeader
+            <FormHeader
+                title="Create Client"
                 onCancel={handleCancel}
                 onSave={handleSubmit}
                 submitting={submitting}

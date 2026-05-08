@@ -100,7 +100,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
           </button>
           <button
             onClick={handleSubmit}
-            className="rounded-[10px] bg-[#1C4ED8] px-[22px] py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)]"
+            className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)]"
           >
             Save Candidate →
           </button>
@@ -108,7 +108,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
       </div>
 
       {/* MAIN LAYOUT */}
-      <div className="mx-auto max-w-[1280px] px-8 py-8 pb-12">
+      <div className="mx-auto max-w-7xl px-8 py-8 pb-12">
         <div className="flex flex-col gap-5">
           {/* SECTION 1: BASIC INFO */}
           <Section title="Basic Information" subtitle="Core identity and contact details for this candidate">
@@ -291,7 +291,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
           <div className="flex justify-end gap-2.5 pt-2">
             <button
               onClick={() => setShowForm(false)}
-              className="rounded-[10px] border border-[#E0DDD6] bg-white px-[22px] py-2.5 text-[13px] font-medium text-[#4A4845]"
+              className="rounded-[10px] border border-[#E0DDD6] bg-white px-5.5 py-2.5 text-[13px] font-medium text-[#4A4845]"
             >
               Cancel
             </button>
@@ -315,16 +315,16 @@ export default CandidateForm;
 
 const Section = ({ title, subtitle, children }) => (
   <div className="overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white">
-    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-8 pt-5 pb-[18px]">
+    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-8 pt-5 pb-4.5">
       <div className="text-[16px] font-semibold text-[#1C1B18]">{title}</div>
       {subtitle && <p className="mt-1 text-[13px] text-[#9B9890]">{subtitle}</p>}
     </div>
-    <div className="flex flex-col gap-[18px] px-8 py-5">{children}</div>
+    <div className="flex flex-col gap-4.5 px-8 py-5">{children}</div>
   </div>
 );
 
 const Row = ({ children }) => (
-  <div className="grid grid-cols-2 items-center gap-x-[72px]">{children}</div>
+  <div className="grid grid-cols-2 items-center gap-x-18">{children}</div>
 );
 
 const fieldInputClass =
@@ -332,7 +332,7 @@ const fieldInputClass =
 
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
-    className={`w-[150px] flex-shrink-0 text-[13px] font-medium tracking-[0.01em] text-[#4A4845] ${
+    className={`w-37.5 shrink-0 text-[13px] font-medium tracking-[0.01em] text-[#4A4845] ${
       alignTop ? "pt-3" : ""
     }`}
   >
@@ -354,7 +354,7 @@ const CurrencyField = ({ label, required, full, ...props }) => (
       <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[14px] text-[#9B9890]">
         ₹
       </span>
-      <input {...props} className={`${fieldInputClass} w-full pl-[30px]`} />
+      <input {...props} className={`${fieldInputClass} w-full pl-7.5`} />
     </div>
   </div>
 );
@@ -374,7 +374,7 @@ const SelectField = ({ label, options = [], required, full, placeholder = "Selec
       <select
         {...props}
         value={value}
-        className={`${fieldInputClass} cursor-pointer appearance-none bg-[length:12px_12px] bg-[right_14px_center] bg-no-repeat pr-9`}
+        className={`${fieldInputClass} cursor-pointer appearance-none bg-size-[12px_12px] bg-position-[right_14px_center] bg-no-repeat pr-9`}
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
         }}
@@ -396,7 +396,7 @@ const TextAreaField = ({ label, required, short, ...props }) => (
     <textarea
       {...props}
       className={`${
-        short ? "min-h-[90px]" : "min-h-[120px]"
+        short ? "min-h-22.5" : "min-h-30"
       } min-w-0 flex-1 resize-y rounded-xl border border-[#E0DDD6] bg-[#FAFAF8] px-3.5 py-3 text-[14px] leading-[1.6] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20`}
     />
   </div>
@@ -410,7 +410,7 @@ const CheckboxField = ({ label, checked, onChange }) => (
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-[18px] w-[18px] cursor-pointer accent-[#1C4ED8]"
+        className="h-4.5 w-4.5 cursor-pointer accent-[#1C4ED8]"
       />
     </div>
   </div>
@@ -423,7 +423,7 @@ const DurationField = ({ label, fromMonth, fromYear, toMonth, toYear, onChange }
     <select
       value={val || ""}
       onChange={(e) => onChange(key, e.target.value)}
-      className={`min-w-0 flex-1 cursor-pointer appearance-none rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8] bg-[length:12px_12px] bg-[right_10px_center] bg-no-repeat py-2.5 pl-3 pr-7 text-[13px] outline-none ${
+      className={`min-w-0 flex-1 cursor-pointer appearance-none rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8] bg-size-[12px_12px] bg-position-[right_10px_center] bg-no-repeat py-2.5 pl-3 pr-7 text-[13px] outline-none ${
         val ? "text-[#1C1B18]" : "text-[#9B9890]"
       }`}
       style={{
@@ -458,8 +458,8 @@ const DurationField = ({ label, fromMonth, fromYear, toMonth, toYear, onChange }
 const TimelineItem = ({ index, isLast, onDelete, children }) => (
   <div className={`flex gap-5 ${isLast ? "pb-2" : "pb-8"}`}>
     {/* Timeline gutter */}
-    <div className="relative flex w-10 flex-shrink-0 flex-col items-center">
-      <div className="z-[2] flex h-8 w-8 items-center justify-center rounded-full border border-[#E0DDD6] bg-white text-[12px] font-semibold text-[#6B6860]">
+    <div className="relative flex w-10 shrink-0 flex-col items-center">
+      <div className="z-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#E0DDD6] bg-white text-[12px] font-semibold text-[#6B6860]">
         {index}
       </div>
       <div className="my-1 w-px flex-1 bg-[#E8E6E0]" />
@@ -468,7 +468,7 @@ const TimelineItem = ({ index, isLast, onDelete, children }) => (
           type="button"
           onClick={onDelete}
           title="Delete entry"
-          className="z-[2] flex h-8 w-8 items-center justify-center rounded-full border border-[#FECACA] bg-white text-[#DC2626] transition-all hover:border-[#DC2626] hover:bg-[#FEF2F2]"
+          className="z-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#FECACA] bg-white text-[#DC2626] transition-all hover:border-[#DC2626] hover:bg-[#FEF2F2]"
         >
           <TrashIcon />
         </button>
@@ -478,7 +478,7 @@ const TimelineItem = ({ index, isLast, onDelete, children }) => (
     </div>
 
     {/* Fields */}
-    <div className="flex min-w-0 flex-1 flex-col gap-[14px] pt-0.5">{children}</div>
+    <div className="flex min-w-0 flex-1 flex-col gap-3.5 pt-0.5">{children}</div>
   </div>
 );
 
@@ -492,7 +492,7 @@ const TrashIcon = () => (
 );
 
 const AddRowButton = ({ text, onClick }) => (
-  <div className="mt-1 flex pl-[60px]">
+  <div className="mt-1 flex pl-15">
     <button
       type="button"
       onClick={onClick}
