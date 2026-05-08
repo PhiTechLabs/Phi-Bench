@@ -57,6 +57,7 @@
     };
     const handleStatusChange = async (id, newStatus) => {
         setClients((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
+        console.log("Sending status:", newStatus);
         await updateClient(id, { status: newStatus });
     };
 

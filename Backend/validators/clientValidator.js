@@ -55,6 +55,43 @@ export const createClientRules = [
         .isURL().withMessage("Invalid POC LinkedIn URL"),
 ];
 
+// ─── VALIDATION RULES FOR UPDATE CLIENT ──────────────────────────────────────
+// Partial updates: every field is optional, but if present, must be valid.
+export const updateClientRules = [
+    body("clientName").optional().trim().notEmpty().withMessage("Client name cannot be empty")
+        .isLength({ max: 200 }).withMessage("Client name too long"),
+
+    body("contactNumber")
+    .optional({ checkFalsy: true })
+    .trim()
+        .isLength({ min: 6, max: 20 }).withMessage("Invalid contact number"),
+
+    body("website")
+    .optional({ checkFalsy: true })
+    .trim()
+        .isURL({ require_protocol: false }).withMessage("Invalid website URL"),
+
+    body("linkedin")
+    .optional({ checkFalsy: true })
+    .trim()
+        .isURL().withMessage("Invalid LinkedIn URL"),
+
+    body("about")
+    .optional({ checkFalsy: true })
+    .trim()
+        .isLength({ max: 2000 }).withMessage("About text too long"),
+
+    body("status").optional().trim()
+        .isIn(["Active", "Prospect", "Onboarding", "On Hold", "Inactive"])
+        .withMessage("Invalid status value"),
+
+    body("locations").optional().isArray()
+        .withMessage("Locations must be an array"),
+
+    body("pocs").optional().isArray()
+        .withMessage("POCs must be an array"),
+];
+
 // ─── MIDDLEWARE: RUN VALIDATION & SHORT-CIRCUIT ON ERROR ──────────────────────
 export const validate = (req, res, next) => {
     const errors = validationResult(req);
