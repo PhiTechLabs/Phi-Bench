@@ -57,13 +57,26 @@ const Candidates = () => {
     await refresh();
   };
   const handleToggleBench = async (id) => {
-    await toggleBench(id);
-    await refresh();
-  };
+    const previous = candidates.find(c => c.id === id);
+    setCandidates(prev => prev.map(c => c.id === id ? { ...c, onBench: !c.onBench } : c));
+    try {
+        await toggleBench(id);
+    } catch {
+        setCandidates(prev => prev.map(c => c.id === id ? previous : c));
+    }
+};
   const handleStatusChange = async (id, newStatus) => {
+    const previous = candidates.find(c => c.id === id);
     setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
-    await updateCandidate(id, { status: newStatus });
-  };
+    try {
+        await updateCandidate(id, { status: newStatus });
+    } catch (err) {
+        // revert on failure
+        setCandidates((prev) => prev.map((c) => (c.id === id ? previous : c)));
+        const msg = err.response?.data?.message || "Failed to update status";
+        alert(msg); // or a toast if you have one
+    }
+};
 
   /* ── column registry ── */
   const columns = [
@@ -71,7 +84,7 @@ const Candidates = () => {
     { key: "name",       label: "Name",     width: 170, type: "text",      bold: true, link: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
     { key: "jobTitle",   label: "Job Title",width: 150, type: "text",      defaultVisible: true, sortable: true, searchable: true, filterable: true },
     { key: "skills",     label: "Skills",   width: 220, type: "chips",     maxChips: 2, defaultVisible: true, searchable: true },
-    { key: "experience", label: "Exp.",     width: 80,  type: "experience", defaultVisible: true, sortable: true, sortType: "number" },
+    { key: "experienceYears", label: "Exp.",     width: 80,  type: "experience", defaultVisible: true, sortable: true, sortType: "number" },
     { key: "company",    label: "Company",  width: 140, type: "text",      defaultVisible: true, sortable: true, searchable: true, filterable: true },
     { key: "city",       label: "Location", width: 130, type: "location",  defaultVisible: true, sortable: true, filterable: true },
     { key: "email",      label: "Email",    width: 200, type: "text",      defaultVisible: true, searchable: true },

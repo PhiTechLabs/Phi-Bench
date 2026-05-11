@@ -1,116 +1,126 @@
-/**
- * ────────────────────────────────────────────────────────────
- *  CANDIDATES API LAYER
- * ────────────────────────────────────────────────────────────
- *  Single source of truth for all candidate data operations.
- *
- *  Currently backed by localStorage. When backend is ready,
- *  ONLY this file needs to change — replace each function body
- *  with axios/fetch calls.
- * ────────────────────────────────────────────────────────────
- */
+import axiosInstance from "./axiosInstance";
 
-import { MdKeyboardReturn, MdOutlineContactSupport } from "react-icons/md";
-
-const STORAGE_KEY = "candidates";
-
-/* ── internal helpers ── */
-const readAll = () => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
-};
-const writeAll = (list) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+// ─── HELPER: normalize backend response shape ────────────────────────────────
+// Backend returns { candidate, ... } or { candidates, count } — extract & normalize.
+// Also ensures `id` is always present (alias of `_id`).
+const normalize = (c) => {
+    if (!c) return c;
+    return {
+        ...c,
+        id: c.id || c._id, // Mongoose virtual gives us `id`, but be defensive
+    };
 };
 
-/**
- * Auto-derive flat-level fields from nested form data.
- * The form stores work history in `experience[]` array, but the table
- * needs a quick `company` lookup. We pull from the entry that's marked
- * `current: true`, falling back to the first entry with a company name.
- *
- * Same pattern can be extended for other "current" derivations later.
- */
-const deriveFlatFields = (data) => {
-  const exp = Array.isArray(data.experience) ? data.experience : [];
-  const currentExp =
-    exp.find((e) => e?.current && e?.company) ||
-    exp.find((e) => e?.company);
-    
+const normalizeMany = (arr = []) => arr.map(normalize);
 
-  return {
-    company: currentExp?.company || data.company || "",
-  };
-};
-
-/* ── public API ── */
-
-export const listCandidates = async () => readAll();
-
-export const getCandidate = async (id) =>
-  readAll().find((c) => c.id === Number(id)) || null;
-
-export const createCandidate = async (data) => {
-  const list = readAll();
-  const newCandidate = {
-    id: Date.now(),
-    name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
-    initials: `${data.firstName?.[0] || ""}${data.lastName?.[0] || ""}`.toUpperCase(),
-    status: "New",
-    onBench: false,
-    createdAt: new Date().toISOString(),
-    ...data,
-    ...deriveFlatFields(data), // overrides any direct company field with derived one
-  };
-  writeAll([newCandidate, ...list]);
-  return newCandidate;
-};
-
-export const updateCandidate = async (id, patch) => {
-  const list = readAll();
-  const next = list.map((c) => {
-    if (c.id !== Number(id)) return c;
-    const merged = { ...c, ...patch, updatedAt: new Date().toISOString() };
-    // Re-derive in case experience changed
-    return { ...merged, ...deriveFlatFields(merged) };
-  });
-  writeAll(next);
-  return next.find((c) => c.id === Number(id)) || null;
-};
-
-export const deleteCandidate = async (id) => {
-  writeAll(readAll().filter((c) => c.id !== Number(id)));
-  return true;
-};
-
-export const toggleBench = async (id) => {
-  const candidate = await getCandidate(id);
-  if (!candidate) return null;
-  return updateCandidate(id, { onBench: !candidate.onBench });
-};
-
-export const listBenchCandidates = async () =>
-  readAll().filter((c) => c.onBench);
-
-/**
- * One-time migration: backfills `company` for existing candidates
- * who were created before this derivation existed.
- * Call once on app load — it's idempotent and safe to re-run.
- */
-export const migrateExistingCandidates = () => {
-  const list = readAll();
-  let changed = false;
-  const next = list.map((c) => {
-    if (c.company && c.company.trim()) return c; // already has company
-    const derived = deriveFlatFields(c);
-    if (derived.company) {
-      changed = true;
-      return { ...c, ...derived };
+// ─── LIST CANDIDATES ─────────────────────────────────────────────────────────
+export const listCandidates = async () => {
+    try {
+        const { data } = await axiosInstance.get("/candidates");
+        return normalizeMany(data.candidates);
+    } catch (err) {
+        console.error("listCandidates error:", err);
+        return [];
     }
-    return c;
-  });
-  if (changed) writeAll(next);
+};
+
+// ─── LIST BENCH CANDIDATES (filter from full list) ──────────────────────────
+// Bench is a filtered view of all candidates where onBench === true.
+// For now, filter client-side from the full list — fine for small datasets.
+// If candidates grow into the thousands, swap for a backend query param:
+//   GET /api/candidates?onBench=true
+export const listBenchCandidates = async () => {
+    const all = await listCandidates();
+    return all.filter((c) => c.onBench === true);
+};
+
+// ─── GET SINGLE CANDIDATE ────────────────────────────────────────────────────
+export const getCandidate = async (id) => {
+    try {
+        const { data } = await axiosInstance.get(`/candidates/${id}`);
+        return normalize(data.candidate);
+    } catch (err) {
+        console.error("getCandidate error:", err);
+        return null;
+    }
+};
+
+// ─── CREATE CANDIDATE ────────────────────────────────────────────────────────
+// Form sends `attachments` as { resume: File, ... } — File objects can't be
+// JSON-serialized, so we strip them here. Phase 2 (Cloudinary) will handle
+// uploads separately and POST URLs back.
+export const createCandidate = async (formData) => {
+    const payload = sanitizeForBackend(formData);
+
+    try {
+        const { data } = await axiosInstance.post("/candidates", payload);
+        return normalize(data.candidate);
+    } catch (err) {
+        const serverMsg =
+            err.response?.data?.errors?.[0]?.message ||
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to create candidate";
+        alert(`Error: ${serverMsg}`);
+        throw err;
+    }
+};
+
+// ─── UPDATE CANDIDATE (partial) ──────────────────────────────────────────────
+export const updateCandidate = async (id, payload) => {
+    try {
+        const clean = sanitizeForBackend(payload);
+        const { data } = await axiosInstance.put(`/candidates/${id}`, clean);
+        return normalize(data.candidate);
+    } catch (err) {
+        const serverMsg =
+            err.response?.data?.errors?.[0]?.message ||
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to update candidate";
+        alert(`Error: ${serverMsg}`);
+        throw err;
+    }
+};
+
+// ─── DELETE CANDIDATE ────────────────────────────────────────────────────────
+export const deleteCandidate = async (id) => {
+    try {
+        const { data } = await axiosInstance.delete(`/candidates/${id}`);
+        return data;
+    } catch (err) {
+        console.error("deleteCandidate error:", err);
+        alert("Failed to delete candidate");
+        throw err;
+    }
+};
+
+// ─── TOGGLE BENCH (dedicated action) ─────────────────────────────────────────
+export const toggleBench = async (id) => {
+    try {
+        const { data } = await axiosInstance.patch(`/candidates/${id}/toggle-bench`);
+        return normalize(data.candidate);
+    } catch (err) {
+        console.error("toggleBench error:", err);
+        alert("Failed to toggle bench status");
+        throw err;
+    }
+};
+
+// ─── LEGACY: migrateExistingCandidates (no-op now) ──────────────────────────
+// Old localStorage version migrated stale data on app load. Backend handles
+// persistence now, so this is a no-op. Kept as an exported function so the
+// import in Candidates.jsx doesn't break.
+export const migrateExistingCandidates = () => {
+    // intentionally empty — was localStorage migration, no longer needed
+};
+
+// ─── INTERNAL: strip non-serializable fields before sending to backend ──────
+// The CandidateForm collects File objects in `attachments` — these can't be
+// JSON-stringified. We drop them here; Phase 2 will handle file uploads via
+// a separate FormData/multipart endpoint.
+const sanitizeForBackend = (data) => {
+    if (!data) return {};
+    const { attachments, ...rest } = data;
+    return rest;
 };

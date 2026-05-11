@@ -4,8 +4,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
-import clientRoutes from "./routes/clientRoutes.js";                   // ✅ NEW
-import { errorHandler, notFound } from "./middleware/errorHandler.js"; // ✅ NEW
+import clientRoutes from "./routes/clientRoutes.js";
+import candidateRoutes from "./routes/candidateRoutes.js"; // ✅ NEW
+import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import jobRoutes from "./routes/jobRoutes.js";
 
 dotenv.config();
@@ -21,17 +22,14 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-
-// ─── ROUTES ───────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
-app.use("/api/clients", clientRoutes); // ✅ NEW
-app.use("/api/jobs", jobRoutes);
-
+app.use("/api/clients", clientRoutes);
+app.use("/api/candidates", candidateRoutes); // ✅ NEW
+app.use("/api/jobs", jobRoutes); // ✅ NEW  
 app.get("/", (req, res) => {
     res.send("API Running");
 });
 
-// ─── ERROR HANDLERS — must come last ─────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
 

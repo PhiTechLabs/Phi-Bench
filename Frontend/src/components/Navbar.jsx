@@ -80,7 +80,7 @@ const Navbar = () => {
     { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
     { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
     { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
-    { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
+    // { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
     { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
   ];
 
