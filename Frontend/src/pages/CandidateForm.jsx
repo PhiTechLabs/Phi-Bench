@@ -274,16 +274,11 @@ const CandidateForm = ({ setShowForm, onSave }) => {
           {/* SECTION 6: ATTACHMENTS */}
           <Section title="Attachment Information" subtitle="Upload supporting documents for this candidate">
             <Row>
-              <FileField label="Resume" file={attachments.resume} onFile={(f) => handleFile("resume", f)} />
+              <FileField label="Resume" file={attachments.resume} onFile={(f) => handleFile("resume", f)} required />
               <FileField label="Formatted Resume" file={attachments.formattedResume} onFile={(f) => handleFile("formattedResume", f)} />
             </Row>
             <Row>
-              <FileField label="Cover Letter" file={attachments.coverLetter} onFile={(f) => handleFile("coverLetter", f)} />
-              <FileField label="Offer Letter" file={attachments.offer} onFile={(f) => handleFile("offer", f)} />
-            </Row>
-            <Row>
               <FileField label="Other Documents" file={attachments.other} onFile={(f) => handleFile("other", f)} />
-              <FileField label="Contract" file={attachments.contract} onFile={(f) => handleFile("contract", f)} />
             </Row>
           </Section>
 
@@ -505,7 +500,7 @@ const AddRowButton = ({ text, onClick }) => (
 
 /* ──────── FILE FIELD ──────── */
 
-const FileField = ({ label, file, onFile }) => {
+const FileField = ({ label, file, onFile,required  }) => {
   const inputRef = useRef(null);
   const handleClick = () => inputRef.current?.click();
   const handleChange = (e) => {
@@ -514,7 +509,7 @@ const FileField = ({ label, file, onFile }) => {
 
   return (
     <div className="flex items-center gap-4">
-      <FieldLabel label={label} />
+      <FieldLabel label={label} required={required}/>
       <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8]">
         <button
           type="button"
