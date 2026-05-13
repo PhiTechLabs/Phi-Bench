@@ -10,33 +10,17 @@
         <Routes>
 
             {/* LOGIN */}
-            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
 
             {/*  SETUP — accessible by all roles, outside Navbar layout */}
             <Route path="/setup" element={<Setup />} />
 
-            {/* CLIENT */}
-            <Route path="/client" element={<Navbar />}>
+             {/* ALL OTHER ROUTES — same URLs for every role */}
+            <Route path="/" element={<Navbar />}>
             {roleRoutes.map((route, index) => (
                 <Route key={index} {...route} />
             ))}
             </Route>
-
-            {/* ADMIN */}
-            <Route path="/admin" element={<Navbar />}>
-            {roleRoutes.map((route, index) => (
-                <Route key={index} {...route} />
-            ))}
-            </Route>
-            
-
-            {/* SUPERADMIN */}
-            <Route path="/superadmin" element={<Navbar />}>
-            {roleRoutes.map((route, index) => (
-                <Route key={index} {...route} />
-            ))}
-            </Route>
-
         </Routes>
         </Router>
     );
