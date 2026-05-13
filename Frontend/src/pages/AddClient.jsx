@@ -11,7 +11,6 @@ import LocationList from "../components/client/LocationList";
 import PocList from "../components/client/PocList";
 import AttachmentSection from "../components/shared/AttachmentSection";
 import Btn from "../components/ui/Btn";
-import useRoleBase from "../hooks/useRoleBase.";
 
 
 
@@ -20,7 +19,6 @@ const AddClient = () => {
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
 
-    const roleBase = useRoleBase();
 
     // ALL form state + handlers come from the hook
     const form = useClientForm();
@@ -47,7 +45,7 @@ const AddClient = () => {
 
             alert("Client created successfully!");
             form.resetForm();
-            navigate(`${roleBase}/client-list`); // adjust to wherever your client list lives
+            navigate("/client-list"); // adjust to wherever your client list lives
         } catch (error) {
             // Backend validation errors come back with { message, errors: [...] }
             const serverMsg =

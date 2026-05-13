@@ -2,7 +2,7 @@
     import { useNavigate } from "react-router-dom";
     import DataTable from "../components/DataTable/DataTable";
     import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
-    import useRoleBase from "../hooks/useRoleBase.";
+    // import useRoleBase from "../hooks/useRoleBase.";
 
     /* ──────────────────── STATUS PIPELINE ──────────────────── */
     const STATUS_OPTIONS = [
@@ -35,7 +35,6 @@
     const [confirmDel, setConfirmDel] = useState(null);
     const navigate = useNavigate();
     
-    const roleBase = useRoleBase();
 
     const refresh = useCallback(async () => {
         const data = await getAllClients();
@@ -94,7 +93,7 @@
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Clients</h1>
             <button
-                onClick={() => navigate(`${roleBase}/add-client`)}
+                onClick={() => navigate("/add-client")}
                 className="flex h-9 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3.5 text-[12.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
             >
                 <span className="text-[15px] leading-none">+</span> Add Client
@@ -106,7 +105,7 @@
             columns={columns}
             data={clients}
             storageKey="clients_table"
-            onRowClick={(row) => navigate(`${roleBase}/client-list/${row.id}`)}
+            onRowClick={(row) => navigate(`/client-list/${row.id}`)}
             onDelete={handleDelete}
             onBulkDelete={handleBulkDelete}
             searchPlaceholder="Search company, contact, manager…"
