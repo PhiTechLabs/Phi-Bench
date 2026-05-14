@@ -32,8 +32,8 @@ export default function Login() {
 
             const { user } = res.data;
 
-            // ✅ Cookie is set automatically by the browser (HttpOnly)
-            // ✅ Only store non-sensitive UI info in localStorage
+            //  Cookie is set automatically by the browser (HttpOnly)
+            //  Only store non-sensitive UI info in localStorage
             localStorage.setItem("user", JSON.stringify(user));
 
             // Redirect 
