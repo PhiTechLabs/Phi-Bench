@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useNavigate, Navigate ,  useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   FaTachometerAlt,
@@ -40,11 +40,7 @@ const Navbar = () => {
 
   const dropdownRef = useRef(null);
   const user = JSON.parse(localStorage.getItem("user"));
-
-// ── AUTH GATE: kick unauthenticated users to /login (no flash) ──
-if (!user) {
-    return <Navigate to="/login" replace />;
-}
+  const roleBase = `/${user?.role === "superAdmin" ? "superadmin" : user?.role}`;
 
   useEffect(() => {
     const handler = (e) => {
@@ -64,7 +60,7 @@ if (!user) {
       // even if request fails, clear local state
     }
     localStorage.clear();
-    navigate("/login");
+    navigate("/");
   };
 
   // ✅ My Account — navigate to /setup (works for all roles)
@@ -73,19 +69,20 @@ if (!user) {
     navigate("/setup");
   };
 
-const primaryMenu = [
-    { name: "Home", path: "/home", icon: <FaTachometerAlt /> },
-    { name: "Jobs", path: "/jobs", icon: <FaBriefcase /> },
-    { name: "Candidates", path: "/candidates", icon: <FaUsers /> },
-    { name: "Bench", path: "/bench", icon: <MdPeopleAlt /> },
-];
+  const primaryMenu = [
+    { name: "Home", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
+    { name: "Jobs", path: `${roleBase}/jobs`, icon: <FaBriefcase /> },
+    { name: "Candidates", path: `${roleBase}/candidates`, icon: <FaUsers /> },
+    { name: "Bench", path: `${roleBase}/bench`, icon: <MdPeopleAlt /> },
+  ];
 
   const secondaryMenu = [
-    { name: "Submissions", path: "/submissions", icon: <FaPaperPlane /> },
-    { name: "Interviews", path: "/interviews", icon: <FaUserTie /> },
-    { name: "Clients", path: "/client-list", icon: <FaHandshake /> },
-    { name: "Reports", path: "/reports", icon: <FaChartBar /> },
-];
+    { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
+    { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
+    { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
+    // { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
+    { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
+  ];
 
   const fullMenu = [...primaryMenu, ...secondaryMenu];
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
@@ -101,7 +98,7 @@ const primaryMenu = [
         </button>
 
         <div
-          onClick={() => navigate("/home")}
+          onClick={() => navigate(`${roleBase}/home`)}
           className="flex items-center cursor-pointer mr-8 shrink-0 h-full py-0"
         >
           <img src={phiBenchLogo} alt="PhiBench" className="h-full py-2 w-auto object-contain" />
@@ -175,12 +172,12 @@ const primaryMenu = [
           </div>
 
           <button
-            onClick={() => navigate("/settings")}
+            onClick={() => navigate(`${roleBase}/settings`)}
             className={`p-2 rounded-lg text-lg transition
-              ${isActive("/settings") ? "bg-blue-700 text-white" : "text-blue-200 hover:bg-blue-800 hover:text-white"}`}
-        >
+              ${isActive(`${roleBase}/settings`) ? "bg-blue-700 text-white" : "text-blue-200 hover:bg-blue-800 hover:text-white"}`}
+          >
             <FaCog />
-        </button>
+          </button>
 
           <button
             onClick={() => setProfileOpen(true)}

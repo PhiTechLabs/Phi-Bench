@@ -1,4 +1,4 @@
-    import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
     import Login from "../pages/Login";
     import Navbar from "./Navbar";
     import { roleRoutes } from "../routes/roleRoutes";
@@ -10,17 +10,33 @@
         <Routes>
 
             {/* LOGIN */}
-            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Login />} />
 
             {/*  SETUP — accessible by all roles, outside Navbar layout */}
             <Route path="/setup" element={<Setup />} />
 
-             {/* ALL OTHER ROUTES — same URLs for every role */}
-            <Route path="/" element={<Navbar />}>
+            {/* CLIENT */}
+            <Route path="/client" element={<Navbar />}>
             {roleRoutes.map((route, index) => (
                 <Route key={index} {...route} />
             ))}
             </Route>
+
+            {/* ADMIN */}
+            <Route path="/admin" element={<Navbar />}>
+            {roleRoutes.map((route, index) => (
+                <Route key={index} {...route} />
+            ))}
+            </Route>
+            
+
+            {/* SUPERADMIN */}
+            <Route path="/superadmin" element={<Navbar />}>
+            {roleRoutes.map((route, index) => (
+                <Route key={index} {...route} />
+            ))}
+            </Route>
+
         </Routes>
         </Router>
     );

@@ -87,6 +87,8 @@ const urgencyColor = (days) => {
  * ───────────────────────────────────────────────────────────── */
 const Home = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const roleBase = user?.role ? `/${user.role}` : "";
 
   /* ── raw data state ── */
   const [jobs, setJobs]               = useState([]);
@@ -277,7 +279,7 @@ const Home = () => {
                 value={activeJobs}
                 delta={jobsDelta}
                 deltaLabel="vs last week"
-                route="/jobs"
+                route={`${roleBase}/jobs`}
               />
               <KpiCard
                 icon={<FaUsers />}
@@ -285,7 +287,7 @@ const Home = () => {
                 value={totalCandidates}
                 delta={candidatesDelta}
                 deltaLabel="vs last week"
-                route="/candidates"
+                route={`${roleBase}/candidates`}
               />
               <KpiCard
                 icon={<FaUserTie />}
@@ -293,7 +295,7 @@ const Home = () => {
                 value={interviewsScheduled}
                 delta={interviewsDelta}
                 deltaLabel="vs last week"
-                route="/interviews"
+                route={`${roleBase}/interviews`}
               />
               <KpiCard
                 icon={<FaHandshake />}
@@ -301,7 +303,7 @@ const Home = () => {
                 value={totalClients}
                 delta={clientsDelta}
                 deltaLabel="vs last week"
-                route="/client-list"
+                route={`${roleBase}/client-list`}
               />
             </div>
 
@@ -326,7 +328,7 @@ const Home = () => {
                     {pipelineCounts.map((stage) => (
                       <div
                         key={stage.key}
-                        onClick={() => navigate("/candidates")}
+                        onClick={() => navigate(`${roleBase}/candidates`)}
                         className="cursor-pointer rounded-lg p-3 text-center transition hover:opacity-80"
                         style={{ background: stage.bg }}
                       >
@@ -385,7 +387,7 @@ const Home = () => {
                       of {totalCandidates} total candidate{totalCandidates === 1 ? "" : "s"}
                     </div>
                     <button
-                      onClick={() => navigate("/bench")}
+                      onClick={() => navigate(`${roleBase}/bench`)}
                       className="mt-1.5 text-[11px] font-medium text-[#1C4ED8] hover:underline"
                     >
                       View bench →
@@ -403,7 +405,7 @@ const Home = () => {
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-[14px] font-semibold text-[#1C1B18]">Upcoming Interviews</h2>
                   <button
-                    onClick={() => navigate("/interviews")}
+                    onClick={() => navigate(`${roleBase}/interviews`)}
                     className="text-[11px] font-medium text-[#1C4ED8] hover:underline"
                   >
                     View all →
@@ -419,7 +421,7 @@ const Home = () => {
                     {upcoming.map((iv) => (
                       <div
                         key={iv.id}
-                        onClick={() => navigate("/interviews")}
+                        onClick={() => navigate(`${roleBase}/interviews`)}
                         className="flex cursor-pointer items-center gap-3 py-2.5 transition hover:bg-[#FAFAF8]"
                       >
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EFF6FF] text-[11px] font-semibold text-[#1D4ED8]">
@@ -451,7 +453,7 @@ const Home = () => {
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-[14px] font-semibold text-[#1C1B18]">Top Urgent Jobs</h2>
                   <button
-                    onClick={() => navigate("/jobs")}
+                    onClick={() => navigate(`${roleBase}/jobs`)}
                     className="text-[11px] font-medium text-[#1C4ED8] hover:underline"
                   >
                     View all →
@@ -470,7 +472,7 @@ const Home = () => {
                       return (
                         <div
                           key={j.id}
-                          onClick={() => navigate(`/jobs/${j.id}`)}
+                          onClick={() => navigate(`${roleBase}/jobs/${j.id}`)}
                           className="cursor-pointer transition hover:opacity-80"
                         >
                           <div className="mb-1 flex items-center justify-between gap-2">
