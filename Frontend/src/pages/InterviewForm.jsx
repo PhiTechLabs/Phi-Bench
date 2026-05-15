@@ -77,7 +77,7 @@ const InterviewForm = ({ setShowForm, onSave, initial = {} }) => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      <div className="mx-auto w-full max-w-[960px] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-240 px-4 py-6 sm:px-6 lg:px-8">
 
         {/* HEADER */}
         <div className="mb-4 flex items-center justify-between">
@@ -247,7 +247,7 @@ const InterviewForm = ({ setShowForm, onSave, initial = {} }) => {
               <div className="sm:col-span-2">
                 <label className={labelCls}>Notes</label>
                 <textarea
-                  className={`${inputCls} min-h-[100px] resize-y`}
+                  className={`${inputCls} min-h-25 resize-y`}
                   placeholder="Feedback, next steps, concerns…"
                   value={form.notes}
                   onChange={(e) => update("notes", e.target.value)}
