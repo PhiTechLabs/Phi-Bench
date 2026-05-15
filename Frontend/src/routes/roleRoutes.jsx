@@ -14,7 +14,6 @@ import AddClient from "../pages/AddClient";
 import CandidateDetails from "../pages/CandidateDetails";
 
 export const roleRoutes = [
-    { index: true, element: <Home /> },
     { path: "home", element: <Home /> },
 
     { path: "jobs", element: <JobOpenings /> },
