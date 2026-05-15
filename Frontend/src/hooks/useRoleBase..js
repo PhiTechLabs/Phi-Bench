@@ -1,10 +1,8 @@
-// ─── ROLE-BASED ROUTING PREFIX ────────────────────────────────────────────────
-// Returns the URL prefix based on the logged-in user's role.
-// Examples: superAdmin → "/superadmin", admin → "/admin"
+// ─── NO ROLE PREFIX IN URLS ───────────────────────────────────────────────────
+// This hook previously returned role-based prefixes like "/superadmin" or "/admin"
+// Now it returns an empty string so all URLs are role-agnostic
 const useRoleBase = () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const role = user?.role === "superAdmin" ? "superadmin" : user?.role;
-    return `/${role}`;
+    return "";
 };
 
 export default useRoleBase;
