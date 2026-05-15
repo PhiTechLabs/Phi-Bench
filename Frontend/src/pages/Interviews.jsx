@@ -8,6 +8,7 @@ import {
   updateInterview,
   deleteInterview,
 } from "../api/interviewsApi";
+import useRoleBase from "../hooks/useRoleBase.";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -40,6 +41,7 @@ const Interviews = () => {
   const [interviews, setInterviews] = useState([]);
   const [confirmDel, setConfirmDel] = useState(null);
   const navigate = useNavigate();
+  const roleBase = useRoleBase();
 
   const refresh = useCallback(async () => {
     setInterviews(await listInterviews());
@@ -84,7 +86,7 @@ const Interviews = () => {
   /* ── column registry ── */
   const columns = [
     { key: "sno",          label: "S.No",          width: 56,  type: "sno",  fixed: true, removable: false, defaultVisible: true, searchable: false },
-    { key: "candidateName",label: "Candidate",     width: 170, type: "text", bold: true, link: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
+    { key: "candidateName",label: "Candidate",     width: 170, type: "text", bold: true, link: true, avatar: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
     { key: "jobTitle",     label: "Position",      width: 170, type: "text", defaultVisible: true, sortable: true, searchable: true, filterable: true },
     { key: "client",       label: "Client",        width: 150, type: "text", defaultVisible: true, sortable: true, searchable: true, filterable: true },
     {
@@ -98,18 +100,16 @@ const Interviews = () => {
       defaultVisible: true, filterable: true,
     },
     { key: "dateTime",     label: "Date & Time",   width: 160, type: "date", defaultVisible: true, sortable: true, sortType: "date" },
-    { key: "duration",     label: "Duration",      width: 90,  type: "text", defaultVisible: true },
     { key: "interviewer",  label: "Interviewer",   width: 150, type: "text", defaultVisible: true, searchable: true, filterable: true },
     {
       key: "status", label: "Status", width: 130, type: "status",
       statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
       defaultVisible: true, sortable: true, filterable: true,
     },
-    { key: "feedbackRating", label: "Rating",      width: 90,  type: "text", sortable: true, sortType: "number" },
-    { key: "meetingLink",    label: "Meeting Link",width: 200, type: "text" },
-    { key: "recruiter",      label: "Recruiter",   width: 140, type: "text", searchable: true, filterable: true },
-    { key: "notes",          label: "Notes",       width: 220, type: "text", searchable: true },
-    { key: "createdAt",      label: "Created",     width: 120, type: "date", sortable: true, sortType: "date" },
+    { key: "feedback",     label: "Feedback",      width: 180, type: "text" },
+    { key: "recruiter",    label: "Recruiter",     width: 140, type: "text", searchable: true, filterable: true },
+    { key: "location",     label: "Location",      width: 140, type: "text", filterable: true },
+    { key: "createdAt",    label: "Created",       width: 120, type: "date", sortable: true, sortType: "date" },
   ];
 
   if (showForm) {
@@ -118,71 +118,62 @@ const Interviews = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8 2xl:px-12">
-
-        {/* PAGE HEADER */}
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Interviews</h1>
-            <p className="mt-0.5 text-[12px] text-[#9B9890]">
-              Scheduled rounds and outcomes across all candidates
-            </p>
+      {/* ════════ COMPACT HEADER BAR ════════ */}
+      <div className="border-b border-[#E8E6E0] bg-white">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-4">
+            <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
+              My Interviews
+              <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
+                {interviews.length}
+              </span>
+            </button>
           </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex h-9 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3.5 text-[12.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-          >
-            <span className="text-[15px] leading-none">+</span> Schedule Interview
-          </button>
+          <div className="flex items-center gap-3">
+            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
+              Customize table
+            </button>
+            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
+              Calendar View
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+            >
+              <span className="text-[14px] leading-none">+</span> Schedule Interview
+            </button>
+          </div>
         </div>
+      </div>
 
-        {/* TABLE */}
+      {/* ════════ TABLE (EDGE-TO-EDGE) ════════ */}
+      <div className="w-full">
         <DataTable
           columns={columns}
           data={interviews}
           storageKey="interviews_table"
-          onRowClick={(row) => navigate(`/candidates/${row.candidateId}`)}
+          onRowClick={(row) => navigate(`${roleBase}/interviews/${row.id}`)}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
-          searchPlaceholder="Search candidate, position, client…"
+          searchPlaceholder="Search candidate, position, interviewer…"
           emptyState={{
             title: "No interviews scheduled",
-            hint: "Click + Schedule Interview to add one",
+            hint: "Click + Schedule Interview to get started",
           }}
         />
       </div>
 
-      {/* DELETE CONFIRM */}
+      {/* ════════ DELETE CONFIRM ════════ */}
       {confirmDel && (
-        <div
-          className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
-          onClick={() => setConfirmDel(null)}
-        >
-          <div
-            className="w-full max-w-100 rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm" onClick={() => setConfirmDel(null)}>
+          <div className="w-full max-w-100 rounded-2xl border border-[#E8E6E0] bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-[15px] font-semibold text-[#1C1B18]">Delete interview?</div>
             <p className="mt-1.5 text-[12.5px] leading-normal text-[#6B6860]">
-              The interview with{" "}
-              <span className="font-medium text-[#1C1B18]">
-                {confirmDel.candidateName || "this candidate"}
-              </span>{" "}
-              will be permanently removed.
+              Interview for <span className="font-medium text-[#1C1B18]">{confirmDel.candidateName || "this candidate"}</span> will be permanently removed.
             </p>
             <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setConfirmDel(null)}
-                className="rounded-lg border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="rounded-lg bg-[#DC2626] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#B91C1C]"
-              >
-                Delete
-              </button>
+              <button onClick={() => setConfirmDel(null)} className="rounded-lg border border-[#E0DDD6] bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">Cancel</button>
+              <button onClick={confirmDelete} className="rounded-lg bg-[#DC2626] px-3.5 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#B91C1C]">Delete</button>
             </div>
           </div>
         </div>

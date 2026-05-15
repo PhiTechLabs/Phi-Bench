@@ -1,67 +1,124 @@
-    import React, { useEffect, useState } from "react";
-    import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getAvatarProps } from "../utils/avatar";
+import useRoleBase from "../hooks/useRoleBase.";
 
-    const ClientDetails = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [client, setClient] = useState(null);
+const ClientDetails = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const roleBase = useRoleBase();
+  const [client, setClient] = useState(null);
 
-    useEffect(() => {
-        const data = JSON.parse(localStorage.getItem("clients")) || [];
-        const found = data.find((c) => c.id == id);
-        setClient(found);
-    }, [id]);
+  useEffect(() => {
+    // TODO: replace with API call once backend is ready
+    const data = JSON.parse(localStorage.getItem("clients")) || [];
+    const found = data.find((c) => c.id == id);
+    setClient(found);
+  }, [id]);
 
-    if (!client) return <div className="p-6">Loading...</div>;
-
+  if (!client) {
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="flex min-h-screen items-center justify-center bg-[#F5F4F0]">
+        <div className="text-[13px] text-[#9B9890]">Loading…</div>
+      </div>
+    );
+  }
 
-        <button
-            onClick={() => navigate("/clients")}
-            className="mb-4 text-blue-700 text-sm"
-        >
-            ← Back
-        </button>
+  const { initials, bgColor, textColor } = getAvatarProps(client.name || client.clientName);
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
+  return (
+    <div className="min-h-screen bg-[#F5F4F0] font-sans">
+      
+      {/* ════════ COMPACT TOP BAR ════════ */}
+      <div className="border-b border-[#E8E6E0] bg-white">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              onClick={() => navigate(`${roleBase}/client-list`)}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E0DDD6] bg-white text-lg text-[#6B6860] transition hover:bg-[#F5F4F0]"
+              title="Back to clients"
+            >
+              ←
+            </button>
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold"
+              style={{ backgroundColor: bgColor, color: textColor }}
+            >
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <h1 className="truncate text-[16px] font-semibold leading-tight text-[#1C1B18]">
+                {client.name || client.clientName}
+              </h1>
+              <p className="truncate text-[11px] text-[#9B9890]">
+                {client.industry || "—"}
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button className="flex h-8 items-center rounded-lg border border-[#E0DDD6] bg-white px-3 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
+              Edit
+            </button>
+            <button className="flex h-8 items-center rounded-lg border border-[#FECACA] bg-white px-3 text-[11.5px] font-medium text-[#DC2626] hover:bg-[#FEF2F2]">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
 
-            <h1 className="text-2xl font-semibold mb-6 text-gray-800">
-            {client.name}
-            </h1>
-
-            <Section title="Company Info">
+      {/* ════════ CONTENT (EDGE-TO-EDGE) ════════ */}
+      <div className="w-full bg-white">
+        <div className="px-4 py-4">
+          
+          {/* Company Info */}
+          <Section title="Company Info">
             <Detail label="Website" value={client.website} />
             <Detail label="Industry" value={client.industry} />
-            <Detail label="Location" value={client.location} />
+            <Detail label="Location" value={client.location || client.primaryCity} />
             <Detail label="Employees" value={client.employees} />
-            </Section>
+            <Detail label="GST Number" value={client.gstNumber} /> 
+            <Detail label="PAN Number" value={client.panNumber} />
+          </Section>
 
-            <Section title="Point of Contact">
-            <Detail label="Name" value={client.pocName} />
-            <Detail label="Contact" value={client.contact} />
-            <Detail label="Email" value={client.email} />
+          {/* Point of Contact */}
+          <Section title="Point of Contact">
+            <Detail label="Name" value={client.pocName || client.primaryPoc} />
+            <Detail label="Contact" value={client.contact || client.primaryPhone} />
+            <Detail label="Email" value={client.email || client.primaryEmail} />
             <Detail label="Designation" value={client.designation} />
-            </Section>
+          </Section>
+
+          {/* Account Details */}
+          <Section title="Account Details">
+            <Detail label="Account Manager" value={client.accountManager} />
+            <Detail label="Status" value={client.status} />
+            <Detail label="Created" value={client.createdAt ? new Date(client.createdAt).toLocaleDateString() : "—"} />
+            <Detail label="Last Updated" value={client.updatedAt ? new Date(client.updatedAt).toLocaleDateString() : "—"} />
+          </Section>
 
         </div>
-        </div>
-    );
-    };
+      </div>
 
-    const Section = ({ title, children }) => (
-    <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">{title}</h2>
-        <div className="grid md:grid-cols-2 gap-4">{children}</div>
     </div>
-    );
+  );
+};
 
-    const Detail = ({ label, value }) => (
-    <div>
-        <p className="text-gray-500 text-sm">{label}</p>
-        <p className="font-medium">{value || "-"}</p>
+/* ──────────────────── HELPERS ──────────────────── */
+
+const Section = ({ title, children }) => (
+  <div className="mb-5 last:mb-0">
+    <h2 className="mb-2 text-[13px] font-semibold text-[#1C1B18]">{title}</h2>
+    <div className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2 lg:grid-cols-3">
+      {children}
     </div>
-    );
+  </div>
+);
 
-    export default ClientDetails; 
-    
+const Detail = ({ label, value }) => (
+  <div className="flex flex-col gap-0.5">
+    <span className="text-[10.5px] font-medium uppercase tracking-wide text-[#9B9890]">{label}</span>
+    <span className="text-[12.5px] font-medium text-[#1C1B18]">{value || "—"}</span>
+  </div>
+);
+
+export default ClientDetails

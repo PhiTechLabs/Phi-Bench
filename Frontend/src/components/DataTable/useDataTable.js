@@ -19,6 +19,28 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
   /* ──────────────── COLUMNS ──────────────── */
   const [visibleKeys, setVisibleKeys] = useState(defaultVisibleKeys);
 
+  const [columnWidths, setColumnWidths] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem(`${storageKey}_widths`)) || {};
+  } catch {
+    return {};
+  }
+});
+
+useEffect(() => {
+  localStorage.setItem(
+    `${storageKey}_widths`,
+    JSON.stringify(columnWidths)
+  );
+}, [columnWidths, storageKey]);
+
+const resizeColumn = useCallback((key, width) => {
+  setColumnWidths((prev) => ({
+    ...prev,
+    [key]: Math.max(80, width), // minimum width
+  }));
+}, []);
+
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(`${storageKey}_cols`));
@@ -41,7 +63,17 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
     localStorage.setItem(`${storageKey}_cols`, JSON.stringify(visibleKeys));
   }, [visibleKeys, storageKey]);
 
-  const columns         = visibleKeys.map((k) => registry.find((c) => c.key === k)).filter(Boolean);
+  const columns = visibleKeys
+  .map((k) => {
+    const col = registry.find((c) => c.key === k);
+    if (!col) return null;
+
+    return {
+      ...col,
+      width: columnWidths[k] || col.width || 160,
+    };
+  })
+  .filter(Boolean);
   const availableToAdd  = registry.filter((c) => !visibleKeys.includes(c.key));
 
   const addColumn = (key) => {
@@ -247,6 +279,8 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
   }, [data]);
 
   return {
+    columnWidths,
+resizeColumn,
     // columns
     columns, availableToAdd, addColumn, removeColumn, resetColumns,
     // drag
