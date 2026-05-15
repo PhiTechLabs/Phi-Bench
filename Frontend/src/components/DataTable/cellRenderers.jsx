@@ -225,7 +225,7 @@ const StatusCell = ({ value, options, onChange }) => {
         }`}
       >
         <span className="h-1 w-1 rounded-full bg-current" />
-        <span className="max-w-[100px] truncate">{current || "—"}</span>
+        <span className="max-w-25 truncate">{current || "—"}</span>
         <svg width="7" height="7" viewBox="0 0 12 12" className="opacity-60 shrink-0">
           <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
