@@ -36,8 +36,8 @@ export default function Login() {
             //  Only store non-sensitive UI info in localStorage
             localStorage.setItem("user", JSON.stringify(user));
 
-            // Redirect based on role
-            navigate(`/${user.role === "superAdmin" ? "superadmin" : user.role}/home`);
+            // Redirect to home page (no role prefix in URL)
+            navigate("/home");
 
         } catch (error) {
             alert(error.response?.data?.message || "Login Failed");

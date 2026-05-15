@@ -40,7 +40,6 @@ const Navbar = () => {
 
   const dropdownRef = useRef(null);
   const user = JSON.parse(localStorage.getItem("user"));
-  const roleBase = `/${user?.role === "superAdmin" ? "superadmin" : user?.role}`;
 
   useEffect(() => {
     const handler = (e) => {
@@ -70,18 +69,18 @@ const Navbar = () => {
   };
 
   const primaryMenu = [
-    { name: "Home", path: `${roleBase}/home`, icon: <FaTachometerAlt /> },
-    { name: "Jobs", path: `${roleBase}/jobs`, icon: <FaBriefcase /> },
-    { name: "Candidates", path: `${roleBase}/candidates`, icon: <FaUsers /> },
-    { name: "Bench", path: `${roleBase}/bench`, icon: <MdPeopleAlt /> },
+    { name: "Home", path: "/home", icon: <FaTachometerAlt /> },
+    { name: "Jobs", path: "/jobs", icon: <FaBriefcase /> },
+    { name: "Candidates", path: "/candidates", icon: <FaUsers /> },
+    { name: "Bench", path: "/bench", icon: <MdPeopleAlt /> },
   ];
 
   const secondaryMenu = [
-    { name: "Submissions", path: `${roleBase}/submissions`, icon: <FaPaperPlane /> },
-    { name: "Interviews", path: `${roleBase}/interviews`, icon: <FaUserTie /> },
-    { name: "Clients", path: `${roleBase}/client-list`, icon: <FaHandshake /> },
-    // { name: "Vendors", path: `${roleBase}/vendors`, icon: <FaBuilding /> },
-    { name: "Reports", path: `${roleBase}/reports`, icon: <FaChartBar /> },
+    { name: "Submissions", path: "/submissions", icon: <FaPaperPlane /> },
+    { name: "Interviews", path: "/interviews", icon: <FaUserTie /> },
+    { name: "Clients", path: "/client-list", icon: <FaHandshake /> },
+    // { name: "Vendors", path: "/vendors", icon: <FaBuilding /> },
+    { name: "Reports", path: "/reports", icon: <FaChartBar /> },
   ];
 
   const fullMenu = [...primaryMenu, ...secondaryMenu];
@@ -98,7 +97,7 @@ const Navbar = () => {
         </button>
 
         <div
-          onClick={() => navigate(`${roleBase}/home`)}
+          onClick={() => navigate("/home")}
           className="flex items-center cursor-pointer mr-8 shrink-0 h-full py-0"
         >
           <img src={phiBenchLogo} alt="PhiBench" className="h-full py-2 w-auto object-contain" />
@@ -172,9 +171,9 @@ const Navbar = () => {
           </div>
 
           <button
-            onClick={() => navigate(`${roleBase}/settings`)}
+            onClick={() => navigate("/settings")}
             className={`p-2 rounded-lg text-lg transition
-              ${isActive(`${roleBase}/settings`) ? "bg-blue-700 text-white" : "text-blue-200 hover:bg-blue-800 hover:text-white"}`}
+              ${isActive("/settings") ? "bg-blue-700 text-white" : "text-blue-200 hover:bg-blue-800 hover:text-white"}`}
           >
             <FaCog />
           </button>
