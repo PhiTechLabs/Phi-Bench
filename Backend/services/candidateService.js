@@ -1,4 +1,5 @@
 import Candidate from "../models/Candidate.js";
+import User from "../models/User.js";
 
 // ─── HELPER: build a clean payload (no stray frontend-only fields) ───────────
 const sanitizeArrays = (payload) => {
@@ -35,14 +36,40 @@ export const createCandidateService = async (payload, userId) => {
 };
 
 // ─── LIST ────────────────────────────────────────────────────────────────────
-export const listCandidatesService = async () => {
-    return await Candidate.find()
-        .populate("createdBy", "username role")
-        .sort({ createdAt: -1 });
+export const listCandidatesService = async (userId) => {
+
+    // get logged in user with role
+    const user = await User.findById(userId)
+        .populate("roleId");
+
+    if (!user || !user.roleId) {
+        throw new Error("User or role not found");
+    }
+
+    // super admin can see everything
+    if (
+        user.roleId.permissions.includes("*") ||
+        user.roleId.dataScope === "ORGANIZATION"
+    ) {
+        return Candidate.find()
+            .sort({ createdAt: -1 });
+    }
+
+    // recruiter -> only own candidates
+    if (user.roleId.dataScope === "SELF") {
+
+        return Candidate.find({
+            createdBy: userId
+        }).sort({ createdAt: -1 });
+
+    }
+
+    // default fallback
+    return [];
 };
 
 // ─── GET BY ID ───────────────────────────────────────────────────────────────
-export const getCandidateByIdService = async (id) => {
+export const getCandidateByIdService = async (id, userId) => {  // userId added for potential future access control
     const candidate = await Candidate.findById(id)
         .populate("createdBy", "username role");
     if (!candidate) {

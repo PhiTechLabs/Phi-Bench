@@ -10,11 +10,34 @@ import mongoose from "mongoose";
         type: String,
         required: true
     },
-    role: {
-        type: String,
-        enum: ["superAdmin", "admin", "client"],
-        default: "client"
-    }
+    roleId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Role",
+        required: true,
+    },
+
+    organizationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Organization",
+        default: null,
+    },
+
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Branch",
+        default: null,
+    },
+
+    managerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+    },
+
+    isActive: {
+        type: Boolean,
+        default: true,
+},
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
