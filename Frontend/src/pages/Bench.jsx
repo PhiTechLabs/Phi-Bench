@@ -7,6 +7,7 @@ import {
   updateBenchEntry,
   removeFromBench,
 } from "../api/benchApi";
+import useRoleBase from "../hooks/useRoleBase.";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -27,6 +28,7 @@ const Bench = () => {
   const [list, setList]               = useState([]);
   const [confirmRemove, setConfirmRemove] = useState(null);
   const navigate = useNavigate();
+  const roleBase = useRoleBase();
 
   const refresh = useCallback(async () => {
     setList(await listBench());
@@ -46,7 +48,6 @@ const Bench = () => {
     await refresh();
   };
   const handleToggleBench = async (id) => {
-    // Flipping bench off here removes the row from this view on next refresh.
     await toggleBenchStatus(id);
     await refresh();
   };
@@ -58,12 +59,12 @@ const Bench = () => {
   /* ── column registry ── */
   const columns = [
     { key: "sno",        label: "S.No",     width: 56,  type: "sno",        fixed: true, removable: false, defaultVisible: true, searchable: false },
-    { key: "name",       label: "Name",     width: 170, type: "text",       bold: true, link: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
+    { key: "name",       label: "Name",     width: 170, type: "text",       bold: true, link: true, avatar: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
     { key: "jobTitle",   label: "Job Title",width: 150, type: "text",       defaultVisible: true, sortable: true, searchable: true, filterable: true },
     { key: "skills",     label: "Skills",   width: 240, type: "chips",      maxChips: 3, defaultVisible: true, searchable: true },
     { key: "experienceYears", label: "Exp.",     width: 80,  type: "experience", defaultVisible: true, sortable: true, sortType: "number" },
     { key: "company",    label: "Last Company", width: 150, type: "text",   defaultVisible: true, sortable: true, searchable: true, filterable: true },
-    { key: "city",       label: "Location", width: 130, type: "locatio  n",   defaultVisible: true, sortable: true, filterable: true },
+    { key: "city",       label: "Location", width: 130, type: "location",   defaultVisible: true, sortable: true, filterable: true },
     { key: "expectedSalary", label: "Expected", width: 120, type: "money",  defaultVisible: true, sortable: true, sortType: "number" },
     { key: "noticePeriod",   label: "Notice",   width: 110, type: "text",   defaultVisible: true, filterable: true },
     {
@@ -87,24 +88,40 @@ const Bench = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8 2xl:px-12">
-
-        {/* PAGE HEADER */}
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Bench</h1>
-            <p className="mt-0.5 text-[12px] text-[#9B9890]">
-              Candidates currently available for new opportunities
-            </p>
+      {/* ════════ COMPACT HEADER BAR ════════ */}
+      <div className="border-b border-[#E8E6E0] bg-white">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-4">
+            <div>
+              <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
+                Bench
+                <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
+                  {list.length}
+                </span>
+              </button>
+              <p className="mt-1 text-[10.5px] text-[#9B9890]">
+                Candidates currently available for new opportunities
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
+              Customize table
+            </button>
+            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
+              Export List
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* TABLE */}
+      {/* ════════ TABLE (EDGE-TO-EDGE) ════════ */}
+      <div className="w-full">
         <DataTable
           columns={columns}
           data={list}
           storageKey="bench_table"
-          onRowClick={(row) => navigate(`/candidates/${row.id}`)}
+          onRowClick={(row) => navigate(`${roleBase}/candidates/${row.id}`)}
           onDelete={handleRemove}
           onBulkDelete={handleBulkRemove}
           searchPlaceholder="Search name, skill, company…"
@@ -115,7 +132,7 @@ const Bench = () => {
         />
       </div>
 
-      {/* REMOVE FROM BENCH CONFIRM */}
+      {/* ════════ REMOVE FROM BENCH CONFIRM ════════ */}
       {confirmRemove && (
         <div
           className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
@@ -152,4 +169,3 @@ const Bench = () => {
 };
 
 export default Bench;
-

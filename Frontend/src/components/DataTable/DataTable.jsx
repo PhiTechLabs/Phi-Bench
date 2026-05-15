@@ -51,7 +51,7 @@ const DataTable = ({
   bulkActions = [],
   searchPlaceholder = "Search…",
   emptyState = { title: "No records yet", hint: "" },
-  actions,
+  actions,  
 }) => {
   const defaultVisibleKeys = defaultVisible || registry.filter((c) => c.defaultVisible).map((c) => c.key);
 
@@ -182,7 +182,7 @@ const DataTable = ({
         {/* Table */}
         <div className="overflow-x-auto overflow-y-visible">
           <table
-            className="w-full border-collapse text-[12.5px]"
+            className="w-full table-fixed border-collapse text-[12.5px]"
             style={{ minWidth: t.columns.reduce((s, c) => s + c.width, 0) + 88 }}
           >
             <thead>
@@ -220,6 +220,29 @@ const DataTable = ({
                       {isOver && t.dropSide === "right" && <span className="pointer-events-none absolute right-0 top-0 h-full w-0.75 bg-[#1C4ED8]" />}
 
                       <div className="flex items-center justify-between gap-1">
+                        <div
+  onMouseDown={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const startWidth = col.width;
+
+    const onMove = (moveEvent) => {
+      const newWidth = startWidth + (moveEvent.clientX - startX);
+      t.resizeColumn(col.key, newWidth);
+    };
+
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }}
+  className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none bg-transparent hover:bg-[#1C4ED8]/20 active:bg-[#1C4ED8]"
+/>
                         <span
                           className={`flex flex-1 items-center gap-1 truncate ${col.sortable ? "cursor-pointer" : ""}`}
                           onClick={(e) => {
@@ -229,7 +252,7 @@ const DataTable = ({
                           }}
                         >
                           {col.fixed ? <LockIcon /> : <DragHandle />}
-                          <span className="truncate">{col.label}</span>
+                          <span className="min-w-0 truncate">{col.label}</span>
                           {col.sortable && (
                             <SortIcon dir={sortActive ? t.sort.dir : null} />
                           )}
@@ -293,7 +316,7 @@ const DataTable = ({
                         <td
                           key={col.key}
                           style={{ width: col.width, minWidth: col.width }}
-                          className={`px-3 py-2 align-middle text-[12.5px] text-[#1C1B18] ${
+                          className={`overflow-hidden px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18] ${
                             col.type === "sno" ? "bg-[#FAFAF8] text-center font-medium text-[#6B6860]" : ""
                           } ${colIdx !== t.columns.length - 1 ? "border-r border-[#F5F4F0]" : ""}`}
                         >
@@ -589,4 +612,4 @@ const FilterIcon = () => (
   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
   </svg>
-);
+); 

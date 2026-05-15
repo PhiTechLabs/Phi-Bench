@@ -8,6 +8,7 @@ import {
   updateJob,
   deleteJob,
 } from "../api/jobsApi";
+import useRoleBase from "../hooks/useRoleBase.";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -34,6 +35,7 @@ const JobOpenings = () => {
   const [jobs, setJobs]             = useState([]);
   const [confirmDel, setConfirmDel] = useState(null);
   const navigate = useNavigate();
+  const roleBase = useRoleBase();
 
   const refresh = useCallback(async () => {
     try {
@@ -93,7 +95,7 @@ const JobOpenings = () => {
   /* ── column registry ── */
   const columns = [
     { key: "sno",        label: "S.No",          width: 56,  type: "sno",      fixed: true, removable: false, defaultVisible: true, searchable: false },
-    { key: "title",      label: "Position",      width: 200, type: "text",     bold: true, link: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
+    { key: "title",      label: "Position",      width: 200, type: "text",     bold: true, link: true, avatar: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
     { key: "client",     label: "Client",        width: 160, type: "text",     defaultVisible: true, sortable: true, searchable: true, filterable: true },
     { key: "skills",     label: "Skills",        width: 220, type: "chips",    maxChips: 2, defaultVisible: true, searchable: true },
     { key: "experience", label: "Exp.",          width: 90,  type: "text",     defaultVisible: true, sortable: true, searchable: true },
@@ -121,25 +123,41 @@ const JobOpenings = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8 2xl:px-12">
-
-        {/* PAGE HEADER */}
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-[20px] font-semibold leading-tight text-[#1C1B18]">Job Openings</h1>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex h-9 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3.5 text-[12.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-          >
-            <span className="text-[15px] leading-none">+</span> Add Job
-          </button>
+      {/* ════════ COMPACT HEADER BAR ════════ */}
+      <div className="border-b border-[#E8E6E0] bg-white">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-4">
+            <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
+              My Job Openings
+              <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
+                {jobs.length}
+              </span>
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
+              Customize table
+            </button>
+            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
+              Import Jobs
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+            >
+              <span className="text-[14px] leading-none">+</span> Add Job
+            </button>
+          </div>
         </div>
+      </div>
 
-        {/* TABLE */}
+      {/* ════════ TABLE (EDGE-TO-EDGE) ════════ */}
+      <div className="w-full">
         <DataTable
           columns={columns}
           data={jobs}
           storageKey="jobs_table"
-          onRowClick={(row) => navigate(`/jobs/${row.id}`)}
+          onRowClick={(row) => navigate(`${roleBase}/jobs/${row.id}`)}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search title, client, skills…"
@@ -150,7 +168,7 @@ const JobOpenings = () => {
         />
       </div>
 
-      {/* DELETE CONFIRM */}
+      {/* ════════ DELETE CONFIRM ════════ */}
       {confirmDel && (
         <div
           className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
@@ -188,4 +206,4 @@ const JobOpenings = () => {
   );
 };
 
-export default JobOpenings; 
+export default JobOpenings;
