@@ -8,25 +8,24 @@ import {
     toggleBench,
 } from "../controllers/candidateController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { authorizeRoles } from "../middleware/roleMiddleware.js";
 import {
     createCandidateRules,
     updateCandidateRules,
     validate,
 } from "../validators/candidateValidator.js";
-import { authorize } from "../middleware/permissionMiddleware.js";
+import { requirePermission  } from "../middleware/permissionMiddleware.js";
 
 const router = express.Router();
 
 // All routes require auth + (superAdmin or admin)
-const guard = [protect,authorize("candidate.view")];
+const guard = [protect,requirePermission("candidate.view")];
 
 // ─── COLLECTION ──────────────────────────────────────────────────────────────
 router.get("/", guard, listCandidates);
 router.post(
     "/",
     protect,
-    authorize("candidate.create"),
+    requirePermission("candidate.create"),
     createCandidateRules,
     validate,
     createCandidate
@@ -34,10 +33,10 @@ router.post(
 
 // ─── SINGLE RESOURCE ─────────────────────────────────────────────────────────
 router.get("/:id", guard, getCandidateById);
-router.put("/:id", protect, authorize("candidate.edit"), updateCandidateRules, validate, updateCandidate);
-router.delete("/:id", protect, authorize("candidate.delete"), deleteCandidate);
+router.put("/:id", protect, requirePermission("candidate.edit"), updateCandidateRules, validate, updateCandidate);
+router.delete("/:id", protect, requirePermission("candidate.delete"), deleteCandidate);
 
 // ─── DEDICATED ACTIONS ───────────────────────────────────────────────────────
-router.patch("/:id/toggle-bench", protect, authorize("candidate.edit"), toggleBench);
+router.patch("/:id/toggle-bench", protect, requirePermission("candidate.edit"), toggleBench);
 
 export default router;

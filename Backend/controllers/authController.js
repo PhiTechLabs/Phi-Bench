@@ -35,7 +35,7 @@ export const loginUser = async (req, res) => {
                 id: user._id,
                 username: user.username,
                 role: user.roleId.name,
-                permissions: user.roleId.permissions,
+                permissions: user.roleId.permissions || [],
             },
         });
 

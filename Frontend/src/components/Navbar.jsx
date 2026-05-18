@@ -22,6 +22,7 @@ import { MdPeopleAlt } from "react-icons/md";
 // import benchLogo from "../assets/bench-logo.png";
 import favIcon from "url:../assets/favIcon.png";
 import phiBenchLogo from "url:../assets/phiBenchLogo.png";
+import { hasPermission } from "../utils/permissions";
 
 // ✅ withCredentials so the logout call also sends the HttpOnly cookie
 const api = axios.create({
@@ -68,12 +69,38 @@ const Navbar = () => {
     navigate("/setup");
   };
 
-  const primaryMenu = [
-    { name: "Home", path: "/home", icon: <FaTachometerAlt /> },
-    { name: "Jobs", path: "/jobs", icon: <FaBriefcase /> },
-    { name: "Candidates", path: "/candidates", icon: <FaUsers /> },
-    { name: "Bench", path: "/bench", icon: <MdPeopleAlt /> },
-  ];
+  const allPrimaryMenu = [
+  {
+    name: "Home",
+    path: "/home",
+    icon: <FaTachometerAlt />
+  },
+
+  {
+    name: "Jobs",
+    path: "/jobs",
+    icon: <FaBriefcase />,
+    permission: "job.view"
+  },
+
+  {
+    name: "Candidates",
+    path: "/candidates",
+    icon: <FaUsers />,
+    permission: "candidate.view"
+  },
+
+  {
+    name: "Bench",
+    path: "/bench",
+    icon: <MdPeopleAlt />
+  },
+];
+
+  const primaryMenu = allPrimaryMenu.filter(item => {
+    if (!item.permission) return true;
+    return hasPermission(user, item.permission);
+  });
 
   const secondaryMenu = [
     { name: "Submissions", path: "/submissions", icon: <FaPaperPlane /> },

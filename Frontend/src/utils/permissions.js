@@ -1,13 +1,13 @@
-export const hasPermission = (permission) => {
-
-    const user = JSON.parse(localStorage.getItem("user"));
+export const hasPermission = (user, permission) => {
 
     if (!user) return false;
 
     const permissions = user.permissions || [];
 
-    return (
-        permissions.includes("*") ||
-        permissions.includes(permission)
-    );
+    // Super Admin
+    if (permissions.includes("*")) {
+        return true;
+    }
+
+    return permissions.includes(permission);
 };
