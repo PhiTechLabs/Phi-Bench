@@ -10,6 +10,6 @@ const ProtectedRoute = ({ children }) => {
     
     // If user is logged in, show the protected content
     return children;
-};
+    };
 
 export default ProtectedRoute;
