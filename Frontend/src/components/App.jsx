@@ -1,45 +1,29 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-    import Login from "../pages/Login";
-    import Navbar from "./Navbar";
-    import { roleRoutes } from "../routes/roleRoutes";
-    import Setup from "../pages/Setup";
+import Login from "../pages/Login";
+import Navbar from "./Navbar";
+import ProtectedRoute from "./ProtectedRoute";
+import { roleRoutes } from "../routes/roleRoutes";
+import Setup from "../pages/Setup";
 
-    function App() {
+function App() {
     return (
         <Router>
-        <Routes>
+            <Routes>
+                {/* LOGIN */}
+                <Route path="/" element={<Login />} />
 
-            {/* LOGIN */}
-            <Route path="/" element={<Login />} />
+                {/* SETUP — accessible by all roles, outside Navbar layout */}
+                <Route path="/setup" element={<Setup />} />
 
-            {/*  SETUP — accessible by all roles, outside Navbar layout */}
-            <Route path="/setup" element={<Setup />} />
-
-            {/* CLIENT */}
-            <Route path="/client" element={<Navbar />}>
-            {roleRoutes.map((route, index) => (
-                <Route key={index} {...route} />
-            ))}
-            </Route>
-
-            {/* ADMIN */}
-            <Route path="/admin" element={<Navbar />}>
-            {roleRoutes.map((route, index) => (
-                <Route key={index} {...route} />
-            ))}
-            </Route>
-            
-
-            {/* SUPERADMIN */}
-            <Route path="/superadmin" element={<Navbar />}>
-            {roleRoutes.map((route, index) => (
-                <Route key={index} {...route} />
-            ))}
-            </Route>
-
-        </Routes>
+                {/* PROTECTED ROUTES - No role prefix in URL */}
+                <Route element={<ProtectedRoute><Navbar /></ProtectedRoute>}>
+                    {roleRoutes.map((route, index) => (
+                        <Route key={index} {...route} />
+                    ))}
+                </Route>
+            </Routes>
         </Router>
     );
-    }
+}
 
-    export default App;
+export default App;

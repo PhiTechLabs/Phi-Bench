@@ -88,7 +88,7 @@ const urgencyColor = (days) => {
 const Home = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  const roleBase = user?.role ? `/${user.role}` : "";
+  const roleBase = ""; // No role prefix in URLs
 
   /* ── raw data state ── */
   const [jobs, setJobs]               = useState([]);
