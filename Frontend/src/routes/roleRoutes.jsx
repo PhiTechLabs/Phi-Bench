@@ -13,22 +13,133 @@ import ClientDetails from "../pages/ClientDetails";
 import AddClient from "../pages/AddClient";
 import CandidateDetails from "../pages/CandidateDetails";
 
+import ProtectedRoute from "../components/ProtectedRoute";
+
 export const roleRoutes = [
-    { path: "home", element: <Home /> },
 
-    { path: "jobs", element: <JobOpenings /> },
-    { path: "jobs/:id", element: <JobDetails /> },
+    {
+        path: "home",
+        element: (
+            <ProtectedRoute>
+                <Home />
+            </ProtectedRoute>
+        ),
+    },
 
-    { path: "candidates", element: <Candidates /> },
-    { path: "candidates/:id", element: <CandidateDetails /> },
-    { path: "interviews", element: <Interviews /> },
-    { path: "bench", element: <Bench /> },
-    { path: "submissions", element: <Submissions /> },
-    { path: "vendors", element: <Vendors /> },
-    { path: "reports", element: <Reports /> },
-    { path: "settings", element: <Settings /> },
+    {
+        path: "jobs",
+        element: (
+            <ProtectedRoute permission="job.view">
+                <JobOpenings />
+            </ProtectedRoute>
+        ),
+    },
 
-    { path: "client-list", element: <Client /> },
-    { path: "client-list/:id", element: <ClientDetails /> },
-    { path: "add-client", element: <AddClient /> },
+    {
+        path: "jobs/:id",
+        element: (
+            <ProtectedRoute permission="job.view">
+                <JobDetails />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "candidates",
+        element: (
+            <ProtectedRoute permission="candidate.view">
+                <Candidates />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "candidates/:id",
+        element: (
+            <ProtectedRoute permission="candidate.view">
+                <CandidateDetails />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "client-list",
+        element: (
+            <ProtectedRoute permission="client.view">
+                <Client />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "client-list/:id",
+        element: (
+            <ProtectedRoute permission="client.view">
+                <ClientDetails />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "add-client",
+        element: (
+            <ProtectedRoute permission="client.create">
+                <AddClient />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "interviews",
+        element: (
+            <ProtectedRoute>
+                <Interviews />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "bench",
+        element: (
+            <ProtectedRoute>
+                <Bench />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "submissions",
+        element: (
+            <ProtectedRoute>
+                <Submissions />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "vendors",
+        element: (
+            <ProtectedRoute>
+                <Vendors />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "reports",
+        element: (
+            <ProtectedRoute>
+                <Reports />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "settings",
+        element: (
+            <ProtectedRoute>
+                <Settings />
+            </ProtectedRoute>
+        ),
+    },
 ];

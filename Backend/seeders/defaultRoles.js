@@ -13,61 +13,107 @@ const seedRoles = async () => {
         await Role.deleteMany();
 
         const roles = [
-            {
-                name: "superAdmin",
-                hierarchyLevel: 1,
-                dataScope: "ORGANIZATION",
-                isSystemRole: true,
-                permissions: ["*"],
-            },
-            {
-                name: "admin",
-                hierarchyLevel: 2,
-                dataScope: "BRANCH",
-                isSystemRole: true,
-                permissions: [
-                    PERMISSIONS.CANDIDATE_VIEW,
-                    PERMISSIONS.CANDIDATE_CREATE,
-                    PERMISSIONS.CANDIDATE_EDIT,
+    {
+        name: "superAdmin",
+        hierarchyLevel: 1,
+        dataScope: "ORGANIZATION",
+        isSystemRole: true,
+        permissions: ["*"],
+    },
 
-                    PERMISSIONS.JOB_VIEW,
-                    PERMISSIONS.JOB_CREATE,
-                    PERMISSIONS.JOB_EDIT,
+    {
+        name: "admin",
+        hierarchyLevel: 2,
+        dataScope: "BRANCH",
+        isSystemRole: true,
 
-                    PERMISSIONS.CLIENT_VIEW,
-                    PERMISSIONS.CLIENT_CREATE,
-                    PERMISSIONS.CLIENT_EDIT,
-                    ],
-            },
-            {
-                name: "teamLead",
-                hierarchyLevel: 3,
-                dataScope: "TEAM",
-                isSystemRole: true,
-                permissions: [],
-            },
-            {
-                name: "recruiter",
-                hierarchyLevel: 4,
-                dataScope: "SELF",
-                isSystemRole: true,
-                permissions: [
-                PERMISSIONS.CANDIDATE_VIEW,
-                PERMISSIONS.CANDIDATE_CREATE,
+        permissions: [
 
-                PERMISSIONS.JOB_VIEW,
-                ],
-            },
-            {
-                name: "client",
-                hierarchyLevel: 5,
-                dataScope: "CUSTOM",
-                isSystemRole: true,
-                permissions: [
-                    PERMISSIONS.JOB_VIEW,
-                ]
-            },
-        ];
+            // Candidates
+            PERMISSIONS.CANDIDATE_VIEW,
+            PERMISSIONS.CANDIDATE_CREATE,
+            PERMISSIONS.CANDIDATE_EDIT,
+            PERMISSIONS.CANDIDATE_DELETE,
+
+            // Jobs
+            PERMISSIONS.JOB_VIEW,
+            PERMISSIONS.JOB_CREATE,
+            PERMISSIONS.JOB_EDIT,
+            PERMISSIONS.JOB_DELETE,
+
+            // Clients
+            PERMISSIONS.CLIENT_VIEW,
+            PERMISSIONS.CLIENT_CREATE,
+            PERMISSIONS.CLIENT_EDIT,
+            PERMISSIONS.CLIENT_DELETE,
+
+            // Users
+            PERMISSIONS.USER_VIEW,
+            PERMISSIONS.USER_CREATE,
+            PERMISSIONS.USER_EDIT,
+            PERMISSIONS.USER_DELETE,
+
+            // Roles
+            PERMISSIONS.ROLE_VIEW,
+            PERMISSIONS.ROLE_CREATE,
+            PERMISSIONS.ROLE_EDIT,
+            PERMISSIONS.ROLE_DELETE,
+        ],
+    },
+
+    {
+        name: "teamLead",
+        hierarchyLevel: 3,
+        dataScope: "TEAM",
+        isSystemRole: true,
+
+        permissions: [
+
+            // Candidates
+            PERMISSIONS.CANDIDATE_VIEW,
+            PERMISSIONS.CANDIDATE_CREATE,
+            PERMISSIONS.CANDIDATE_EDIT,
+
+            // Jobs
+            PERMISSIONS.JOB_VIEW,
+            PERMISSIONS.JOB_CREATE,
+
+            // Clients
+            PERMISSIONS.CLIENT_VIEW,
+        ],
+    },
+
+    {
+        name: "recruiter",
+        hierarchyLevel: 4,
+        dataScope: "SELF",
+        isSystemRole: true,
+
+        permissions: [
+
+            // Candidates
+            PERMISSIONS.CANDIDATE_VIEW,
+            PERMISSIONS.CANDIDATE_CREATE,
+
+            // Jobs
+            PERMISSIONS.JOB_VIEW,
+
+            // Optional
+            PERMISSIONS.CLIENT_VIEW,
+        ],
+    },
+
+    {
+        name: "client",
+        hierarchyLevel: 5,
+        dataScope: "CUSTOM",
+        isSystemRole: true,
+
+        permissions: [
+            PERMISSIONS.JOB_VIEW,
+        ],
+    },
+];
 
         await Role.insertMany(roles);
 

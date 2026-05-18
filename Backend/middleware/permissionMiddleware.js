@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 
-export const authorize = (...requiredPermissions) => {
+export const requirePermission  = (...requiredPermissions) => {
     return async (req, res, next) => {
 
         try {

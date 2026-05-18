@@ -6,34 +6,53 @@ import {
     updateJob,
     deleteJob,
 } from "../controllers/jobController.js";
+
 import { protect } from "../middleware/authMiddleware.js";
-import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { requirePermission } from "../middleware/permissionMiddleware.js";
+
 import { createJobRules, validate } from "../validators/jobValidator.js";
+
+import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
-// ─── PROTECTED — superAdmin + admin only ─────────────────────────────────────
 router.post(
     "/",
     protect,
-    authorizeRoles("superAdmin", "admin"),
+    requirePermission(PERMISSIONS.JOB_CREATE),
     createJobRules,
     validate,
     createJob
 );
 
-router.get("/", protect, authorizeRoles("superAdmin", "admin"), getAllJobs);
-router.get("/:id", protect, authorizeRoles("superAdmin", "admin"), getJobById);
+router.get(
+    "/",
+    protect,
+    requirePermission(PERMISSIONS.JOB_VIEW),
+    getAllJobs
+);
+
+router.get(
+    "/:id",
+    protect,
+    requirePermission(PERMISSIONS.JOB_VIEW),
+    getJobById
+);
 
 router.put(
     "/:id",
     protect,
-    authorizeRoles("superAdmin", "admin"),
+    requirePermission(PERMISSIONS.JOB_EDIT),
     createJobRules,
     validate,
     updateJob
 );
 
-router.delete("/:id", protect, authorizeRoles("superAdmin", "admin"), deleteJob);
+router.delete(
+    "/:id",
+    protect,
+    requirePermission(PERMISSIONS.JOB_DELETE),
+    deleteJob
+);
 
 export default router;

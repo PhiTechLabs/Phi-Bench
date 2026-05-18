@@ -1,15 +1,20 @@
 import { Navigate } from "react-router-dom";
+import { hasPermission } from "../utils/permissions";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, permission }) => {
     const user = JSON.parse(localStorage.getItem("user"));
-    
-    // If no user is logged in, redirect to login page
+
+    // Not logged in
     if (!user) {
         return <Navigate to="/" replace />;
     }
-    
-    // If user is logged in, show the protected content
+
+    // Permission check
+    if (permission && !hasPermission(user, permission)) {
+        return <Navigate to="/home" replace />;
+    }
+
     return children;
-    };
+};
 
 export default ProtectedRoute;
