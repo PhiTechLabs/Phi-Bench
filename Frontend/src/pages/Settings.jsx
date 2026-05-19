@@ -177,8 +177,6 @@
             onClearSearch={() => setSearch("")}
         />
 
-        {/* Stats Bar */}
-        {/* <StatsBar /> */}
 
         {/* Cards Grid */}
         {visibleSections.length > 0 ? (

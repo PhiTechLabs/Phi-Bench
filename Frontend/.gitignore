@@ -15,7 +15,7 @@ build/
 # Misc
 .DS_Store
 .vscode/
-.idea/  
+.idea/ 
 .parcel-cache/
 .gitignore
 package-lock.json

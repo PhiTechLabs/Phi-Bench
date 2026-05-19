@@ -5,9 +5,10 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import clientRoutes from "./routes/clientRoutes.js";
-import candidateRoutes from "./routes/candidateRoutes.js"; // ✅ NEW
+import candidateRoutes from "./routes/candidateRoutes.js"; // NEW
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import jobRoutes from "./routes/jobRoutes.js";
+import router from "./routes/RoutesRole.js"
 
 dotenv.config();
 connectDB();
@@ -24,8 +25,9 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
-app.use("/api/candidates", candidateRoutes); // ✅ NEW
-app.use("/api/jobs", jobRoutes); // ✅ NEW  
+app.use("/api/candidates", candidateRoutes); // NEW
+app.use("/api/jobs", jobRoutes); // NEW  
+app.use("/api/roles", router); //  NEW
 app.get("/", (req, res) => {
     res.send("API Running");
 });

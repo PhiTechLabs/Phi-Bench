@@ -37,7 +37,12 @@ import mongoose from "mongoose";
     isActive: {
         type: Boolean,
         default: true,
-},
+    },
+    
+    refreshToken: {
+    type: String,
+    default: null,
+    },
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
