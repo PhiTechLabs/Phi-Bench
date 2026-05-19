@@ -13,7 +13,7 @@
  * ────────────────────────────────────────────────────────────
  */
 
-import axios from "./axiosInstance";
+import axiosInstance  from "./axiosInstance";
 
 /* ── normalize MongoDB _id → id for frontend consistency ── */
 const normalize = (job) => {
@@ -24,27 +24,27 @@ const normalize = (job) => {
 /* ── public API ── */
 
 export const listJobs = async () => {
-    const { data } = await axios.get("/jobs");
+    const { data } = await axiosInstance.get("/jobs");
     return (data.jobs || []).map(normalize);
 };
 
 export const getJob = async (id) => {
-    const { data } = await axios.get(`/jobs/${id}`);
+    const { data } = await axiosInstance.get(`/jobs/${id}`);
     return normalize(data.job);
 };
 
 export const createJob = async (payload) => {
-    const { data } = await axios.post("/jobs", payload);
+    const { data } = await axiosInstance.post("/jobs", payload);
     return normalize(data.job);
 };
 
 export const updateJob = async (id, patch) => {
-    const { data } = await axios.put(`/jobs/${id}`, patch);
+    const { data } = await axiosInstance.put(`/jobs/${id}`, patch);
     return normalize(data.job);
 };
 
 export const deleteJob = async (id) => {
-    await axios.delete(`/jobs/${id}`);
+    await axiosInstance.delete(`/jobs/${id}`);
     return true;
 };
 

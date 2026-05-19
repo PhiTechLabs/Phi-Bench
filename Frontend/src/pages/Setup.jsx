@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 import {
     FaUser,
     FaUsers,
@@ -19,7 +19,7 @@ import {
 import { RxCross2 } from "react-icons/rx";
 
 // ✅ withCredentials sends HttpOnly cookie automatically
-const api = axios.create({
+const api = axiosInstance.create({
     baseURL: "http://localhost:5000/api/auth",
     withCredentials: true,
 });

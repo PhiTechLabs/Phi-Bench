@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -25,7 +25,7 @@ import phiBenchLogo from "url:../assets/phiBenchLogo.png";
 import { hasPermission } from "../utils/permissions";
 
 // ✅ withCredentials so the logout call also sends the HttpOnly cookie
-const api = axios.create({
+const api = axiosInstance.create({
   baseURL: "http://localhost:5000/api/auth",
   withCredentials: true,
 });

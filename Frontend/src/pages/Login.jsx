@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 // ✅ withCredentials: true — tells axios to send/receive cookies
-const api = axios.create({
+const api = axiosInstance.create({
     baseURL: "http://localhost:5000/api/auth",
     withCredentials: true,
 });

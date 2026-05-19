@@ -1,10 +1,6 @@
 import axios from "axios";
 
 // ─── CENTRAL AXIOS INSTANCE ───────────────────────────────────────────────────
-// All API calls go through this. It automatically:
-//   • prefixes URLs with the backend base
-//   • sends the auth cookie cross-origin (withCredentials)
-//   • sets JSON content-type
 const axiosInstance = axios.create({
     baseURL: "http://localhost:5000/api",
     withCredentials: true,
@@ -12,5 +8,51 @@ const axiosInstance = axios.create({
         "Content-Type": "application/json",
     },
 });
+
+// ─── AUTO REFRESH TOKEN INTERCEPTOR ──────────────────────────────────────────
+axiosInstance.interceptors.response.use(
+
+    (response) => response,
+
+    async (error) => {
+
+        const originalRequest = error.config;
+
+        // access token expired
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry
+        ) {
+
+            originalRequest._retry = true;
+
+            try {
+
+                // get new access token
+                await axios.post(
+                    "http://localhost:5000/api/auth/refresh-token",
+                    {},
+                    {
+                        withCredentials: true,
+                    }
+                );
+
+                // retry original request
+                return axiosInstance(originalRequest);
+
+            } catch (refreshError) {
+
+                console.error("Session expired");
+
+                // redirect to login
+                window.location.href = "/login";
+
+                return Promise.reject(refreshError);
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 export default axiosInstance;

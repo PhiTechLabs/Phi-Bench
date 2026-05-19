@@ -9,12 +9,14 @@ import {
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { refreshAccessToken } from "../controllers/authController.js";
 
 const router = express.Router();
 
 // ─── PUBLIC ───────────────────────────────────────────────────────────────────
 router.post("/login", loginUser);
-router.post("/logout", logoutUser);
+router.post("/refresh-token", refreshAccessToken);
+router.post("/logout", protect, logoutUser);
 
 // ─── PROTECTED — any logged-in user ──────────────────────────────────────────
 router.get("/users", protect, getAllUsers);
