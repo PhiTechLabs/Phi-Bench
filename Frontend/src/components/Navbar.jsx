@@ -18,13 +18,11 @@ import {
 import { RxCross2 } from "react-icons/rx";
 import { MdPeopleAlt } from "react-icons/md";
 
-// import logo from "url:../assets/logo.png";
-// import benchLogo from "../assets/bench-logo.png";
 import favIcon from "url:../assets/favIcon.png";
 import phiBenchLogo from "url:../assets/phiBenchLogo.png";
 import { hasPermission } from "../utils/permissions";
 
-// ✅ withCredentials so the logout call also sends the HttpOnly cookie
+// withCredentials so the logout call also sends the HttpOnly cookie
 const api = axiosInstance.create({
   baseURL: "http://localhost:5000/api/auth",
   withCredentials: true,
@@ -54,7 +52,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      // ✅ Tell backend to clear the HttpOnly cookie
+      // Tell backend to clear the HttpOnly cookie
       await api.post("/logout");
     } catch (_) {
       // even if request fails, clear local state
@@ -63,7 +61,7 @@ const Navbar = () => {
     navigate("/");
   };
 
-  // ✅ My Account — navigate to /setup (works for all roles)
+  // My Account — navigate to /setup (works for all roles)
   const handleMyAccount = () => {
     setProfileOpen(false);
     navigate("/setup");

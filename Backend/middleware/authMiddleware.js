@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export const protect = (req, res, next) => {
-    // ✅ Read token from HttpOnly cookie (not Authorization header anymore)
+    // Read token from HttpOnly cookie (not Authorization header anymore)
     const token = req.cookies?.accessToken;
 
     if (!token) {

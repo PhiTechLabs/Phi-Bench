@@ -73,15 +73,8 @@ const DataTable = ({
         <div />
 
         <div className="flex items-center gap-2">
-          {/* <div className="relative">
-            <SearchIcon />
-            <input
-              value={t.search}
-              onChange={(e) => t.setSearch(e.target.value)}
-              placeholder={searchPlaceholder}
-              className="h-9 w-[260px] rounded-[8px] border border-[#E0DDD6] bg-white pl-8 pr-3 text-[12.5px] text-[#1C1B18] outline-none transition-all placeholder:text-[#9B9890] focus:border-[#93AEFF] focus:ring-[3px] focus:ring-[#6382FF]/20"
-            />
-          </div> */}
+
+          // deleted the global search input for now, can be added back if needed
 
           {t.hasActiveFilters && (
             <button
@@ -91,14 +84,6 @@ const DataTable = ({
               Clear filters
             </button>
           )}
-
-          {/* <button
-            onClick={t.resetColumns}
-            title="Reset to default columns"
-            className="flex h-9 items-center gap-1 rounded-[8px] border border-[#E0DDD6] bg-white px-2.5 text-[12px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0]"
-          >
-            <ResetIcon /> Reset
-          </button> */}
 
           {actions}
         </div>

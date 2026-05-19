@@ -1,6 +1,6 @@
 import Employee from "../models/Employee.js";
 
-// ➕ Add Employee
+//  Add Employee
 export const addEmployee = async (req, res) => {
     try {
         console.log("Incoming Data:", req.body); // DEBUG

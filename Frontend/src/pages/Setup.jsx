@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 
-// ✅ withCredentials sends HttpOnly cookie automatically
+// withCredentials sends HttpOnly cookie automatically
 const api = axiosInstance.create({
     baseURL: "http://localhost:5000/api/auth",
     withCredentials: true,
