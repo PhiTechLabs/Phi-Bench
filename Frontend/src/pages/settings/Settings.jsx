@@ -26,6 +26,8 @@
         items: [
         { id: "users",         label: "Users",            route: "users" },
         { id: "security",      label: "Security Control", route: "security" },
+        { id: "roles",         label: "Roles",            route: "roles" },
+        { id: "permissions",   label: "Permissions",      route: "permissions" },
         ],
     },
     // {
@@ -164,7 +166,7 @@
     // Navigate on click — add permission checks / API calls here if needed
     const handleItemClick = (item) => {
         setActiveId(item.id);
-        navigate(item.route);
+        navigate(`/settings/${item.route}`);
     };
 
     return (

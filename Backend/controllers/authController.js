@@ -180,7 +180,8 @@ export const registerUser = async (req, res) => {
 // ─── GET ALL USERS ────────────────────────────────────────────────────────────
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find().select("-password").sort({ createdAt: -1 });
+        const users = await User.find().select("-password").sort({ createdAt: -1 })
+        .populate("roleId");
         res.json({ count: users.length, users });
     } catch (error) {
         res.status(500).json({ error: error.message });

@@ -74,7 +74,7 @@ const DataTable = ({
 
         <div className="flex items-center gap-2">
 
-          // deleted the global search input for now, can be added back if needed
+          {/* deleted the global search input for now, can be added back if needed */}
 
           {t.hasActiveFilters && (
             <button
