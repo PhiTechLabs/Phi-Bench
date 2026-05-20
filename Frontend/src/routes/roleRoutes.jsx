@@ -7,15 +7,19 @@ import Bench from "../pages/Bench";
 import Submissions from "../pages/Submissions";
 import Vendors from "../pages/Vendors";
 import Reports from "../pages/Reports";
-import Settings from "../pages/Settings";
+import Settings from "../pages/settings/Settings";
 import Client from "../pages/Client";
 import ClientDetails from "../pages/ClientDetails";
 import AddClient from "../pages/AddClient";
 import CandidateDetails from "../pages/CandidateDetails";
+import Users from "../pages/settings/Users";
+import Roles from "../pages/settings/Roles";
+import Permissions from "../pages/settings/Permission";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export const roleRoutes = [
+
 
     {
         path: "home",
@@ -139,6 +143,33 @@ export const roleRoutes = [
         element: (
             <ProtectedRoute>
                 <Settings />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "settings/users",
+        element: (
+            <ProtectedRoute>
+                <Users />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "settings/roles",
+        element: (
+            <ProtectedRoute>
+                <Roles />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "settings/permissions",
+        element: (
+            <ProtectedRoute>
+                <Permissions />
             </ProtectedRoute>
         ),
     },
