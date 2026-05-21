@@ -1,5 +1,5 @@
 import { getCurrentUser } from "../utils/auth";
-import { hasPermission } from "../utils/permissions";
+import { hasPermission } from "../utils/hasPermission";
 
 export default function usePermissions() {
     const user = getCurrentUser();
