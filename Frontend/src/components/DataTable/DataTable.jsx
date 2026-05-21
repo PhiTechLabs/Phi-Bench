@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDataTable } from "./useDataTable";
 import { renderCell } from "./cellRenderers";
+import PermissionGuard from "../PermissionGuard";
 
 /**
  * ────────────────────────────────────────────────────────────
@@ -51,7 +52,11 @@ const DataTable = ({
   bulkActions = [],
   searchPlaceholder = "Search…",
   emptyState = { title: "No records yet", hint: "" },
-  actions,  
+  actions,
+
+  // NEW
+  deletePermission,
+  bulkDeletePermission,
 }) => {
   const defaultVisibleKeys = defaultVisible || registry.filter((c) => c.defaultVisible).map((c) => c.key);
 
@@ -109,6 +114,7 @@ const DataTable = ({
               </button>
             ))}
             {onBulkDelete && (
+              <PermissionGuard permission={bulkDeletePermission}>
               <button
                 onClick={() => {
                   if (window.confirm(`Delete ${t.selectedIds.size} selected items?`)) {
@@ -120,6 +126,7 @@ const DataTable = ({
               >
                 Delete selected
               </button>
+              </PermissionGuard>
             )}
           </div>
         </div>
@@ -314,6 +321,7 @@ const DataTable = ({
                         </td>
                       ))}
                       {onDelete && (
+                        <PermissionGuard permission={deletePermission}>
                         <td
                           style={{ width: 44, minWidth: 44 }}
                           className="px-2 py-2 text-right align-middle"
@@ -327,6 +335,7 @@ const DataTable = ({
                             <TrashIcon />
                           </button>
                         </td>
+                        </PermissionGuard>
                       )}
                     </tr>
                   );

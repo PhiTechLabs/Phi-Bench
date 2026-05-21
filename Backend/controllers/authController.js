@@ -37,14 +37,21 @@ export const loginUser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
-        // Only non-sensitive info goes to frontend (safe to store in localStorage)
+        const populatedUser = await User.findById(user._id)
+            .populate("roleId");
+
         res.json({
+
             user: {
-                id: user._id,
-                username: user.username,
-                role: user.roleId.name || "No Role",
-                permissions: user.roleId.permissions || [],
+                id: populatedUser._id,
+                username: populatedUser.username,
+                email: populatedUser.email,
+                role: populatedUser.roleId.name,
+
+                permissions:
+                    populatedUser.roleId.permissions || [],
             },
+
         });
 
     } catch (error) {

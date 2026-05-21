@@ -8,7 +8,7 @@ import {
   updateSubmission,
   deleteSubmission,
 } from "../api/submissionsApi";
-import useRoleBase from "../hooks/useRoleBase.";
+import useRoleBase from "../hooks/useRoleBase";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [

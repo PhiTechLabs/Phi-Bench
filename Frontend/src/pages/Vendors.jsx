@@ -5,17 +5,11 @@
     const [vendors, setVendors] = useState([]);
 
     const [formData, setFormData] = useState({
-    vendorName: "",
-    phone: "",
-    owner: "",
+    name: "",
+    company: "",
     email: "",
-    website: "",
-    emailOptOut: false,
-    city: "",
-    postalCode: "",
-    street: "",
-    province: "",
-    country: "",
+    contact: "",
+    location: "",
     });
 
     useEffect(() => {
@@ -107,11 +101,11 @@
 
                 <form onSubmit={handleSubmit} className="grid gap-3">
 
-                <Input label="Name" name="name" onChange={handleChange} />
-                <Input label="Company" name="company" onChange={handleChange} />
-                <Input label="Email" name="email" onChange={handleChange} />
-                <Input label="Contact" name="contact" onChange={handleChange} />
-                <Input label="Location" name="location" onChange={handleChange} />
+                <Input label="Name"      name="name"      value={formData.name}      onChange={handleChange} />
+                <Input label="Company"   name="company"   value={formData.company}   onChange={handleChange} />
+                <Input label="Email"     name="email"     value={formData.email}     onChange={handleChange} />
+                <Input label="Contact"   name="contact"   value={formData.contact}   onChange={handleChange} />
+                <Input label="Location"  name="location"  value={formData.location}  onChange={handleChange} />
 
                 <div className="flex justify-end gap-2 mt-3">
 
@@ -140,13 +134,14 @@
 
     /* INPUT COMPONENT */
     const Input = ({ label, ...props }) => (
-    <div>
-        <label className="text-xs text-gray-500 mb-1 block">{label}</label>
-        <input
-        {...props}
-        className="w-full border px-2 py-2 rounded-md text-sm"
-        />
-    </div>
+        <div>
+            <label className="text-xs text-gray-500 mb-1 block">{label}</label>
+            <input
+            {...props}
+            value={props.value || ""}
+            className="w-full border px-2 py-2 rounded-md text-sm"
+            />
+        </div>
     );
 
     export default Vendors;

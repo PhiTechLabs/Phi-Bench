@@ -14,18 +14,22 @@ import {
     validate,
 } from "../validators/candidateValidator.js";
 import { requirePermission  } from "../middleware/permissionMiddleware.js";
+import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
 // All routes require auth + (superAdmin or admin)
-const guard = [protect,requirePermission("candidate.view")];
+const guard = [
+    protect,
+    requirePermission(PERMISSIONS.CANDIDATE_VIEW)
+];
 
 // ─── COLLECTION ──────────────────────────────────────────────────────────────
 router.get("/", guard, listCandidates);
 router.post(
     "/",
     protect,
-    requirePermission("candidate.create"),
+    requirePermission(PERMISSIONS.CANDIDATE_CREATE),
     createCandidateRules,
     validate,
     createCandidate
@@ -33,10 +37,10 @@ router.post(
 
 // ─── SINGLE RESOURCE ─────────────────────────────────────────────────────────
 router.get("/:id", guard, getCandidateById);
-router.put("/:id", protect, requirePermission("candidate.edit"), updateCandidateRules, validate, updateCandidate);
-router.delete("/:id", protect, requirePermission("candidate.delete"), deleteCandidate);
+router.put("/:id", protect, requirePermission(PERMISSIONS.CANDIDATE_EDIT), updateCandidateRules, validate, updateCandidate);
+router.delete("/:id", protect, requirePermission(PERMISSIONS.CANDIDATE_DELETE), deleteCandidate);
 
 // ─── DEDICATED ACTIONS ───────────────────────────────────────────────────────
-router.patch("/:id/toggle-bench", protect, requirePermission("candidate.edit"), toggleBench);
+router.patch("/:id/toggle-bench", protect, requirePermission(PERMISSIONS.CANDIDATE_EDIT), toggleBench);
 
 export default router;

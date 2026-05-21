@@ -7,7 +7,7 @@ import {
   updateBenchEntry,
   removeFromBench,
 } from "../api/benchApi";
-import useRoleBase from "../hooks/useRoleBase.";
+import useRoleBase from "../hooks/useRoleBase";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [

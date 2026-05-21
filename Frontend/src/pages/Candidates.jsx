@@ -10,7 +10,11 @@ import {
   updateCandidate,
   migrateExistingCandidates,
 } from "../api/candidatesApi";
-import useRoleBase from "../hooks/useRoleBase..js";
+import useRoleBase from "../hooks/useRoleBase.js";
+import {getCurrentUser} from "../utils/auth";
+import {hasPermission} from "../utils/permissions.js"
+import { PERMISSIONS } from "./settings/constants/permissions";
+import PermissionGuard from "../components/PermissionGuard";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -34,6 +38,24 @@ const Candidates = () => {
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
+  const user = getCurrentUser();
+
+  const canView = hasPermission(user, PERMISSIONS.CANDIDATE_VIEW);
+
+  const canCreate = hasPermission(user, PERMISSIONS.CANDIDATE_CREATE);
+
+  const canEdit = hasPermission(user, PERMISSIONS.CANDIDATE_EDIT);
+
+  const canDelete = hasPermission(user, PERMISSIONS.CANDIDATE_DELETE);
+
+  if (!canView) {
+    return (
+      <div className="p-10 text-red-500">
+        Access Denied
+      </div>
+    );
+  }
+
   const refresh = useCallback(async () => {
     setCandidates(await listCandidates());
   }, []);
@@ -50,7 +72,10 @@ const Candidates = () => {
     setShowForm(false);
   };
   
-  const handleDelete = async (row) => setConfirmDel(row);
+  const handleDelete = async (row)  => {
+    if (!canDelete) return;
+    setConfirmDel(row);
+  };
   
   const confirmDelete = async () => {
     await deleteCandidate(confirmDel.id);
@@ -59,11 +84,14 @@ const Candidates = () => {
   };
   
   const handleBulkDelete = async (ids) => {
+    if (!canDelete) return;
     await Promise.all(ids.map((id) => deleteCandidate(id)));
     await refresh();
   };
   
+
   const handleToggleBench = async (id) => {
+    if (!canEdit) return;
     const previous = candidates.find(c => c.id === id);
     setCandidates(prev => prev.map(c => c.id === id ? { ...c, onBench: !c.onBench } : c));
     try {
@@ -72,9 +100,16 @@ const Candidates = () => {
       setCandidates(prev => prev.map(c => c.id === id ? previous : c));
     }
   };
+
   
   const handleStatusChange = async (id, newStatus) => {
-    const previous = candidates.find(c => c.id === id);
+    if (!canEdit) return;
+    setCandidates(prev => {
+      const previous = prev.find(c => c.id === id);
+      return prev.map(c =>
+        c.id === id ? { ...c, onBench: !c.onBench } : c
+      );
+    });
     setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
     try {
       await updateCandidate(id, { status: newStatus });
@@ -87,10 +122,13 @@ const Candidates = () => {
 
   /* ── Handle row click ── */
   const handleRowClick = (row) => {
-    const path = `${roleBase}/candidates/${row.id}`;
-    console.log("Navigating to:", path); // Debug log
-    navigate(path);
-  };
+
+  if (!canEdit) return;
+
+  const path = `${roleBase}/candidates/${row.id}`;
+  navigate(path);
+
+};
 
   /* ── column registry ── */
   const columns = [
@@ -146,12 +184,18 @@ const Candidates = () => {
             <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
               Import Candidates
             </button>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-            >
-              <span className="text-[14px] leading-none">+</span> Add Candidate
-            </button>
+
+            <PermissionGuard permission={PERMISSIONS.CANDIDATE_CREATE}>
+
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+              >
+                <span className="text-[14px] leading-none">+</span> Add Candidate
+              </button>
+
+            </PermissionGuard>
+
           </div>
         </div>
       </div>
@@ -166,6 +210,8 @@ const Candidates = () => {
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search name, skill, company…"
+          deletePermission={PERMISSIONS.CANDIDATE_DELETE}
+          bulkDeletePermission={PERMISSIONS.CANDIDATE_DELETE}
           emptyState={{
             title: "No candidates yet",
             hint: "Click + Add Candidate to get started",

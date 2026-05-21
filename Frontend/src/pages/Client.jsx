@@ -2,7 +2,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../components/DataTable/DataTable";
 import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
-import useRoleBase from "../hooks/useRoleBase.";
+import useRoleBase from "../hooks/useRoleBase";
+import { getCurrentUser } from "../utils/auth";
+import { hasPermission } from "../utils/permissions";
+import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -37,6 +40,15 @@ const Client = () => {
   
   const roleBase = useRoleBase();
 
+  const user = getCurrentUser();
+  const canView = hasPermission(user, PERMISSIONS.CLIENT_VIEW);
+  const canEdit = hasPermission(user, PERMISSIONS.CLIENT_EDIT);
+  const canDelete = hasPermission(user, PERMISSIONS.CLIENT_DELETE);
+
+  if (!canView) {
+    return <div className="p-10 text-red-500">Access Denied</div>;
+  }
+
   const refresh = useCallback(async () => {
     const data = await getAllClients();
     const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
@@ -45,7 +57,10 @@ const Client = () => {
   useEffect(() => { refresh(); }, [refresh]);
 
   /* ── handlers ── */
-  const handleDelete = (row) => setConfirmDel(row);
+  const handleDelete = (row) => {
+    if (!canDelete) return;
+    setConfirmDel(row);
+  };
   const confirmDelete = async () => {
     await deleteClient(confirmDel.id);
     await refresh();

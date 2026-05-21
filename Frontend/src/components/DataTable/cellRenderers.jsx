@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getAvatarProps } from "../../utils/avatar";
+import PermissionGuard from "../PermissionGuard";
+import { PERMISSIONS } from "../../pages/settings/constants/permissions";
 
 /**
  * ────────────────────────────────────────────────────────────
@@ -35,14 +37,23 @@ export const renderCell = ({ column, row, rowIndex, pageStart = 0, ctx = {} }) =
     case "experience":
       return <ExperienceCell row={row} valueKey={column.key} />;
     case "toggle":
-      return <ToggleCell on={!!value} onToggle={() => column.onToggle?.(row.id)} />;
+    return (
+      <PermissionGuard permission={PERMISSIONS.CANDIDATE_EDIT}>
+        <ToggleCell
+          on={!!value}
+          onToggle={() => column.onToggle?.(row.id)}
+        />
+      </PermissionGuard>
+    );
     case "status":
       return (
-        <StatusCell
-          value={value}
-          options={column.statusOptions || []}
-          onChange={(s) => column.onStatusChange?.(row.id, s)}
-        />
+        <PermissionGuard permission={PERMISSIONS.CANDIDATE_EDIT}>
+          <StatusCell
+            value={value}
+            options={column.statusOptions || []}
+            onChange={(s) => column.onStatusChange?.(row.id, s)}
+          />
+        </PermissionGuard>
       );
     case "location":
       return <LocationCell row={row} cityKey={column.cityKey || "city"} stateKey={column.stateKey || "state"} />;
@@ -189,7 +200,13 @@ const LocationCell = ({ row, cityKey, stateKey }) => {
 const ToggleCell = ({ on, onToggle }) => (
   <button
     type="button"
-    onClick={(e) => { e.stopPropagation(); onToggle(); }}
+    onClick={(e) => {
+        e.stopPropagation();
+
+        if (onToggle) {
+            onToggle();
+        }
+    }}
     className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border transition-all ${
       on ? "border-[#1C4ED8] bg-[#1C4ED8]" : "border-[#E0DDD6] bg-[#F5F4F0]"
     }`}
@@ -219,8 +236,14 @@ const StatusCell = ({ value, options, onChange }) => {
     <div ref={ref} className="relative inline-block" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
-        onClick={() => setOpen((s) => !s)}
-        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all hover:shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
+        onClick={() => {
+
+            if (onChange) {
+                setOpen((s) => !s);
+            }
+
+        }}
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all hover:shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
           currentOption?.color || "bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]"
         }`}
       >
