@@ -1,6 +1,15 @@
     import React from "react";
+    import {hasPermission} from "../utils/permissions";
+    import { getCurrentUser } from "../utils/auth";
+    import { PERMISSIONS } from "../pages/settings/constants/permissions";
+
+    const user = getCurrentUser();
+    const canView = hasPermission(user, PERMISSIONS.REPORTS_VIEW);
 
     const Reports = () => {
+        if (!canView) {
+            return <div className="p-10 text-red-500">Access Denied</div>;
+        }
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
 

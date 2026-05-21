@@ -30,4 +30,32 @@ export const PERMISSIONS = {
     ROLE_EDIT: "role.edit",
     ROLE_DELETE: "role.delete",
 
+    // Interviews
+    INTERVIEW_VIEW: "interview.view",
+    INTERVIEW_CREATE: "interview.create",
+    INTERVIEW_EDIT: "interview.edit",
+    INTERVIEW_DELETE: "interview.delete",
+
+    // Submissions
+    SUBMISSION_VIEW: "submission.view",
+    SUBMISSION_CREATE: "submission.create",
+    SUBMISSION_EDIT: "submission.edit",
+    SUBMISSION_DELETE: "submission.delete",
+
+    // Reports
+    REPORT_VIEW: "report.view",
+
+    // Vendors
+    VENDOR_VIEW: "vendor.view",
+
+    // Bench
+    BENCH_VIEW: "bench.view",
+
+    // Settings
+    SETTINGS_VIEW: "settings.view",
+
+    // Permissions
+    PERMISSION_VIEW: "permission.view",
+    PERMISSION_EDIT: "permission.edit",
+
 };

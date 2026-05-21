@@ -11,7 +11,7 @@ import LocationList from "../components/client/LocationList";
 import PocList from "../components/client/PocList";
 import AttachmentSection from "../components/shared/AttachmentSection";
 import Btn from "../components/ui/Btn";
-import useRoleBase from "../hooks/useRoleBase.";
+import useRoleBase from "../hooks/useRoleBase";
 
 
 

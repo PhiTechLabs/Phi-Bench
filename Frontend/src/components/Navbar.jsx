@@ -21,6 +21,7 @@ import { MdPeopleAlt } from "react-icons/md";
 import favIcon from "url:../assets/favIcon.png";
 import phiBenchLogo from "url:../assets/phiBenchLogo.png";
 import { hasPermission } from "../utils/permissions";
+import { getCurrentUser } from "../utils/auth";
 
 // withCredentials so the logout call also sends the HttpOnly cookie
 const api = axiosInstance.create({
@@ -38,7 +39,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const dropdownRef = useRef(null);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = getCurrentUser();
 
   useEffect(() => {
     const handler = (e) => {
@@ -101,14 +102,42 @@ const Navbar = () => {
   });
 
   const secondaryMenu = [
-    { name: "Submissions", path: "/submissions", icon: <FaPaperPlane /> },
-    { name: "Interviews", path: "/interviews", icon: <FaUserTie /> },
-    { name: "Clients", path: "/client-list", icon: <FaHandshake /> },
-    // { name: "Vendors", path: "/vendors", icon: <FaBuilding /> },
-    { name: "Reports", path: "/reports", icon: <FaChartBar /> },
+
+      {
+          name: "Submissions",
+          path: "/submissions",
+          icon: <FaPaperPlane />,
+          permission: "submission.view"
+      },
+
+      {
+          name: "Interviews",
+          path: "/interviews",
+          icon: <FaUserTie />,
+          permission: "interview.view"
+      },
+
+      {
+          name: "Clients",
+          path: "/client-list",
+          icon: <FaHandshake />,
+          permission: "client.view"
+      },
+
+      {
+          name: "Reports",
+          path: "/reports",
+          icon: <FaChartBar />,
+          permission: "report.view"
+      },
   ];
 
-  const fullMenu = [...primaryMenu, ...secondaryMenu];
+  const filteredSecondaryMenu = secondaryMenu.filter(item => {
+      if (!item.permission) return true;
+      return hasPermission(user, item.permission);
+  });
+
+  const fullMenu = [...primaryMenu, ...filteredSecondaryMenu];
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
 
   return (
@@ -160,7 +189,7 @@ const Navbar = () => {
 
             {dropdownOpen && (
               <div className="absolute top-12 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-50 border border-gray-100">
-                {secondaryMenu.map((item) => (
+                {filteredSecondaryMenu.map((item) => (
                   <button
                     key={item.name}
                     onClick={() => { navigate(item.path); setDropdownOpen(false); }}

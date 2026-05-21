@@ -14,7 +14,7 @@ import ConfirmDialog from "./component/ConfirmDialog";
 import RoleBadge from "./component/RoleBadge";
 
 import UserModal from "./modals/UserModal";
-
+import {getCurrentUser} from "../../utils/auth";
 
 export default function Users() {
 
@@ -23,10 +23,10 @@ export default function Users() {
         withCredentials: true,
     });
 
-    const getLoggedUser = () =>
-        JSON.parse(localStorage.getItem("user"));
+    // const getLoggedUser = () =>
+    //     JSON.parse(localStorage.getItem("user"));
 
-    const loggedUser = getLoggedUser();
+    const loggedUser = getCurrentUser();
 
     const isSuperAdmin =
         loggedUser?.role?.toLowerCase()

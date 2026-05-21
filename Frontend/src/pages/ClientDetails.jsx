@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAvatarProps } from "../utils/avatar";
-import useRoleBase from "../hooks/useRoleBase.";
+import useRoleBase from "../hooks/useRoleBase";
 
 const ClientDetails = () => {
   const { id } = useParams();

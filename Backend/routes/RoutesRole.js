@@ -8,7 +8,7 @@ import {
 } from "../controllers/roleController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
-import { checkPermission } from "../middleware/checkPermission.js";
+import { requirePermission } from "../middleware/permissionMiddleware.js";
 
 import { PERMISSIONS } from "../config/permissions.js";
 
@@ -18,7 +18,7 @@ const router = express.Router();
 router.get(
     "/",
     protect,
-    checkPermission(PERMISSIONS.ROLE_VIEW),
+    requirePermission(PERMISSIONS.ROLE_VIEW),
     getRoles
 );
 
@@ -26,7 +26,7 @@ router.get(
 router.post(
     "/",
     protect,
-    checkPermission(PERMISSIONS.ROLE_CREATE),
+    requirePermission(PERMISSIONS.ROLE_CREATE),
     createRole
 );
 
@@ -34,7 +34,7 @@ router.post(
 router.put(
     "/:id",
     protect,
-    checkPermission(PERMISSIONS.ROLE_EDIT),
+    requirePermission(PERMISSIONS.ROLE_EDIT),
     updateRole
 );
 
@@ -42,7 +42,7 @@ router.put(
 router.delete(
     "/:id",
     protect,
-    checkPermission(PERMISSIONS.ROLE_DELETE),
+    requirePermission(PERMISSIONS.ROLE_DELETE),
     deleteRole
 );
 

@@ -8,7 +8,12 @@ import {
   updateJob,
   deleteJob,
 } from "../api/jobsApi";
-import useRoleBase from "../hooks/useRoleBase.";
+import useRoleBase from "../hooks/useRoleBase";
+import { getCurrentUser } from "../utils/auth";
+import { hasPermission } from "../utils/permissions";
+import { PERMISSIONS } from "../pages/settings/constants/permissions";
+
+
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -37,6 +42,11 @@ const JobOpenings = () => {
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
+  const user = getCurrentUser();
+  const canCreate = hasPermission(user, PERMISSIONS.JOB_CREATE);
+  const canEdit = hasPermission(user, PERMISSIONS.JOB_EDIT);
+  const canDelete = hasPermission(user, PERMISSIONS.JOB_DELETE);
+
   const refresh = useCallback(async () => {
     try {
       setJobs(await listJobs());
@@ -52,6 +62,7 @@ const JobOpenings = () => {
 
   /* ── handlers ── */
   const handleAdd = async (data) => {
+    if (!canCreate) return;
     try {
       await createJob(data);
       await refresh();

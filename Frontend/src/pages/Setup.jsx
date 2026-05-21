@@ -7,15 +7,17 @@ import {
 } from "react-icons/fa";
 
 import RoleBadge from "./settings/component/RoleBadge";
-
-const getLoggedUser = () =>
-    JSON.parse(localStorage.getItem("user"));
+import { getCurrentUser } from "../utils/auth";
+// const getLoggedUser = () =>
+//     JSON.parse(localStorage.getItem("user"));
 
 export default function Setup() {
 
     const navigate = useNavigate();
 
-    const loggedUser = getLoggedUser();
+    const loggedUser = getCurrentUser();
+
+    console.log(loggedUser);
 
     return (
 

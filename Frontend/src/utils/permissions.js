@@ -9,5 +9,5 @@ export const hasPermission = (user, permission) => {
         return true;
     }
 
-    return permissions.includes(permission);
+    return permissions?.includes(permission);
 };
