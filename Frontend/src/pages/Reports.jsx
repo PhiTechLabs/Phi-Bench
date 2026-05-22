@@ -1,5 +1,5 @@
     import React from "react";
-    import {hasPermission} from "../utils/permissions";
+    import {hasPermission} from "../utils/hasPermission";
     import { getCurrentUser } from "../utils/auth";
     import { PERMISSIONS } from "../pages/settings/constants/permissions";
 

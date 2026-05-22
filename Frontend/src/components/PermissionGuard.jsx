@@ -20,7 +20,7 @@
 // export default PermissionGuard;
 
 
-import { hasPermission } from "../utils/permissions";
+import { hasPermission } from "../utils/hasPermission";
 import { getCurrentUser } from "../utils/auth";
 
 const PermissionGuard = ({

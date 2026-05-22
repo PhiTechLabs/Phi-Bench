@@ -4,7 +4,7 @@ import DataTable from "../components/DataTable/DataTable";
 import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
 import useRoleBase from "../hooks/useRoleBase";
 import { getCurrentUser } from "../utils/auth";
-import { hasPermission } from "../utils/permissions";
+import { hasPermission } from "../utils/hasPermission";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */

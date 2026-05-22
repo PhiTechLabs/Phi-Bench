@@ -19,8 +19,10 @@ import { RxCross2 } from "react-icons/rx";
 import { MdPeopleAlt } from "react-icons/md";
 
 import favIcon from "url:../assets/favIcon.png";
-import phiBenchLogo from "url:../assets/phiBenchLogo.png";
-import { hasPermission } from "../utils/permissions";
+import phiBenchLogo from "url:../assets/phiBenchLogo.png"; 
+
+import {hasPermission} from "../utils/hasPermission";
+
 import { getCurrentUser } from "../utils/auth";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 

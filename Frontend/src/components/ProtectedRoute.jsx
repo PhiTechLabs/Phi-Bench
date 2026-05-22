@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { hasPermission } from "../utils/permissions";
+import { hasPermission } from "../utils/hasPermission";
 import {getCurrentUser} from "../utils/auth";
 
 const ProtectedRoute = ({ children, permission }) => {
