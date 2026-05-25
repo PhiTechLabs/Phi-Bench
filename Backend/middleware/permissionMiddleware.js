@@ -9,22 +9,44 @@ export const requirePermission = (...requiredPermissions) => {
             const user = await User.findById(req.user.id)
                 .populate("roleId");
 
-            if (!user || !user.roleId) {
+            // USER NOT FOUND
+            if (!user) {
 
-                return res.status(403).json({
-                    message: "Access denied",
+                return res.status(401).json({
+                    message: "User not found",
                 });
 
             }
 
-            const rolePermissions = user.roleId.permissions || [];
+            // ROLE NOT ASSIGNED
+            if (!user.roleId) {
 
-            // SUPER ADMIN
-            if (rolePermissions.includes("*")) {
-                return next();
+                return res.status(403).json({
+                    message: "No role assigned",
+                });
+
             }
 
-            // CHECK ALL REQUIRED PERMISSIONS
+            const role = user.roleId;
+
+            const rolePermissions = role.permissions || [];
+
+            // SUPER ADMIN ACCESS
+            if (rolePermissions.includes("*")) {
+
+                req.auth = {
+                    user,
+                    role,
+                    permissions: rolePermissions,
+                    hierarchyLevel: role.hierarchyLevel,
+                    dataScope: role.dataScope,
+                };
+
+                return next();
+
+            }
+
+            // CHECK REQUIRED PERMISSIONS
             const hasPermission = requiredPermissions.every((permission) =>
                 rolePermissions.includes(permission)
             );
@@ -37,8 +59,14 @@ export const requirePermission = (...requiredPermissions) => {
 
             }
 
-            // attach permissions for future usage
-            req.permissions = rolePermissions;
+            // ATTACH AUTH CONTEXT
+            req.auth = {
+                user,
+                role,
+                permissions: rolePermissions,
+                hierarchyLevel: role.hierarchyLevel,
+                dataScope: role.dataScope,
+            };
 
             next();
 
@@ -53,3 +81,73 @@ export const requirePermission = (...requiredPermissions) => {
     };
 
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import User from "../models/User.js";
+
+// export const requirePermission = (...requiredPermissions) => {
+
+//     return async (req, res, next) => {
+
+//         try {
+
+//             const user = await User.findById(req.user.id)
+//                 .populate("roleId");
+
+//             if (!user || !user.roleId) {
+
+//                 return res.status(403).json({
+//                     message: "Access denied",
+//                 });
+
+//             }
+
+//             const rolePermissions = user.roleId.permissions || [];
+
+//             // SUPER ADMIN
+//             if (rolePermissions.includes("*")) {
+//                 return next();
+//             }
+
+//             // CHECK ALL REQUIRED PERMISSIONS
+//             const hasPermission = requiredPermissions.every((permission) =>
+//                 rolePermissions.includes(permission)
+//             );
+
+//             if (!hasPermission) {
+
+//                 return res.status(403).json({
+//                     message: "Insufficient permissions",
+//                 });
+
+//             }
+
+//             // attach permissions for future usage
+//             req.permissions = rolePermissions;
+
+//             next();
+
+//         } catch (error) {
+
+//             return res.status(500).json({
+//                 message: error.message,
+//             });
+
+//         }
+
+//     };
+
+// };

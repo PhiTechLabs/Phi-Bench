@@ -10,7 +10,7 @@ import {
 } from "../api/jobsApi";
 import useRoleBase from "../hooks/useRoleBase";
 import { getCurrentUser } from "../utils/auth";
-import { hasPermission } from "../utils/permissions";
+import { hasPermission } from "../utils/hasPermission";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
 

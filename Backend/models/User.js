@@ -8,7 +8,8 @@ import mongoose from "mongoose";
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        select: false
     },
     roleId: {
         type: mongoose.Schema.Types.ObjectId,

@@ -4,10 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 // withCredentials: true — tells axios to send/receive cookies
-const api = axiosInstance.create({
-    baseURL: "http://localhost:5000/api/auth",
-    withCredentials: true,
-});
+const api = axiosInstance;
 
 export default function Login() {
     const navigate = useNavigate();
@@ -25,7 +22,7 @@ export default function Login() {
         }
 
         try {
-            const res = await api.post("/login", {
+            const res = await api.post("/auth/login", {
                 username: data.username,
                 password: data.password,
             });
@@ -51,11 +48,42 @@ export default function Login() {
         <div className="min-h-screen flex bg-gray-100">
 
             {/* LEFT SIDE */}
-            <div className="hidden lg:flex w-1/2 bg-linear-to-br from-blue-900 to-blue-600 text-white p-12 items-center">
+            {/* <div className="hidden lg:flex w-1/2 bg-linear-to-br from-blue-900 to-blue-600 text-white p-12 items-center">
                 <div>
                     <h1 className="text-4xl font-bold mb-4">Welcome to Phi Bench</h1>
                     <p className="text-lg opacity-80">Manage your recruitment pipeline with ease.</p>
                 </div>
+            </div> */}
+
+            {/* LEFT SIDE */}
+            <div className="hidden lg:flex relative overflow-hidden w-[70%] bg-[#070683] text-white p-12 items-center">
+
+                {/* GLOW 1 */}
+                <div className="absolute top-[-20%] left-[-20%] h-125 w-125 rounded-full bg-[#4E4DFF] opacity-70 blur-[90px] animate-float-1"></div>
+
+                {/* GLOW 2 */}
+                <div className="absolute top-[20%] right-[-15%] h-112.5 w-112.5 rounded-full bg-[#0100B5] opacity-70 blur-[100px] animate-float-2"></div>
+
+                {/* GLOW 3 */}
+                <div className="absolute bottom-[-20%] left-[25%] h-137.5 w-137.5 rounded-full bg-[#0605AE] opacity-70 blur-[110px] animate-float-3"></div>
+
+                {/* GLOW 4 */}
+                <div className="absolute top-[35%] left-[40%] h-87.5 w-87.5 rounded-full bg-[#2928BE] opacity-60 blur-[80px] animate-float-4"></div>
+
+                {/* SOFT OVERLAY */}
+                <div className="absolute inset-0 bg-linear-to-br from-white/3 via-transparent to-white/2"></div>
+
+                {/* CONTENT */}
+                <div className="relative z-10">
+                    <h1 className="text-4xl font-bold mb-4">
+                        Welcome to Phi Bench
+                    </h1>
+
+                    <p className="text-lg opacity-80">
+                        Manage your recruitment pipeline with ease.
+                    </p>
+                </div>
+
             </div>
 
             {/* RIGHT SIDE — LOGIN FORM */}

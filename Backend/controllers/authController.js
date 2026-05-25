@@ -12,7 +12,11 @@ export const loginUser = async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        const user = await User.findOne({ username }).populate("roleId");
+        // const user = await User.findOne({ username }).populate("roleId");
+
+        const user = await User.findOne({ username })
+        .select("+password")
+        .populate("roleId");
         console.log(user);
         if (!user) return res.status(400).json({ message: "User not found" });
 
@@ -21,6 +25,9 @@ export const loginUser = async (req, res) => {
 
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken(user);
+        
+        user.refreshToken = refreshToken;
+        await user.save();
 
         // ✅ JWT goes into HttpOnly cookie — JS can NEVER read this, blocks XSS
         res.cookie("accessToken", accessToken, {
@@ -161,7 +168,11 @@ export const registerUser = async (req, res) => {
         const userExists = await User.findOne({ username });
         if (userExists) return res.status(400).json({ message: "User already exists" });
 
-        const roleDoc = await Role.findOne({ name: role });
+        // const roleDoc = await Role.findOne({ name: role });
+
+        const roleDoc = await Role.findOne({
+            name: role.toLowerCase(),
+        });
 
         if (!roleDoc) {
             return res.status(400).json({
@@ -203,7 +214,29 @@ export const updateUser = async (req, res) => {
 
         const updateFields = {};
         if (username) updateFields.username = username;
-        if (role) updateFields.role = role;
+        // if (role) updateFields.role = role;
+
+
+        if (role) {
+
+            const roleDoc = await Role.findOne({
+                name: role.toLowerCase(),
+            });
+
+            if (!roleDoc) {
+
+                return res.status(400).json({
+                    message: "Role not found",
+                });
+
+            }
+
+            updateFields.roleId = roleDoc._id;
+
+        }
+
+
+
         if (password) updateFields.password = await bcrypt.hash(password, 10);
 
         const user = await User.findByIdAndUpdate(id, updateFields, { new: true }).select("-password");

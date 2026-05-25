@@ -12,7 +12,7 @@ import {
 } from "../api/candidatesApi";
 import useRoleBase from "../hooks/useRoleBase.js";
 import {getCurrentUser} from "../utils/auth";
-import {hasPermission} from "../utils/permissions.js"
+import {hasPermission} from "../utils/hasPermission.js"
 import { PERMISSIONS } from "./settings/constants/permissions";
 import PermissionGuard from "../components/PermissionGuard";
 

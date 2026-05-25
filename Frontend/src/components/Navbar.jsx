@@ -19,9 +19,12 @@ import { RxCross2 } from "react-icons/rx";
 import { MdPeopleAlt } from "react-icons/md";
 
 import favIcon from "url:../assets/favIcon.png";
-import phiBenchLogo from "url:../assets/phiBenchLogo.png";
-import { hasPermission } from "../utils/permissions";
+import phiBenchLogo from "url:../assets/phiBenchLogo.png"; 
+
+import {hasPermission} from "../utils/hasPermission";
+
 import { getCurrentUser } from "../utils/auth";
+import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
 // withCredentials so the logout call also sends the HttpOnly cookie
 const api = axiosInstance.create({
@@ -79,20 +82,21 @@ const Navbar = () => {
     name: "Jobs",
     path: "/jobs",
     icon: <FaBriefcase />,
-    permission: "job.view"
+    permission: PERMISSIONS.JOB_VIEW
   },
 
   {
     name: "Candidates",
     path: "/candidates",
     icon: <FaUsers />,
-    permission: "candidate.view"
+    permission: PERMISSIONS.CANDIDATE_VIEW
   },
 
   {
     name: "Bench",
     path: "/bench",
-    icon: <MdPeopleAlt />
+    icon: <MdPeopleAlt />,
+    permission: PERMISSIONS.BENCH_VIEW
   },
 ];
 
@@ -107,28 +111,28 @@ const Navbar = () => {
           name: "Submissions",
           path: "/submissions",
           icon: <FaPaperPlane />,
-          permission: "submission.view"
+          permission: PERMISSIONS.SUBMISSION_VIEW
       },
 
       {
           name: "Interviews",
           path: "/interviews",
           icon: <FaUserTie />,
-          permission: "interview.view"
+          permission: PERMISSIONS.INTERVIEW_VIEW
       },
 
       {
           name: "Clients",
           path: "/client-list",
           icon: <FaHandshake />,
-          permission: "client.view"
+          permission: PERMISSIONS.CLIENT_VIEW
       },
 
       {
           name: "Reports",
           path: "/reports",
           icon: <FaChartBar />,
-          permission: "report.view"
+          permission: PERMISSIONS.REPORT_VIEW
       },
   ];
 
@@ -224,13 +228,18 @@ const Navbar = () => {
             </button>
           </div>
 
-          <button
-            onClick={() => navigate("/settings")}
-            className={`p-2 rounded-lg text-lg transition
-              ${isActive("/settings") ? "bg-blue-700 text-white" : "text-blue-200 hover:bg-blue-800 hover:text-white"}`}
-          >
-            <FaCog />
-          </button>
+          {hasPermission(user, PERMISSIONS.SETTINGS_VIEW) && (
+            <button
+              onClick={() => navigate("/settings")}
+              className={`p-2 rounded-lg text-lg transition
+                ${isActive("/settings")
+                  ? "bg-blue-700 text-white"
+                  : "text-blue-200 hover:bg-blue-800 hover:text-white"
+                }`}
+            >
+              <FaCog />
+            </button>
+          )}
 
           <button
             onClick={() => setProfileOpen(true)}
