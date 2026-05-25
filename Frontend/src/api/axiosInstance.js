@@ -2,12 +2,20 @@ import axios from "axios";
 
 // ─── CENTRAL AXIOS INSTANCE ───────────────────────────────────────────────────
 const axiosInstance = axios.create({
+    // baseURL: "http://localhost:5000/api",
     baseURL: "http://localhost:5000/api",
     withCredentials: true,
     headers: {
         "Content-Type": "application/json",
     },
 });
+
+axiosInstance.interceptors.request.use(
+    (config) => {
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 // ─── AUTO REFRESH TOKEN INTERCEPTOR ──────────────────────────────────────────
 axiosInstance.interceptors.response.use(
@@ -30,7 +38,8 @@ axiosInstance.interceptors.response.use(
 
                 // get new access token
                 await axios.post(
-                    "http://localhost:5000/api/auth/refresh-token",
+                    // `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+                    `http://localhost:5000/api/auth/refresh-token`,
                     {},
                     {
                         withCredentials: true,
@@ -42,7 +51,9 @@ axiosInstance.interceptors.response.use(
 
             } catch (refreshError) {
 
-                console.error("Session expired");
+                localStorage.clear();
+
+                // console.error("Session expired");
 
                 // redirect to login
                 window.location.href = "/login";
@@ -54,5 +65,7 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+
 
 export default axiosInstance;

@@ -23,30 +23,44 @@ const normalize = (job) => {
 
 /* ── public API ── */
 
-export const listJobs = async () => {
-    const { data } = await axiosInstance.get("/jobs");
-    return (data.jobs || []).map(normalize);
+const handleApi = async (cb) => {
+    try {
+        return await cb();
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
 };
 
-export const getJob = async (id) => {
-    const { data } = await axiosInstance.get(`/jobs/${id}`);
-    return normalize(data.job);
-};
+export const listJobs = async () =>
+    handleApi(async () => {
+        const { data } = await axiosInstance.get("/jobs");
+        return (Array.isArray(data.jobs) ? data.jobs : [] ).map(normalize);
+    });
 
-export const createJob = async (payload) => {
-    const { data } = await axiosInstance.post("/jobs", payload);
-    return normalize(data.job);
-};
+export const getJobById = async (id) =>
+    handleApi(async () => {
+        const { data } = await axiosInstance.get(`/jobs/${id}`);
+        return normalize(data.job);
+    });
 
-export const updateJob = async (id, patch) => {
-    const { data } = await axiosInstance.put(`/jobs/${id}`, patch);
-    return normalize(data.job);
-};
+export const createJob = async (payload) =>
+    handleApi(async () => {
+        const { data } = await axiosInstance.post("/jobs", payload);
+        return normalize(data.job);
+    });
 
-export const deleteJob = async (id) => {
-    await axiosInstance.delete(`/jobs/${id}`);
-    return true;
-};
+export const updateJob = async (id, patch) =>
+    handleApi(async () => {
+        const { data } = await axiosInstance.put(`/jobs/${id}`, patch);
+        return normalize(data.job);
+    });
+
+export const deleteJob = async (id) =>
+    handleApi(async () => {
+        await axiosInstance.delete(`/jobs/${id}`);
+        return true;
+    });
 
 export const listOpenJobs = async () => {
     const all = await listJobs();

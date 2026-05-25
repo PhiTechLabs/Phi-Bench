@@ -18,10 +18,7 @@ import {getCurrentUser} from "../../utils/auth";
 
 export default function Users() {
 
-    const api = axiosInstance.create({
-        baseURL: "http://localhost:5000/api/auth",
-        withCredentials: true,
-    });
+    const api = axiosInstance
 
     // const getLoggedUser = () =>
     //     JSON.parse(localStorage.getItem("user"));
@@ -49,7 +46,7 @@ export default function Users() {
         setLoadingUsers(true);
 
         try {
-            const res = await api.get("/users");
+            const res = await api.get("/auth/users");
 
             setUsers(res.data.users);
 
@@ -68,7 +65,7 @@ export default function Users() {
 
         const handleDelete = async () => {
         try {
-            await api.delete(`/delete/${deleteTarget._id}`);
+            await api.delete(`/auth/users/${deleteTarget._id}`);
 
             showToast(
                 "User deleted successfully"
