@@ -1,6 +1,7 @@
     import React, { useEffect, useState } from "react";
     import { useParams, useNavigate } from "react-router-dom";
     import { getCandidate, toggleBench, deleteCandidate } from "../api/candidatesApi";
+    import useRoleBase from "../hooks/useRoleBase";
 
     /* ──────────────────── MAIN COMPONENT ──────────────────── */
 
@@ -9,33 +10,95 @@
     const navigate = useNavigate();
     const [candidate, setCandidate] = useState(null);
     const [loading, setLoading]     = useState(true);
+    const roleBase = useRoleBase();
+    const [error, setError] = useState("");
+
+    // useEffect(() => {
+    //     let active = true;
+    //     (async () => {
+    //     const data = await getCandidate(id);
+    //     if (active) {
+    //         setCandidate(data);
+    //         setLoading(false);
+    //     }
+    //     })();
+    //     return () => { active = false; };
+    // }, [id]);
 
     useEffect(() => {
         let active = true;
-        (async () => {
-        const data = await getCandidate(id);
-        if (active) {
-            setCandidate(data);
-            setLoading(false);
-        }
-        })();
-        return () => { active = false; };
+
+        const fetchCandidate = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const data = await getCandidate(id);
+
+                if (active) {
+                    setCandidate(data);
+                }
+
+            } catch (err) {
+                console.error(err);
+
+                if (active) {
+                    setError("Failed to load candidate profile.");
+                }
+
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchCandidate();
+
+        return () => {
+            active = false;
+        };
     }, [id]);
 
+    // const refresh = async () => {
+    //     const data = await getCandidate(id);
+    //     setCandidate(data);
+    // };
+
     const refresh = async () => {
-        const data = await getCandidate(id);
-        setCandidate(data);
+        try {
+            const data = await getCandidate(id);
+            setCandidate(data);
+        } catch (err) {
+            console.error(err);
+            setError("Failed to refresh candidate.");
+        }
     };
 
     const handleToggleBench = async () => {
-        await toggleBench(id);
-        await refresh();
+        try {
+            await toggleBench(id);
+            await refresh();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update bench status.");
+        }
     };
 
     const handleDelete = async () => {
-        if (!window.confirm("Delete this candidate? This action cannot be undone.")) return;
-        await deleteCandidate(id);
-        navigate("/candidates");
+        const confirmed = window.confirm(
+            "Delete this candidate? This action cannot be undone."
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await deleteCandidate(id);
+            navigate(`${roleBase}/candidates`);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to delete candidate.");
+        }
     };
 
     if (loading) {
@@ -46,13 +109,32 @@
         );
     }
 
+    if (error) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-[#F5F4F0]">
+                <div className="rounded-2xl border border-[#FECACA] bg-white px-6 py-5 text-center shadow-sm">
+                    <div className="text-[15px] font-semibold text-[#B91C1C]">
+                        {error}
+                    </div>
+
+                    <button
+                        onClick={() => navigate(`${roleBase}/candidates`)}
+                        className="mt-4 rounded-[10px] bg-[#1C4ED8] px-4 py-2 text-[13px] font-medium text-white"
+                    >
+                        Back to Candidates
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     if (!candidate) {
         return (
         <div className="flex min-h-screen items-center justify-center bg-[#F5F4F0]">
             <div className="rounded-2xl border border-[#E8E6E0] bg-white p-8 text-center">
             <div className="text-[16px] font-semibold text-[#1C1B18]">Candidate not found</div>
             <p className="mt-1 text-[13px] text-[#9B9890]">The profile you're looking for doesn't exist.</p>
-            <button onClick={() => navigate("/candidates")} className="mt-4 rounded-[10px] bg-[#1C4ED8] px-4 py-2 text-[13px] font-medium text-white">
+            <button onClick={() => navigate(`${roleBase}/candidates`)} className="mt-4 rounded-[10px] bg-[#1C4ED8] px-4 py-2 text-[13px] font-medium text-white">
                 Back to Candidates
             </button>
             </div>
@@ -67,7 +149,7 @@
         <div className="sticky top-0 z-50 border-b border-[#E8E6E0] bg-white/90 backdrop-blur-md">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
             <div className="flex items-center gap-5">
-                <button onClick={() => navigate("/candidates")} className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E0DDD6] bg-white text-lg text-[#6B6860] transition-all hover:bg-[#F5F4F0]">
+                <button onClick={() => navigate(`${roleBase}/candidates`)} className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E0DDD6] bg-white text-lg text-[#6B6860] transition-all hover:bg-[#F5F4F0]">
                 ←
                 </button>
                 <div>

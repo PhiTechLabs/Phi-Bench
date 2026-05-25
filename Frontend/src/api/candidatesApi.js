@@ -1,126 +1,314 @@
 import axiosInstance from "./axiosInstance";
 
-// ─── HELPER: normalize backend response shape ────────────────────────────────
-// Backend returns { candidate, ... } or { candidates, count } — extract & normalize.
-// Also ensures `id` is always present (alias of `_id`).
-const normalize = (c) => {
-    if (!c) return c;
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSE NORMALIZERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Normalize a single candidate object
+const normalize = (candidate) => {
+
+    if (!candidate) return null;
+
     return {
-        ...c,
-        id: c.id || c._id, // Mongoose virtual gives us `id`, but be defensive
+        ...candidate,
+
+        // always expose stable id
+        id: candidate.id || candidate._id,
+
+        // derived name fallback
+        name:
+            candidate.name ||
+            [candidate.firstName, candidate.lastName]
+                .filter(Boolean)
+                .join(" ")
+                .trim(),
+
+        // initials for avatars
+        initials:
+            candidate.initials ||
+            [candidate.firstName?.[0], candidate.lastName?.[0]]
+                .filter(Boolean)
+                .join("")
+                .toUpperCase(),
+
+        // safe defaults
+        status: candidate.status || "Available",
+        onBench: Boolean(candidate.onBench),
+
+        // normalize arrays
+        education: Array.isArray(candidate.education)
+            ? candidate.education
+            : [],
+
+        experience: Array.isArray(candidate.experience)
+            ? candidate.experience
+            : [],
+
+        attachments: candidate.attachments || {},
     };
 };
 
-const normalizeMany = (arr = []) => arr.map(normalize);
+// Normalize array safely
+const normalizeMany = (arr = []) => {
+    if (!Array.isArray(arr)) return [];
+    return arr.map(normalize);
+};
 
-// ─── LIST CANDIDATES ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// LIST CANDIDATES
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const listCandidates = async () => {
+
     try {
-        const { data } = await axiosInstance.get("/candidates");
-        return normalizeMany(data.candidates);
+
+        const response = await axiosInstance.get("/candidates");
+
+        const data = response?.data;
+
+        // support multiple backend response shapes
+        const candidates =
+            data?.candidates ||
+            data?.data ||
+            data ||
+            [];
+
+        return normalizeMany(candidates);
+
     } catch (err) {
+
         console.error("listCandidates error:", err);
+
         return [];
     }
 };
 
-// ─── LIST BENCH CANDIDATES (filter from full list) ──────────────────────────
-// Bench is a filtered view of all candidates where onBench === true.
-// For now, filter client-side from the full list — fine for small datasets.
-// If candidates grow into the thousands, swap for a backend query param:
-//   GET /api/candidates?onBench=true
+// ─────────────────────────────────────────────────────────────────────────────
+// LIST BENCH CANDIDATES
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const listBenchCandidates = async () => {
-    const all = await listCandidates();
-    return all.filter((c) => c.onBench === true);
+
+    const allCandidates = await listCandidates();
+
+    return allCandidates.filter(
+        (candidate) => candidate.onBench === true
+    );
 };
 
-// ─── GET SINGLE CANDIDATE ────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// GET SINGLE CANDIDATE
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const getCandidate = async (id) => {
+
+    if (!id) return null;
+
     try {
-        const { data } = await axiosInstance.get(`/candidates/${id}`);
-        return normalize(data.candidate);
+
+        const response = await axiosInstance.get(`/candidates/${id}`);
+
+        const data = response?.data;
+
+        const candidate =
+            data?.candidate ||
+            data?.data ||
+            data;
+
+        return normalize(candidate);
+
     } catch (err) {
+
         console.error("getCandidate error:", err);
+
         return null;
     }
 };
 
-// ─── CREATE CANDIDATE ────────────────────────────────────────────────────────
-// Form sends `attachments` as { resume: File, ... } — File objects can't be
-// JSON-serialized, so we strip them here. Phase 2 (Cloudinary) will handle
-// uploads separately and POST URLs back.
+// ─────────────────────────────────────────────────────────────────────────────
+// CREATE CANDIDATE
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const createCandidate = async (formData) => {
-    const payload = sanitizeForBackend(formData);
 
     try {
-        const { data } = await axiosInstance.post("/candidates", payload);
-        return normalize(data.candidate);
+
+        const payload = sanitizeForBackend(formData);
+
+        const response = await axiosInstance.post(
+            "/candidates",
+            payload
+        );
+
+        const data = response?.data;
+
+        return normalize(
+            data?.candidate ||
+            data?.data ||
+            data
+        );
+
     } catch (err) {
-        const serverMsg =
-            err.response?.data?.errors?.[0]?.message ||
-            err.response?.data?.message ||
-            err.message ||
+
+        console.error("createCandidate error:", err);
+
+        const serverMessage =
+            err?.response?.data?.errors?.[0]?.message ||
+            err?.response?.data?.message ||
+            err?.message ||
             "Failed to create candidate";
-        alert(`Error: ${serverMsg}`);
+
+        alert(serverMessage);
+
         throw err;
     }
 };
 
-// ─── UPDATE CANDIDATE (partial) ──────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE CANDIDATE
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const updateCandidate = async (id, payload) => {
+
+    if (!id) {
+        throw new Error("Candidate id is required");
+    }
+
     try {
-        const clean = sanitizeForBackend(payload);
-        const { data } = await axiosInstance.put(`/candidates/${id}`, clean);
-        return normalize(data.candidate);
+
+        const cleanPayload = sanitizeForBackend(payload);
+
+        const response = await axiosInstance.put(
+            `/candidates/${id}`,
+            cleanPayload
+        );
+
+        const data = response?.data;
+
+        return normalize(
+            data?.candidate ||
+            data?.data ||
+            data
+        );
+
     } catch (err) {
-        const serverMsg =
-            err.response?.data?.errors?.[0]?.message ||
-            err.response?.data?.message ||
-            err.message ||
+
+        console.error("updateCandidate error:", err);
+
+        const serverMessage =
+            err?.response?.data?.errors?.[0]?.message ||
+            err?.response?.data?.message ||
+            err?.message ||
             "Failed to update candidate";
-        alert(`Error: ${serverMsg}`);
+
+        alert(serverMessage);
+
         throw err;
     }
 };
 
-// ─── DELETE CANDIDATE ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE CANDIDATE
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const deleteCandidate = async (id) => {
+
+    if (!id) {
+        throw new Error("Candidate id is required");
+    }
+
     try {
-        const { data } = await axiosInstance.delete(`/candidates/${id}`);
-        return data;
+
+        const response = await axiosInstance.delete(
+            `/candidates/${id}`
+        );
+
+        return response?.data;
+
     } catch (err) {
+
         console.error("deleteCandidate error:", err);
-        alert("Failed to delete candidate");
+
+        const serverMessage =
+            err?.response?.data?.message ||
+            "Failed to delete candidate";
+
+        alert(serverMessage);
+
         throw err;
     }
 };
 
-// ─── TOGGLE BENCH (dedicated action) ─────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// TOGGLE BENCH STATUS
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const toggleBench = async (id) => {
+
+    if (!id) {
+        throw new Error("Candidate id is required");
+    }
+
     try {
-        const { data } = await axiosInstance.patch(`/candidates/${id}/toggle-bench`);
-        return normalize(data.candidate);
+
+        const response = await axiosInstance.patch(
+            `/candidates/${id}/toggle-bench`
+        );
+
+        const data = response?.data;
+
+        return normalize(
+            data?.candidate ||
+            data?.data ||
+            data
+        );
+
     } catch (err) {
+
         console.error("toggleBench error:", err);
-        alert("Failed to toggle bench status");
+
+        const serverMessage =
+            err?.response?.data?.message ||
+            "Failed to toggle bench status";
+
+        alert(serverMessage);
+
         throw err;
     }
 };
 
-// ─── LEGACY: migrateExistingCandidates (no-op now) ──────────────────────────
-// Old localStorage version migrated stale data on app load. Backend handles
-// persistence now, so this is a no-op. Kept as an exported function so the
-// import in Candidates.jsx doesn't break.
+// ─────────────────────────────────────────────────────────────────────────────
+// LEGACY MIGRATION (NO-OP)
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const migrateExistingCandidates = () => {
-    // intentionally empty — was localStorage migration, no longer needed
+    // intentionally empty
 };
 
-// ─── INTERNAL: strip non-serializable fields before sending to backend ──────
-// The CandidateForm collects File objects in `attachments` — these can't be
-// JSON-stringified. We drop them here; Phase 2 will handle file uploads via
-// a separate FormData/multipart endpoint.
+// ─────────────────────────────────────────────────────────────────────────────
+// INTERNAL HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Remove non-serializable File objects before sending JSON
 const sanitizeForBackend = (data) => {
+
     if (!data) return {};
-    const { attachments, ...rest } = data;
-    return rest;
+
+    const cleaned = { ...data };
+
+    // attachments contain File objects
+    delete cleaned.attachments;
+
+    // remove undefined fields
+    Object.keys(cleaned).forEach((key) => {
+
+        if (
+            cleaned[key] === undefined ||
+            cleaned[key] === null
+        ) {
+            delete cleaned[key];
+        }
+    });
+
+    return cleaned;
 };
