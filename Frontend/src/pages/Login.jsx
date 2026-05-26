@@ -3,8 +3,8 @@ import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-const loginVideo = new URL("../assets/animatedBG.mp4", import.meta.url).href;
-const loginVideoWebm = new URL("../assets/animatedBG.webm", import.meta.url).href;
+const loginVideo = new URL("../assets/phiBench-animation.mp4", import.meta.url).href;
+const loginVideoWebm = new URL("../assets/phiBench-animation.webm", import.meta.url).href;
 
 // withCredentials: true — tells axios to send/receive cookies
 const api = axiosInstance;
@@ -51,14 +51,6 @@ export default function Login() {
         <div className="min-h-screen flex bg-gray-100">
 
             {/* LEFT SIDE */}
-            {/* <div className="hidden lg:flex w-1/2 bg-linear-to-br from-blue-900 to-blue-600 text-white p-12 items-center">
-                <div>
-                    <h1 className="text-4xl font-bold mb-4">Welcome to Phi Bench</h1>
-                    <p className="text-lg opacity-80">Manage your recruitment pipeline with ease.</p>
-                </div>
-            </div> */}
-
-            {/* LEFT SIDE */}
             <div className="hidden lg:flex relative overflow-hidden w-[60%] bg-[#070683] text-white p-12 items-center justify-center">
 
                 {/* GLOW 1 */}
@@ -75,23 +67,6 @@ export default function Login() {
 
                 {/* OVERLAY */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5"></div>
-
-                {/* VIDEO CONTENT */}
-                {/* <div className="relative z-10 flex items-center justify-center w-full h-full">
-
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="auto"
-                        className="w-[85%] max-w-[700px] rounded-2xl object-cover drop-shadow-2xl"
-                    >
-                        <source src="/login-video.mp4" type="video/mp4" />
-                    </video>
-
-                </div> */}
-
 
                 {/* VIDEO CONTENT */}
                 <div className="relative z-10 flex items-center justify-center w-full h-full">
