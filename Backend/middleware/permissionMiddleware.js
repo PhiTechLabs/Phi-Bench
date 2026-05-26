@@ -19,8 +19,7 @@ export const authorize = (...requiredPermissions) => {
             // SuperAdmin shortcut
             if (rolePermissions.includes("*")) {
                 return next();
-            }
-
+            } 
             const hasPermission = requiredPermissions.every(permission =>
                 rolePermissions.includes(permission)
             );

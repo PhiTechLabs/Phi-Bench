@@ -15,8 +15,11 @@ import {
     validate,
 } from "../validators/candidateValidator.js";
 import { authorize } from "../middleware/permissionMiddleware.js";
+import * as submissionController from "../controllers/submissionController.js";
+import * as interviewController from "../controllers/interviewController.js";
 
 const router = express.Router();
+
 
 // All routes require auth + (superAdmin or admin)
 const guard = [protect,authorize("candidate.view")];
@@ -36,7 +39,8 @@ router.post(
 router.get("/:id", guard, getCandidateById);
 router.put("/:id", protect, authorize("candidate.edit"), updateCandidateRules, validate, updateCandidate);
 router.delete("/:id", protect, authorize("candidate.delete"), deleteCandidate);
-
+router.get("/:candidateId/submissions", submissionController.getCandidateSubmissions);
+router.get("/:candidateId/interviews", interviewController.getCandidateInterviews);
 // ─── DEDICATED ACTIONS ───────────────────────────────────────────────────────
 router.patch("/:id/toggle-bench", protect, authorize("candidate.edit"), toggleBench);
 

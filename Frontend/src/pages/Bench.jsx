@@ -115,6 +115,9 @@ const Bench = () => {
         </div>
       </div>
 
+    <BeforeUnloadEvent
+
+></BeforeUnloadEvent>
       {/* ════════ TABLE (EDGE-TO-EDGE) ════════ */}
       <div className="w-full">
         <DataTable

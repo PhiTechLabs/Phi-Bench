@@ -74,6 +74,15 @@ export const deleteInterview = async (id) => {
   return true;
 };
 
+/* ── get interviews by candidate ── */
+export const getCandidateInterviews = async (candidateId) => {
+  const list = read();
+  return list
+    .filter((iv) => iv.candidateId === candidateId)
+    .map(normalize)
+    .sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+};
+
 /* ── derived: upcoming interviews (next 7 days) ── */
 export const listUpcomingInterviews = async (limit = 5) => {
   const now = Date.now();

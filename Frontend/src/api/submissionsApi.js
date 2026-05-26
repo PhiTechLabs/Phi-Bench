@@ -70,3 +70,12 @@ export const deleteSubmission = async (id) => {
   write(list);
   return true;
 };
+
+/* ── get submissions by candidate ── */
+export const getCandidateSubmissions = async (candidateId) => {
+  const list = read();
+  return list
+    .filter((s) => s.candidateId === candidateId)
+    .map(normalize)
+    .sort((a, b) => new Date(b.submittedDate || b.submissionDate) - new Date(a.submittedDate || a.submissionDate));
+};
