@@ -3,6 +3,9 @@ import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
+const loginVideo = new URL("../assets/animatedBG.mp4", import.meta.url).href;
+const loginVideoWebm = new URL("../assets/animatedBG.webm", import.meta.url).href;
+
 // withCredentials: true — tells axios to send/receive cookies
 const api = axiosInstance;
 
@@ -56,32 +59,53 @@ export default function Login() {
             </div> */}
 
             {/* LEFT SIDE */}
-            <div className="hidden lg:flex relative overflow-hidden w-[70%] bg-[#070683] text-white p-12 items-center">
+            <div className="hidden lg:flex relative overflow-hidden w-[60%] bg-[#070683] text-white p-12 items-center justify-center">
 
                 {/* GLOW 1 */}
-                <div className="absolute top-[-20%] left-[-20%] h-125 w-125 rounded-full bg-[#4E4DFF] opacity-70 blur-[90px] animate-float-1"></div>
+                <div className="absolute top-[-20%] left-[-20%] h-[500px] w-[500px] rounded-full bg-[#4E4DFF] opacity-70 blur-[90px] animate-float-1"></div>
 
                 {/* GLOW 2 */}
-                <div className="absolute top-[20%] right-[-15%] h-112.5 w-112.5 rounded-full bg-[#0100B5] opacity-70 blur-[100px] animate-float-2"></div>
+                <div className="absolute top-[20%] right-[-15%] h-[450px] w-[450px] rounded-full bg-[#0100B5] opacity-70 blur-[100px] animate-float-2"></div>
 
                 {/* GLOW 3 */}
-                <div className="absolute bottom-[-20%] left-[25%] h-137.5 w-137.5 rounded-full bg-[#0605AE] opacity-70 blur-[110px] animate-float-3"></div>
+                <div className="absolute bottom-[-20%] left-[25%] h-[550px] w-[550px] rounded-full bg-[#0605AE] opacity-70 blur-[110px] animate-float-3"></div>
 
                 {/* GLOW 4 */}
-                <div className="absolute top-[35%] left-[40%] h-87.5 w-87.5 rounded-full bg-[#2928BE] opacity-60 blur-[80px] animate-float-4"></div>
+                <div className="absolute top-[35%] left-[40%] h-[350px] w-[350px] rounded-full bg-[#2928BE] opacity-60 blur-[80px] animate-float-4"></div>
 
-                {/* SOFT OVERLAY */}
-                <div className="absolute inset-0 bg-linear-to-br from-white/3 via-transparent to-white/2"></div>
+                {/* OVERLAY */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5"></div>
 
-                {/* CONTENT */}
-                <div className="relative z-10">
-                    <h1 className="text-4xl font-bold mb-4">
-                        Welcome to Phi Bench
-                    </h1>
+                {/* VIDEO CONTENT */}
+                {/* <div className="relative z-10 flex items-center justify-center w-full h-full">
 
-                    <p className="text-lg opacity-80">
-                        Manage your recruitment pipeline with ease.
-                    </p>
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                        className="w-[85%] max-w-[700px] rounded-2xl object-cover drop-shadow-2xl"
+                    >
+                        <source src="/login-video.mp4" type="video/mp4" />
+                    </video>
+
+                </div> */}
+
+
+                {/* VIDEO CONTENT */}
+                <div className="relative z-10 flex items-center justify-center w-full h-full">
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                        className="w-150 h-150 object-contain"
+                    >
+                        <source src={loginVideoWebm} type="video/webm" />
+                        <source src={loginVideo} type="video/mp4" />
+                    </video>
                 </div>
 
             </div>
