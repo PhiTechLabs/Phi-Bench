@@ -13,18 +13,6 @@
     const roleBase = useRoleBase();
     const [error, setError] = useState("");
 
-    // useEffect(() => {
-    //     let active = true;
-    //     (async () => {
-    //     const data = await getCandidate(id);
-    //     if (active) {
-    //         setCandidate(data);
-    //         setLoading(false);
-    //     }
-    //     })();
-    //     return () => { active = false; };
-    // }, [id]);
-
     useEffect(() => {
         let active = true;
 
@@ -59,11 +47,6 @@
             active = false;
         };
     }, [id]);
-
-    // const refresh = async () => {
-    //     const data = await getCandidate(id);
-    //     setCandidate(data);
-    // };
 
     const refresh = async () => {
         try {

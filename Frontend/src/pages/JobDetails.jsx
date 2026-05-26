@@ -12,12 +12,6 @@
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // useEffect(() => {
-    //     const data = JSON.parse(localStorage.getItem("jobs")) || [];
-    //     const found = data.find((j) => j.id == id);
-    //     setJob(found);
-    // }, [id]);
-
     useEffect(() => {
         const fetchJob = async () => {
             try {
@@ -113,26 +107,6 @@
             </p>
             </div>
 
-            {/* MAIN GRID */}
-            {/* <div className="grid md:grid-cols-2 gap-6 text-sm">
-
-            <Detail label="Job Type" value={job.jobType} />
-            <Detail label="Location" value={job.city} />
-            <Detail label="Salary / Rate" value={job.salary} />
-            <Detail label="Experience" value={job.experience} />
-            {/* <Detail label="Budget" value={job.budget} /> */}
-
-            {/* </div> */}
-
-            {/* DESCRIPTION */}
-            {/* <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-2">
-                Job Description
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-                {job.description || "No description provided"}
-            </p>
-            </div> */}
 
             <div className="w-full bg-white">
             <div className="px-4 py-4">

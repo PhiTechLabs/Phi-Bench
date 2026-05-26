@@ -20,8 +20,6 @@ export default function Users() {
 
     const api = axiosInstance
 
-    // const getLoggedUser = () =>
-    //     JSON.parse(localStorage.getItem("user"));
 
     const loggedUser = getCurrentUser();
 
