@@ -104,25 +104,30 @@ const Home = () => {
 
   const fetchAll = useCallback(async () => {
     try {
+      // Each call has its own .catch(() => fallback) so one failing API
+      // never wipes out the whole dashboard.
       const [jobsRes, candidatesRes, clientsRes, interviewsRes, upcomingRes] =
         await Promise.all([
-          listJobs(),
-          listCandidates(),
-          getAllClients(),
-          listInterviews(),
-          listUpcomingInterviews(5),
+          listJobs().catch((e) => { console.warn("jobs fetch failed:", e); return []; }),
+          listCandidates().catch((e) => { console.warn("candidates fetch failed:", e); return []; }),
+          getAllClients().catch((e) => { console.warn("clients fetch failed:", e); return []; }),
+          listInterviews().catch((e) => { console.warn("interviews fetch failed:", e); return []; }),
+          listUpcomingInterviews(5).catch((e) => { console.warn("upcoming fetch failed:", e); return []; }),
         ]);
 
       if (!isMountedRef.current) return;
 
-      setJobs(jobsRes || []);
-      setCandidates(candidatesRes || []);
+      setJobs(Array.isArray(jobsRes) ? jobsRes : []);
+      setCandidates(Array.isArray(candidatesRes) ? candidatesRes : []);
+
+      // clientApi returns { clients: [...] } or { data: [...] } or []
       const clientList = Array.isArray(clientsRes)
         ? clientsRes
-        : clientsRes?.data || clientsRes?.clients || [];
+        : clientsRes?.clients || clientsRes?.data || [];
       setClients(clientList);
-      setInterviews(interviewsRes || []);
-      setUpcoming(upcomingRes || []);
+
+      setInterviews(Array.isArray(interviewsRes) ? interviewsRes : []);
+      setUpcoming(Array.isArray(upcomingRes) ? upcomingRes : []);
       setLastUpdated(new Date());
     } catch (err) {
       console.warn("Dashboard fetch failed:", err);

@@ -1,72 +1,62 @@
 /**
- * ────────────────────────────────────────────────────────────
- *  SUBMISSIONS API LAYER (localStorage stub)
- * ────────────────────────────────────────────────────────────
- *  Backend doesn't exist yet — localStorage temporary store.
- *  Swap to axiosInstance calls when /api/submissions ships.
- * ────────────────────────────────────────────────────────────
+ * ─────────────────────────────────────────────────────────────
+ *  SUBMISSIONS API LAYER
+ * ─────────────────────────────────────────────────────────────
+ *  All calls go through axiosInstance which handles:
+ *  - baseURL (http://localhost:5000/api)
+ *  - withCredentials (HttpOnly cookie auth)
+ *  - Content-Type: application/json
+ * ─────────────────────────────────────────────────────────────
  */
 
-const STORAGE_KEY = "phibench_submissions";
+import axiosInstance from "./axiosInstance";
 
-/* ── helpers ── */
-const read = () => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
-};
-
-const write = (list) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-};
-
-const uid = () =>
-  `sb_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
-
+// ─── NORMALIZE: MongoDB _id → id for frontend consistency ────────────────────
 const normalize = (s) => {
-  if (!s) return s;
-  return { ...s, id: s.id || s._id };
+    if (!s) return s;
+    return { ...s, id: s._id || s.id };
 };
 
-/* ── public API ── */
-
-export const listSubmissions = async () => {
-  return read().map(normalize);
-};
-
-export const getSubmission = async (id) => {
-  return normalize(read().find((s) => s.id === id)) || null;
-};
-
+// ─── CREATE SUBMISSION ────────────────────────────────────────────────────────
+// payload: { candidateId, jobId, recruiterNotes? }
 export const createSubmission = async (payload) => {
-  const list = read();
-  const now = new Date().toISOString();
-  const newSub = {
-    id: uid(),
-    status: "Submitted",
-    submissionDate: payload.submissionDate || now,
-    ...payload,
-    createdAt: now,
-    updatedAt: now,
-  };
-  list.unshift(newSub);
-  write(list);
-  return normalize(newSub);
+    const { data } = await axiosInstance.post("/submissions", payload);
+    return normalize(data.submission);
 };
 
+// ─── LIST ALL SUBMISSIONS ─────────────────────────────────────────────────────
+export const listSubmissions = async () => {
+    const { data } = await axiosInstance.get("/submissions");
+    return (data.submissions || []).map(normalize);
+};
+
+// ─── GET SUBMISSIONS FOR A SPECIFIC CANDIDATE ─────────────────────────────────
+export const getCandidateSubmissions = async (candidateId) => {
+    const { data } = await axiosInstance.get(`/submissions/candidate/${candidateId}`);
+    return (data.submissions || []).map(normalize);
+};
+
+// ─── GET SUBMISSIONS FOR A SPECIFIC JOB ──────────────────────────────────────
+export const getJobSubmissions = async (jobId) => {
+    const { data } = await axiosInstance.get(`/submissions/job/${jobId}`);
+    return (data.submissions || []).map(normalize);
+};
+
+// ─── GET SINGLE SUBMISSION ────────────────────────────────────────────────────
+export const getSubmission = async (id) => {
+    const { data } = await axiosInstance.get(`/submissions/${id}`);
+    return normalize(data.submission);
+};
+
+// ─── UPDATE SUBMISSION ────────────────────────────────────────────────────────
+// patch: { status?, recruiterNotes?, clientFeedback? }
 export const updateSubmission = async (id, patch) => {
-  const list = read();
-  const idx = list.findIndex((s) => s.id === id);
-  if (idx === -1) return null;
-  list[idx] = { ...list[idx], ...patch, updatedAt: new Date().toISOString() };
-  write(list);
-  return normalize(list[idx]);
+    const { data } = await axiosInstance.put(`/submissions/${id}`, patch);
+    return normalize(data.submission);
 };
 
+// ─── DELETE SUBMISSION ────────────────────────────────────────────────────────
 export const deleteSubmission = async (id) => {
-  const list = read().filter((s) => s.id !== id);
-  write(list);
-  return true;
+    await axiosInstance.delete(`/submissions/${id}`);
+    return true;
 };

@@ -1,88 +1,76 @@
 /**
- * ────────────────────────────────────────────────────────────
- *  INTERVIEWS API LAYER (localStorage stub)
- * ────────────────────────────────────────────────────────────
- *  Backend doesn't exist yet — this file uses localStorage as
- *  a temporary store so the UI works today.
- *
- *  When backend ships, swap the implementations below with
- *  axiosInstance calls — page components don't need to change.
- *  See candidatesApi.js for the target shape.
- * ────────────────────────────────────────────────────────────
+ * ─────────────────────────────────────────────────────────────
+ *  INTERVIEWS API LAYER
+ * ─────────────────────────────────────────────────────────────
+ *  All calls go through axiosInstance which handles:
+ *  - baseURL (http://localhost:5000/api)
+ *  - withCredentials (HttpOnly cookie auth)
+ *  - Content-Type: application/json
+ * ─────────────────────────────────────────────────────────────
  */
 
-const STORAGE_KEY = "phibench_interviews";
+import axiosInstance from "./axiosInstance";
 
-/* ── helpers ── */
-const read = () => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
-};
-
-const write = (list) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-};
-
-const uid = () =>
-  `iv_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
-
+// ─── NORMALIZE: MongoDB _id → id for frontend consistency ────────────────────
 const normalize = (iv) => {
-  if (!iv) return iv;
-  return { ...iv, id: iv.id || iv._id };
+    if (!iv) return iv;
+    return { ...iv, id: iv._id || iv.id };
 };
 
-/* ── public API ── */
-
-export const listInterviews = async () => {
-  return read().map(normalize);
-};
-
-export const getInterview = async (id) => {
-  return normalize(read().find((iv) => iv.id === id)) || null;
-};
-
+// ─── CREATE INTERVIEW ─────────────────────────────────────────────────────────
+// payload: { candidateId, jobId, interviewRound, interviewType,
+//            scheduledDate, scheduledTime, duration,
+//            meetingLink?, location?, interviewers?, notes?, submissionId? }
 export const createInterview = async (payload) => {
-  const list = read();
-  const now = new Date().toISOString();
-  const newIv = {
-    id: uid(),
-    status: "Scheduled",
-    ...payload,
-    createdAt: now,
-    updatedAt: now,
-  };
-  list.unshift(newIv);
-  write(list);
-  return normalize(newIv);
+    const { data } = await axiosInstance.post("/interviews", payload);
+    return normalize(data.interview);
 };
 
+// ─── LIST ALL INTERVIEWS ──────────────────────────────────────────────────────
+export const listInterviews = async () => {
+    const { data } = await axiosInstance.get("/interviews");
+    return (data.interviews || []).map(normalize);
+};
+
+// ─── LIST UPCOMING INTERVIEWS ────────────────────────────────────────────────
+export const listUpcomingInterviews = async () => {
+    const { data } = await axiosInstance.get("/interviews/upcoming");
+    return (data.interviews || []).map(normalize);
+};
+
+// ─── GET INTERVIEWS FOR A SPECIFIC CANDIDATE ──────────────────────────────────
+export const getCandidateInterviews = async (candidateId) => {
+    const { data } = await axiosInstance.get(`/interviews/candidate/${candidateId}`);
+    return (data.interviews || []).map(normalize);
+};
+
+// ─── GET INTERVIEWS FOR A SPECIFIC JOB ───────────────────────────────────────
+export const getJobInterviews = async (jobId) => {
+    const { data } = await axiosInstance.get(`/interviews/job/${jobId}`);
+    return (data.interviews || []).map(normalize);
+};
+
+// ─── GET SINGLE INTERVIEW ─────────────────────────────────────────────────────
+export const getInterview = async (id) => {
+    const { data } = await axiosInstance.get(`/interviews/${id}`);
+    return normalize(data.interview);
+};
+
+// ─── UPDATE INTERVIEW ─────────────────────────────────────────────────────────
 export const updateInterview = async (id, patch) => {
-  const list = read();
-  const idx = list.findIndex((iv) => iv.id === id);
-  if (idx === -1) return null;
-  list[idx] = { ...list[idx], ...patch, updatedAt: new Date().toISOString() };
-  write(list);
-  return normalize(list[idx]);
+    const { data } = await axiosInstance.put(`/interviews/${id}`, patch);
+    return normalize(data.interview);
 };
 
+// ─── DELETE INTERVIEW ─────────────────────────────────────────────────────────
 export const deleteInterview = async (id) => {
-  const list = read().filter((iv) => iv.id !== id);
-  write(list);
-  return true;
+    await axiosInstance.delete(`/interviews/${id}`);
+    return true;
 };
 
-/* ── derived: upcoming interviews (next 7 days) ── */
-export const listUpcomingInterviews = async (limit = 5) => {
-  const now = Date.now();
-  const weekAhead = now + 7 * 24 * 60 * 60 * 1000;
-  return (await listInterviews())
-    .filter((iv) => {
-      const t = new Date(iv.dateTime).getTime();
-      return t >= now && t <= weekAhead && iv.status === "Scheduled";
-    })
-    .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime))
-    .slice(0, limit);
+// ─── ADD FEEDBACK ─────────────────────────────────────────────────────────────
+// patch: { feedback, rating, status }
+export const addFeedback = async (id, patch) => {
+    const { data } = await axiosInstance.patch(`/interviews/${id}/feedback`, patch);
+    return normalize(data.interview);
 };
