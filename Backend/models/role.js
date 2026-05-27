@@ -24,7 +24,7 @@ import { PERMISSIONS } from "../config/permissions.js";
         permissions: [
         {
             type: String,
-            enum: Object.values(PERMISSIONS),
+            enum: ["*", ...Object.values(PERMISSIONS)],
         },
         ],
 

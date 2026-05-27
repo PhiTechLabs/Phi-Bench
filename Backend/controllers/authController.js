@@ -162,35 +162,118 @@ export const refreshAccessToken = async (req, res) => {
 
 // ─── REGISTER (superAdmin only) ───────────────────────────────────────────────
 export const registerUser = async (req, res) => {
+
     try {
+
         const { username, password, role } = req.body;
 
-        const userExists = await User.findOne({ username });
-        if (userExists) return res.status(400).json({ message: "User already exists" });
+        // ─── VALIDATION ────────────────────────────────────
+        if (!username || !password || !role) {
 
-        // const roleDoc = await Role.findOne({ name: role });
-
-        const roleDoc = await Role.findOne({
-            name: role.toLowerCase(),
-        });
-
-        if (!roleDoc) {
             return res.status(400).json({
-                message: "Role not found"
+                message: "All fields are required",
             });
+
         }
 
+        // ─── CHECK EXISTING USER ───────────────────────────
+        const userExists = await User.findOne({ username });
+
+        if (userExists) {
+
+            return res.status(400).json({
+                message: "User already exists",
+            });
+
+        }
+
+        // ─── NORMALIZE ROLE NAME ───────────────────────────
+        const normalizedRole = role.trim().toLowerCase();
+
+        // ─── FIND ROLE ─────────────────────────────────────
+        let roleDoc = await Role.findOne({
+            name: normalizedRole,
+        });
+
+        // ─── AUTO CREATE ROLE IF NOT FOUND ────────────────
+        if (!roleDoc) {
+
+            // only wildcard/superadmin users can create roles
+            const canCreateRole =
+                req.user?.permissions?.includes("*");
+
+            if (!canCreateRole) {
+
+                return res.status(403).json({
+                    message: "Not allowed to create new roles",
+                });
+
+            }
+
+            roleDoc = await Role.create({
+
+                name: normalizedRole,
+
+                description: `${role} role`,
+
+                permissions: [],
+
+                hierarchyLevel: 99,
+
+                dataScope: "SELF",
+
+                isSystemRole: false,
+
+                createdBy: req.user.id,
+
+            });
+
+        }
+
+        // ─── HASH PASSWORD ─────────────────────────────────
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ username, password: hashedPassword, roleId: roleDoc._id });
+
+        // ─── CREATE USER ───────────────────────────────────
+        const user = await User.create({
+
+            username,
+
+            password: hashedPassword,
+
+            roleId: roleDoc._id,
+
+        });
+
+        // ─── POPULATE ROLE ─────────────────────────────────
         await user.populate("roleId");
 
+        // ─── RESPONSE ──────────────────────────────────────
         res.status(201).json({
+
             message: "User registered successfully",
-            user: { id: user._id, username: user.username, role: user.roleId.name },
+
+            user: {
+
+                id: user._id,
+
+                username: user.username,
+
+                role: user.roleId.name,
+
+            },
+
         });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        console.error("REGISTER ERROR:", error);
+
+        res.status(500).json({
+            error: error.message,
+        });
+
     }
+
 };
 
 
@@ -219,14 +302,42 @@ export const updateUser = async (req, res) => {
 
         if (role) {
 
-            const roleDoc = await Role.findOne({
-                name: role.toLowerCase(),
+            const normalizedRole = role.trim().toLowerCase();
+
+            let roleDoc = await Role.findOne({
+                name: normalizedRole,
             });
 
+            // ─── AUTO CREATE ROLE ────────────────────────────────
             if (!roleDoc) {
 
-                return res.status(400).json({
-                    message: "Role not found",
+                const canCreateRole =
+                    req.user?.permissions?.includes("*");
+
+                if (!canCreateRole) {
+
+                    return res.status(403).json({
+                        message: "Not allowed to create new roles",
+                    });
+
+                }
+
+                roleDoc = await Role.create({
+
+                    name: normalizedRole,
+
+                    description: `${role} role`,
+
+                    permissions: [],
+
+                    hierarchyLevel: 1,
+
+                    dataScope: "SELF",
+
+                    isSystemRole: false,
+
+                    createdBy: req.user.id,
+
                 });
 
             }
