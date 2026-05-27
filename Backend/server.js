@@ -9,6 +9,8 @@ import candidateRoutes from "./routes/candidateRoutes.js"; // NEW
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import router from "./routes/RoutesRole.js"
+import submissionRoutes from "./routes/submissionRoutes.js";
+import interviewRoutes  from "./routes/interviewRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -22,7 +24,8 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
-
+app.use("/api/submissions", submissionRoutes);
+app.use("/api/interviews",  interviewRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/candidates", candidateRoutes); // NEW
