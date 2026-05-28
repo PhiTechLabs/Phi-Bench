@@ -71,12 +71,24 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
     }, [roleInput, roles]);
 
     // ─── Helpers ───────────────────────────────────────────────
-    const displayName = (name) =>
-        name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const displayName = (name = "") =>
+        name
+            .replace(/_/g, " ")
+            .replace(
+                /\b\w/g,
+                (c) => c.toUpperCase()
+            );
 
     // Normalise whatever the user typed → snake_case for the API
     const toSnakeCase = (str) =>
         str.trim().toLowerCase().replace(/\s+/g, "_");
+
+    const findRoleByName = (name) => {
+        const normalized = toSnakeCase(name);
+        return roles.find(
+            (r) => r.name === normalized
+        );
+    };
 
     const isExistingRole = (input) =>
         roles.some((r) => r.name === toSnakeCase(input));
@@ -90,7 +102,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
     const handleRoleInputChange = (val) => {
         setRoleInput(val);
-        setSelectedRole("");           // clear confirmed selection when user edits
+        setSelectedRole("");
         setDropdownOpen(true);
         setError("");
     };
@@ -118,48 +130,130 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
     //     return res.data.role.name;
     // };
 
-    const resolveRole = (roleName) => {
-        return roleName
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, "_");
+    const resolveRole = async (roleName) => {
+
+        const normalizedRole =
+            roleName
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "_");
+
+        if (!normalizedRole) {
+            return null;
+        }
+
+        // ─── CHECK EXISTING ROLE ─────────────────
+        const existingRole = roles.find(
+            (r) => r.name === normalizedRole
+        );
+
+        if (existingRole) {
+            return existingRole.name;
+        }
+
+        // ─── CREATE NEW ROLE ─────────────────────
+        try {
+
+            const res = await axiosInstance.post(
+                "/roles",
+                {
+                    name: normalizedRole,
+
+                    description: `${normalizedRole} role`,
+
+                    hierarchyLevel: 99,
+
+                    permissions: [],
+
+                    dataScope: "SELF",
+                }
+            );
+
+            const newRole = res.data.role;
+
+            // update local roles instantly
+            setRoles((prev) => [
+                newRole,
+                ...prev,
+            ]);
+
+            return newRole.name;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                "Failed to create role"
+            );
+        }
     };
 
     // ─── Submit ────────────────────────────────────────────────
     const handleSubmit = async () => {
+
         if (!form.username.trim()) {
-            return setError("Username is required.");
+
+            return setError(
+                "Username is required."
+            );
         }
 
-        if (!isEdit && !form.password.trim()) {
-            return setError("Password is required.");
+        if (
+            !isEdit &&
+            !form.password.trim()
+        ) {
+
+            return setError(
+                "Password is required."
+            );
         }
 
         if (!roleInput.trim()) {
-            return setError("Please select or enter a role.");
+
+            return setError(
+                "Please select or enter a role."
+            );
         }
 
         setLoading(true);
+
         setError("");
 
         try {
-            // Normalize role name only
-            const roleName = resolveRole(roleInput);
+
+            // ─────────────────────────────────────
+            // RESOLVE ROLE
+            // ─────────────────────────────────────
+            const roleName =
+                await resolveRole(roleInput);
 
             if (!roleName) {
-                setError("Invalid role.");
+
                 setLoading(false);
-                return;
+
+                return setError(
+                    "Invalid role selected."
+                );
             }
 
+            // ─────────────────────────────────────
+            // UPDATE USER
+            // ─────────────────────────────────────
             if (isEdit) {
+
                 const payload = {
-                    username: form.username.trim(),
+
+                    username:
+                        form.username.trim(),
+
                     role: roleName,
                 };
 
+                // only update password if entered
                 if (form.password.trim()) {
-                    payload.password = form.password;
+
+                    payload.password =
+                        form.password;
                 }
 
                 await axiosInstance.put(
@@ -167,34 +261,54 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                     payload
                 );
 
-                onSuccess("User updated successfully", "success");
+                onSuccess?.(
+                    "User updated successfully",
+                    "success"
+                );
 
-            } else {
+            }
 
-                await axiosInstance.post("/auth/register", {
-                    username: form.username.trim(),
-                    password: form.password,
-                    role: roleName,
-                });
+            // ─────────────────────────────────────
+            // CREATE USER
+            // ─────────────────────────────────────
+            else {
 
-                onSuccess("User created successfully", "success");
+                await axiosInstance.post(
+                    "/auth/register",
+                    {
+
+                        username:
+                            form.username.trim(),
+
+                        password:
+                            form.password,
+
+                        role: roleName,
+                    }
+                );
+
+                onSuccess?.(
+                    "User created successfully",
+                    "success"
+                );
             }
 
             onClose();
 
         } catch (err) {
-            // setError(
-            //     err.response?.data?.message ||
-            //     "Something went wrong."
-            // );
 
-            const message =
-                err.response?.status === 404
-                    ? "Requested action could not be completed."
-                    : err.response?.data?.message || "Something went wrong.";
+            console.error(err);
 
-            setError(message);
+            setError(
+
+                err.response?.data?.message ||
+                err.message ||
+
+                "Something went wrong."
+            );
+
         } finally {
+
             setLoading(false);
         }
     };

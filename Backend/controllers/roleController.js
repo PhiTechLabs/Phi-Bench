@@ -1,36 +1,81 @@
 import Role from "../models/Role.js";
-import { PERMISSIONS } from "../config/permissions.js";
 import User from "../models/User.js";
 
-// ─── GET ALL ROLES ─────────────────────────────────────────
+import { PERMISSIONS } from "../config/permissions.js";
+
+import { canManageRole } from "../utils/rbac.js";
+
+// ───────────────────────────────────────────────────────────
+// GET ALL ROLES
+// ───────────────────────────────────────────────────────────
 export const getRoles = async (req, res) => {
 
     try {
 
         const roles = await Role.find()
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
 
-        res.json({
-            count: roles.length,
-            roles,
+        // ─── ATTACH REAL USER COUNT ───────────────────────
+        const rolesWithCounts = await Promise.all(
+
+            roles.map(async (role) => {
+
+                const userCount =
+                    await User.countDocuments({
+                        roleId: role._id,
+                    });
+
+                return {
+                    ...role,
+                    userCount,
+                };
+            })
+        );
+
+        return res.status(200).json({
+
+            count: rolesWithCounts.length,
+
+            roles: rolesWithCounts,
+
         });
 
     } catch (error) {
 
-        res.status(500).json({
+        return res.status(500).json({
             message: error.message,
         });
-
     }
-
 };
 
-// ─── CREATE ROLE ───────────────────────────────────────────
+// ───────────────────────────────────────────────────────────
+// GET ALL AVAILABLE PERMISSIONS
+// ───────────────────────────────────────────────────────────
+export const getPermissions = async (req, res) => {
+
+    try {
+
+        return res.status(200).json({
+            permissions: Object.values(PERMISSIONS),
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+// ───────────────────────────────────────────────────────────
+// CREATE ROLE
+// ───────────────────────────────────────────────────────────
 export const createRole = async (req, res) => {
 
     try {
 
-        const {
+        let {
             name,
             description,
             permissions,
@@ -38,18 +83,48 @@ export const createRole = async (req, res) => {
             dataScope,
         } = req.body;
 
-        // VALIDATE REQUIRED FIELDS
+        // ─────────────────────────────────────────────
+        // VALIDATION
+        // ─────────────────────────────────────────────
         if (!name || hierarchyLevel === undefined) {
 
             return res.status(400).json({
                 message: "Name and hierarchy level are required",
             });
-
         }
 
-        // CHECK DUPLICATE ROLE
+        const currentUserRole = req.user.role;
+
+        // ─────────────────────────────────────────────
+        // HIERARCHY ENFORCEMENT
+        // ─────────────────────────────────────────────
+        if (
+            !currentUserRole.permissions?.includes("*") &&
+            Number(hierarchyLevel) <=
+            currentUserRole.hierarchyLevel
+        ) {
+
+            return res.status(403).json({
+                message:
+                    "You cannot create roles above or equal to your hierarchy level",
+            });
+        }
+
+        // ─────────────────────────────────────────────
+        // NORMALIZE NAME
+        // ─────────────────────────────────────────────
+        const normalizedName = name
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_");
+
+        const safePermissions = permissions || [];
+
+        // ─────────────────────────────────────────────
+        // DUPLICATE CHECK
+        // ─────────────────────────────────────────────
         const existingRole = await Role.findOne({
-            name: name.toLowerCase(),
+            name: normalizedName,
         });
 
         if (existingRole) {
@@ -57,15 +132,19 @@ export const createRole = async (req, res) => {
             return res.status(400).json({
                 message: "Role already exists",
             });
-
         }
 
+        // ─────────────────────────────────────────────
         // VALIDATE PERMISSIONS
-        const validPermissions = Object.values(PERMISSIONS);
+        // ─────────────────────────────────────────────
+        const validPermissions =
+            Object.values(PERMISSIONS);
 
-        const invalidPermissions = permissions.filter(
-            (permission) => !validPermissions.includes(permission)
-        );
+        const invalidPermissions =
+            safePermissions.filter(
+                (permission) =>
+                    !validPermissions.includes(permission)
+            );
 
         if (invalidPermissions.length > 0) {
 
@@ -73,27 +152,30 @@ export const createRole = async (req, res) => {
                 message: "Invalid permissions detected",
                 invalidPermissions,
             });
-
         }
 
+        // ─────────────────────────────────────────────
         // CREATE ROLE
+        // ─────────────────────────────────────────────
         const role = await Role.create({
 
-            name: name.toLowerCase(),
+            name: normalizedName,
 
-            description,
+            description: description || "",
 
-            hierarchyLevel,
+            hierarchyLevel: Number(hierarchyLevel),
 
-            permissions,
+            permissions: safePermissions,
 
-            dataScope,
+            dataScope: dataScope || "SELF",
 
             createdBy: req.user.id,
 
+            isSystemRole: false,
+
         });
 
-        res.status(201).json({
+        return res.status(201).json({
 
             message: "Role created successfully",
 
@@ -103,22 +185,22 @@ export const createRole = async (req, res) => {
 
     } catch (error) {
 
-        res.status(500).json({
+        return res.status(500).json({
             message: error.message,
         });
-
     }
-
 };
 
-// ─── UPDATE ROLE ───────────────────────────────────────────
+// ───────────────────────────────────────────────────────────
+// UPDATE ROLE
+// ───────────────────────────────────────────────────────────
 export const updateRole = async (req, res) => {
 
     try {
 
         const { id } = req.params;
 
-        const {
+        let {
             name,
             description,
             permissions,
@@ -133,61 +215,93 @@ export const updateRole = async (req, res) => {
             return res.status(404).json({
                 message: "Role not found",
             });
-
         }
 
-        // PROTECT SYSTEM ROLES
-        if (role.isSystemRole) {
+        const currentUserRole = req.user.role;
+
+        // ─────────────────────────────────────────────
+        // HIERARCHY ENFORCEMENT
+        // ─────────────────────────────────────────────
+        if (
+            !canManageRole(
+                currentUserRole,
+                role
+            )
+        ) {
 
             return res.status(403).json({
-                message: "System roles cannot be modified",
+                message:
+                    "You cannot modify this role",
             });
-
         }
 
-        // CHECK DUPLICATE NAME
+        // ─────────────────────────────────────────────
+        // PROTECT SYSTEM ROLE NAMES
+        // ─────────────────────────────────────────────
+        if (
+            role.isSystemRole &&
+            name &&
+            name !== role.name
+        ) {
+
+            return res.status(403).json({
+                message:
+                    "System role names cannot be changed",
+            });
+        }
+
+        const normalizedName = name
+            ? name
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "_")
+            : role.name;
+
         if (name) {
 
-            const existingRole = await Role.findOne({
-                name: name.toLowerCase(),
-                _id: { $ne: id },
-            });
+            const existingRole =
+                await Role.findOne({
+                    name: normalizedName,
+                    _id: { $ne: id },
+                });
 
             if (existingRole) {
 
                 return res.status(400).json({
-                    message: "Role name already exists",
+                    message:
+                        "Role name already exists",
                 });
-
             }
-
         }
 
-        // VALIDATE PERMISSIONS
-        if (permissions) {
+        if (permissions !== undefined) {
 
-            const validPermissions = Object.values(PERMISSIONS);
+            const safePermissions =
+                permissions || [];
 
-            const invalidPermissions = permissions.filter(
-                (permission) => !validPermissions.includes(permission)
-            );
+            const validPermissions =
+                Object.values(PERMISSIONS);
+
+            const invalidPermissions =
+                safePermissions.filter(
+                    (permission) =>
+                        !validPermissions.includes(permission)
+                );
 
             if (invalidPermissions.length > 0) {
 
                 return res.status(400).json({
-                    message: "Invalid permissions detected",
+                    message:
+                        "Invalid permissions detected",
                     invalidPermissions,
                 });
-
             }
 
-            role.permissions = permissions;
-
+            role.permissions = safePermissions;
         }
 
-        // UPDATE FIELDS
         if (name) {
-            role.name = name.toLowerCase();
+            role.name = normalizedName;
         }
 
         if (description !== undefined) {
@@ -195,7 +309,8 @@ export const updateRole = async (req, res) => {
         }
 
         if (hierarchyLevel !== undefined) {
-            role.hierarchyLevel = hierarchyLevel;
+            role.hierarchyLevel =
+                Number(hierarchyLevel);
         }
 
         if (dataScope) {
@@ -204,7 +319,7 @@ export const updateRole = async (req, res) => {
 
         await role.save();
 
-        res.json({
+        return res.status(200).json({
 
             message: "Role updated successfully",
 
@@ -214,16 +329,15 @@ export const updateRole = async (req, res) => {
 
     } catch (error) {
 
-        res.status(500).json({
+        return res.status(500).json({
             message: error.message,
         });
-
     }
-
 };
 
-
-// ─── DELETE ROLE ───────────────────────────────────────────
+// ───────────────────────────────────────────────────────────
+// DELETE ROLE
+// ───────────────────────────────────────────────────────────
 export const deleteRole = async (req, res) => {
 
     try {
@@ -237,34 +351,53 @@ export const deleteRole = async (req, res) => {
             return res.status(404).json({
                 message: "Role not found",
             });
-
         }
 
+        const currentUserRole = req.user.role;
+
+        // ─────────────────────────────────────────────
+        // HIERARCHY ENFORCEMENT
+        // ─────────────────────────────────────────────
+        if (
+            !canManageRole(
+                currentUserRole,
+                role
+            )
+        ) {
+
+            return res.status(403).json({
+                message:
+                    "You cannot delete this role",
+            });
+        }
+
+        // ─────────────────────────────────────────────
         // PROTECT SYSTEM ROLES
+        // ─────────────────────────────────────────────
         if (role.isSystemRole) {
 
             return res.status(403).json({
-                message: "System roles cannot be deleted",
+                message:
+                    "System roles cannot be deleted",
             });
-
         }
 
-        // CHECK ASSIGNED USERS
-        const assignedUsers = await User.countDocuments({
-            roleId: id,
-        });
+        const assignedUsers =
+            await User.countDocuments({
+                roleId: id,
+            });
 
         if (assignedUsers > 0) {
 
             return res.status(400).json({
-                message: "Role is assigned to users and cannot be deleted",
+                message:
+                    "Role is assigned to users and cannot be deleted",
             });
-
         }
 
         await role.deleteOne();
 
-        res.json({
+        return res.status(200).json({
 
             message: "Role deleted successfully",
 
@@ -272,10 +405,8 @@ export const deleteRole = async (req, res) => {
 
     } catch (error) {
 
-        res.status(500).json({
+        return res.status(500).json({
             message: error.message,
         });
-
     }
-
 };

@@ -10,7 +10,6 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({
             message: "Not authorized, no token",
         });
-
     }
 
     try {
@@ -20,6 +19,9 @@ export const protect = async (req, res, next) => {
             process.env.JWT_SECRET
         );
 
+        // ─────────────────────────────────────────────
+        // FETCH USER WITH ROLE
+        // ─────────────────────────────────────────────
         const user = await User.findById(decoded.id)
             .populate("roleId");
 
@@ -28,22 +30,34 @@ export const protect = async (req, res, next) => {
             return res.status(401).json({
                 message: "User not found",
             });
-
         }
 
+        // ─────────────────────────────────────────────
+        // BLOCK INACTIVE USERS
+        // ─────────────────────────────────────────────
         if (!user.isActive) {
 
             return res.status(403).json({
                 message: "User account is inactive",
             });
-
         }
 
+        // ─────────────────────────────────────────────
+        // ATTACH USER TO REQUEST
+        // ─────────────────────────────────────────────
         req.user = {
+
             id: user._id,
+
             username: user.username,
-            role: user.roleId?.name,
-            permissions: user.roleId?.permissions || [],
+
+            // FULL ROLE OBJECT
+            role: user.roleId,
+
+            // EASY ACCESS
+            permissions:
+                user.roleId?.permissions || [],
+
         };
 
         next();
@@ -53,7 +67,5 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({
             message: "Token invalid or expired",
         });
-
     }
-
 };

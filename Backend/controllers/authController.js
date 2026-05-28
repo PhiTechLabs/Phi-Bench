@@ -2,34 +2,57 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Role from "../models/Role.js";
+
 import {
     generateAccessToken,
     generateRefreshToken
 } from "../utils/generateTokens.js";
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────
+// LOGIN
+// ───────────────────────────────────────────────────────────
 export const loginUser = async (req, res) => {
+
     try {
+
         const { username, password } = req.body;
 
-        // const user = await User.findOne({ username }).populate("roleId");
+        const user = await User.findOne({
+            username,
+        })
+            .select("+password")
+            .populate("roleId");
 
-        const user = await User.findOne({ username })
-        .select("+password")
-        .populate("roleId");
-        console.log(user);
-        if (!user) return res.status(400).json({ message: "User not found" });
+        if (!user) {
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json({
+                message: "User not found",
+            });
+        }
 
-        const accessToken = generateAccessToken(user);
-        const refreshToken = generateRefreshToken(user);
-        
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        );
+
+        if (!isMatch) {
+
+            return res.status(400).json({
+                message: "Invalid credentials",
+            });
+        }
+
+        const accessToken =
+            generateAccessToken(user);
+
+        const refreshToken =
+            generateRefreshToken(user);
+
         user.refreshToken = refreshToken;
+
         await user.save();
 
-        // ✅ JWT goes into HttpOnly cookie — JS can NEVER read this, blocks XSS
+        // ─── ACCESS TOKEN COOKIE ─────────────────────────
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
             secure: false,
@@ -37,6 +60,7 @@ export const loginUser = async (req, res) => {
             maxAge: 15 * 60 * 1000,
         });
 
+        // ─── REFRESH TOKEN COOKIE ────────────────────────
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
@@ -44,47 +68,61 @@ export const loginUser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
-        const populatedUser = await User.findById(user._id)
-            .populate("roleId");
+        const populatedUser =
+            await User.findById(user._id)
+                .populate("roleId");
 
-        res.json({
+        return res.status(200).json({
 
             user: {
+
                 id: populatedUser._id,
-                username: populatedUser.username,
-                email: populatedUser.email,
-                role: populatedUser.roleId.name,
+
+                username:
+                    populatedUser.username,
+
+                email:
+                    populatedUser.email,
+
+                role:
+                    populatedUser.roleId?.name,
 
                 permissions:
-                    populatedUser.roleId.permissions || [],
+                    populatedUser.roleId
+                        ?.permissions || [],
+
             },
 
         });
 
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        return res.status(500).json({
+            error: error.message,
+        });
     }
-    
 };
 
-// ─── LOGOUT ───────────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────
+// LOGOUT
+// ───────────────────────────────────────────────────────────
 export const logoutUser = async (req, res) => {
 
     try {
 
-        // remove refresh token from DB
         if (req.user?.id) {
 
-            const user = await User.findById(req.user.id);
+            const user =
+                await User.findById(req.user.id);
 
             if (user) {
+
                 user.refreshToken = null;
+
                 await user.save();
             }
-
         }
 
-        // clear cookies
         res.clearCookie("accessToken", {
             httpOnly: true,
             secure: false,
@@ -97,29 +135,36 @@ export const logoutUser = async (req, res) => {
             sameSite: "lax",
         });
 
-        res.json({
-            message: "Logged out successfully"
+        return res.status(200).json({
+            message: "Logged out successfully",
         });
 
     } catch (error) {
 
-        res.status(500).json({
-            message: error.message
+        return res.status(500).json({
+            message: error.message,
         });
-
     }
-
 };
 
-export const refreshAccessToken = async (req, res) => {
+// ───────────────────────────────────────────────────────────
+// REFRESH ACCESS TOKEN
+// ───────────────────────────────────────────────────────────
+export const refreshAccessToken = async (
+    req,
+    res
+) => {
 
     try {
 
-        const refreshToken = req.cookies.refreshToken;
+        const refreshToken =
+            req.cookies.refreshToken;
 
         if (!refreshToken) {
+
             return res.status(401).json({
-                message: "Refresh token missing"
+                message:
+                    "Refresh token missing",
             });
         }
 
@@ -128,97 +173,133 @@ export const refreshAccessToken = async (req, res) => {
             process.env.JWT_REFRESH_SECRET
         );
 
-        const user = await User.findById(decoded.id)
-            .populate("roleId");
+        const user = await User.findById(
+            decoded.id
+        ).populate("roleId");
 
         if (!user) {
+
             return res.status(403).json({
-                message: "User not found"
+                message: "User not found",
             });
         }
 
-        const newAccessToken = generateAccessToken(user);
+        const newAccessToken =
+            generateAccessToken(user);
 
-        res.cookie("accessToken", newAccessToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 15 * 60 * 1000,
-        });
+        res.cookie(
+            "accessToken",
+            newAccessToken,
+            {
+                httpOnly: true,
+                secure: false,
+                sameSite: "lax",
+                maxAge: 15 * 60 * 1000,
+            }
+        );
 
-        res.json({
-            message: "Access token refreshed"
+        return res.status(200).json({
+            message: "Access token refreshed",
         });
 
     } catch (error) {
 
-        res.status(403).json({
-            message: "Invalid or expired refresh token"
+        return res.status(403).json({
+            message:
+                "Invalid or expired refresh token",
         });
-
     }
-
 };
 
-// ─── REGISTER (superAdmin only) ───────────────────────────────────────────────
-export const registerUser = async (req, res) => {
+// ───────────────────────────────────────────────────────────
+// REGISTER USER
+// ───────────────────────────────────────────────────────────
+export const registerUser = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { username, password, role } = req.body;
+        const {
+            username,
+            password,
+            role,
+        } = req.body;
 
-        // ─── VALIDATION ────────────────────────────────────
+        // ─── VALIDATION ────────────────────────────────
         if (!username || !password || !role) {
 
             return res.status(400).json({
-                message: "All fields are required",
+                message:
+                    "All fields are required",
             });
-
         }
 
-        // ─── CHECK EXISTING USER ───────────────────────────
-        const userExists = await User.findOne({ username });
+        // ─── CHECK EXISTING USER ───────────────────────
+        const userExists =
+            await User.findOne({
+                username,
+            });
 
         if (userExists) {
 
             return res.status(400).json({
-                message: "User already exists",
+                message:
+                    "User already exists",
             });
-
         }
 
-        // ─── NORMALIZE ROLE NAME ───────────────────────────
-        const normalizedRole = role.trim().toLowerCase();
+        // ─── CURRENT USER ROLE ─────────────────────────
+        const currentUserRole = req.user.role;
 
-        // ─── FIND ROLE ─────────────────────────────────────
+        if (!currentUserRole) {
+
+            return res.status(403).json({
+                message:
+                    "Current user role invalid",
+            });
+        }
+
+        // ─── NORMALIZE ROLE NAME ───────────────────────
+        const normalizedRole = role
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_");
+
+        // ─── FIND ROLE ─────────────────────────────────
         let roleDoc = await Role.findOne({
             name: normalizedRole,
         });
 
-        // ─── AUTO CREATE ROLE IF NOT FOUND ────────────────
+        // ─── AUTO CREATE ROLE ──────────────────────────
         if (!roleDoc) {
 
-            // only wildcard/superadmin users can create roles
             const canCreateRole =
-                req.user?.permissions?.includes("*");
+                req.user?.permissions?.includes(
+                    "*"
+                );
 
             if (!canCreateRole) {
 
                 return res.status(403).json({
-                    message: "Not allowed to create new roles",
+                    message:
+                        "Not allowed to create new roles",
                 });
-
             }
 
             roleDoc = await Role.create({
 
                 name: normalizedRole,
 
-                description: `${role} role`,
+                description:
+                    `${normalizedRole} role`,
 
                 permissions: [],
 
-                hierarchyLevel: 99,
+                hierarchyLevel:
+                    currentUserRole
+                        .hierarchyLevel + 1,
 
                 dataScope: "SELF",
 
@@ -227,13 +308,28 @@ export const registerUser = async (req, res) => {
                 createdBy: req.user.id,
 
             });
-
         }
 
-        // ─── HASH PASSWORD ─────────────────────────────────
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // ─── HIERARCHY SECURITY ────────────────────────
+        if (
+            !req.user.permissions?.includes(
+                "*"
+            ) &&
+            roleDoc.hierarchyLevel <=
+            currentUserRole.hierarchyLevel
+        ) {
 
-        // ─── CREATE USER ───────────────────────────────────
+            return res.status(403).json({
+                message:
+                    "You cannot assign roles above or equal to your hierarchy level",
+            });
+        }
+
+        // ─── HASH PASSWORD ─────────────────────────────
+        const hashedPassword =
+            await bcrypt.hash(password, 10);
+
+        // ─── CREATE USER ───────────────────────────────
         const user = await User.create({
 
             username,
@@ -244,13 +340,12 @@ export const registerUser = async (req, res) => {
 
         });
 
-        // ─── POPULATE ROLE ─────────────────────────────────
         await user.populate("roleId");
 
-        // ─── RESPONSE ──────────────────────────────────────
-        res.status(201).json({
+        return res.status(201).json({
 
-            message: "User registered successfully",
+            message:
+                "User registered successfully",
 
             user: {
 
@@ -266,71 +361,153 @@ export const registerUser = async (req, res) => {
 
     } catch (error) {
 
-        console.error("REGISTER ERROR:", error);
+        console.error(
+            "REGISTER ERROR:",
+            error
+        );
 
-        res.status(500).json({
+        return res.status(500).json({
             error: error.message,
         });
-
     }
-
 };
 
+// ───────────────────────────────────────────────────────────
+// GET ALL USERS
+// ───────────────────────────────────────────────────────────
+export const getAllUsers = async (
+    req,
+    res
+) => {
 
-
-// ─── GET ALL USERS ────────────────────────────────────────────────────────────
-export const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find().select("-password").sort({ createdAt: -1 })
-        .populate("roleId");
-        res.json({ count: users.length, users });
+
+        const users = await User.find()
+            .select("-password")
+            .sort({ createdAt: -1 })
+            .populate("roleId");
+
+        return res.status(200).json({
+
+            count: users.length,
+
+            users,
+
+        });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        return res.status(500).json({
+            error: error.message,
+        });
     }
 };
 
-// ─── UPDATE USER ──────────────────────────────────────────────────────────────
-export const updateUser = async (req, res) => {
+// ───────────────────────────────────────────────────────────
+// UPDATE USER
+// ───────────────────────────────────────────────────────────
+export const updateUser = async (
+    req,
+    res
+) => {
+
     try {
+
         const { id } = req.params;
-        const { username, role, password } = req.body;
+
+        const {
+            username,
+            role,
+            password,
+        } = req.body;
+
+        // ─── FIND TARGET USER ──────────────────────────
+        const targetUser =
+            await User.findById(id)
+                .populate("roleId");
+
+        if (!targetUser) {
+
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        // ─── CURRENT USER ROLE ─────────────────────────
+        const currentUserRole = req.user.role;
+        if (!currentUserRole) {
+
+            return res.status(403).json({
+                message:
+                    "Current user role invalid",
+            });
+        }
+
+        // ─── PROTECT HIGHER USERS ──────────────────────
+        if (
+            !req.user.permissions?.includes(
+                "*"
+            ) &&
+            targetUser.roleId
+                ?.hierarchyLevel <=
+            currentUserRole.hierarchyLevel
+        ) {
+
+            return res.status(403).json({
+                message:
+                    "You cannot modify users above or equal to your hierarchy",
+            });
+        }
 
         const updateFields = {};
-        if (username) updateFields.username = username;
-        // if (role) updateFields.role = role;
 
+        // ─── UPDATE USERNAME ───────────────────────────
+        if (username) {
 
+            updateFields.username = username;
+        }
+
+        // ─── UPDATE ROLE ───────────────────────────────
         if (role) {
 
-            const normalizedRole = role.trim().toLowerCase();
+            const normalizedRole = role
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "_");
 
-            let roleDoc = await Role.findOne({
-                name: normalizedRole,
-            });
+            let roleDoc =
+                await Role.findOne({
+                    name: normalizedRole,
+                });
 
-            // ─── AUTO CREATE ROLE ────────────────────────────────
+            // ─── AUTO CREATE ROLE ──────────────────────
             if (!roleDoc) {
 
                 const canCreateRole =
-                    req.user?.permissions?.includes("*");
+                    req.user?.permissions?.includes(
+                        "*"
+                    );
 
                 if (!canCreateRole) {
 
                     return res.status(403).json({
-                        message: "Not allowed to create new roles",
+                        message:
+                            "Not allowed to create new roles",
                     });
-
                 }
 
                 roleDoc = await Role.create({
 
                     name: normalizedRole,
 
-                    description: `${role} role`,
+                    description:
+                        `${normalizedRole} role`,
 
                     permissions: [],
 
-                    hierarchyLevel: 1,
+                    hierarchyLevel:
+                        currentUserRole
+                            .hierarchyLevel + 1,
 
                     dataScope: "SELF",
 
@@ -339,41 +516,124 @@ export const updateUser = async (req, res) => {
                     createdBy: req.user.id,
 
                 });
-
             }
 
-            updateFields.roleId = roleDoc._id;
+            // ─── HIERARCHY SECURITY ────────────────────
+            if (
+                !req.user.permissions?.includes(
+                    "*"
+                ) &&
+                roleDoc.hierarchyLevel <=
+                currentUserRole.hierarchyLevel
+            ) {
 
+                return res.status(403).json({
+                    message:
+                        "You cannot assign this role",
+                });
+            }
+
+            updateFields.roleId =
+                roleDoc._id;
         }
 
+        // ─── UPDATE PASSWORD ───────────────────────────
+        if (password) {
 
+            updateFields.password =
+                await bcrypt.hash(password, 10);
+        }
 
-        if (password) updateFields.password = await bcrypt.hash(password, 10);
+        // ─── UPDATE USER ───────────────────────────────
+        const updatedUser =
+            await User.findByIdAndUpdate(
+                id,
+                updateFields,
+                {
+                    new: true,
+                }
+            )
+                .select("-password")
+                .populate("roleId");
 
-        const user = await User.findByIdAndUpdate(id, updateFields, { new: true }).select("-password");
-        if (!user) return res.status(404).json({ message: "User not found" });
+        return res.status(200).json({
 
-        res.json({ message: "User updated successfully", user });
+            message:
+                "User updated successfully",
+
+            user: updatedUser,
+
+        });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        return res.status(500).json({
+            error: error.message,
+        });
     }
 };
 
-// ─── DELETE USER ──────────────────────────────────────────────────────────────
-export const deleteUser = async (req, res) => {
+// ───────────────────────────────────────────────────────────
+// DELETE USER
+// ───────────────────────────────────────────────────────────
+export const deleteUser = async (
+    req,
+    res
+) => {
+
     try {
+
         const { id } = req.params;
 
-        // Safety: prevent deleting your own account
+        // ─── PREVENT SELF DELETE ───────────────────────
         if (req.user.id === id) {
-            return res.status(400).json({ message: "You cannot delete your own account" });
+
+            return res.status(400).json({
+                message:
+                    "You cannot delete your own account",
+            });
         }
 
-        const user = await User.findByIdAndDelete(id);
-        if (!user) return res.status(404).json({ message: "User not found" });
+        const targetUser =
+            await User.findById(id)
+                .populate("roleId");
 
-        res.json({ message: "User deleted successfully" });
+        if (!targetUser) {
+
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const currentUserRole = req.user.role;
+
+        // ─── HIERARCHY PROTECTION ──────────────────────
+        if (
+            !req.user.permissions?.includes(
+                "*"
+            ) &&
+            targetUser.roleId
+                ?.hierarchyLevel <=
+            currentUserRole.hierarchyLevel
+        ) {
+
+            return res.status(403).json({
+                message:
+                    "You cannot delete users above or equal to your hierarchy",
+            });
+        }
+
+        await User.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            message:
+                "User deleted successfully",
+        });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        return res.status(500).json({
+            error: error.message,
+        });
     }
 };
