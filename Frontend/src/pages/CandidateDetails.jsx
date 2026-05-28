@@ -176,7 +176,7 @@
         <div className="min-h-screen bg-[#F4F6F9]">
 
         {/* ═══════════════ TOP HEADER BAR ═══════════════ */}
-        <div className="sticky top-0 z-50 bg-white border-b border-[#E2E8F0] shadow-sm">
+        <div className="sticky top-0 z-10 bg-white border-b border-[#E2E8F0] shadow-sm">
 
             {/* Row 1: Back + Identity + Actions */}
             <div className="flex items-center gap-4 px-6 py-3 border-b border-[#F1F5F9]">
@@ -685,7 +685,7 @@
     };
 
     const Modal = ({ title, onClose, children }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
         <div className="relative w-full max-w-md rounded-xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-[#F1F5F9] px-6 py-4">
             <h3 className="text-[15px] font-semibold text-[#1E293B]">{title}</h3>

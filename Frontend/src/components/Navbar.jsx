@@ -181,7 +181,7 @@ const Navbar = () => {
             <button
               onClick={() => setDropdownOpen((p) => !p)}
               className={`relative flex items-center gap-1.5 px-5 py-2 text-base font-medium transition-all group
-                ${dropdownOpen ? "text-white" : "text-blue-200 hover:text-white"}`}
+                ${dropdownOpen ? "text-white" : "text-blue-200 hover:text-white "}`}
             >
               <FaPlus className="text-xs" />
               More
