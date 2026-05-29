@@ -43,28 +43,33 @@ export const listCandidatesService = async (userId) => {
         .populate("roleId");
 
     if (!user || !user.roleId) {
+
         throw new Error("User or role not found");
     }
 
-    // super admin can see everything
-    if (
-        user.roleId.permissions.includes("*") ||
-        user.roleId.dataScope === "ORGANIZATION"
-    ) {
+    const permissions =
+        user.roleId?.permissions || [];
+
+    const dataScope =
+        user.roleId?.dataScope || "SELF";
+
+    // super admin / organization access
+    if (user.roleId.dataScope === "ORGANIZATION") {
+
         return Candidate.find()
             .sort({ createdAt: -1 });
+
     }
 
-    // recruiter -> only own candidates
-    if (user.roleId.dataScope === "SELF") {
+    // self access only
+    if (dataScope === "SELF") {
 
-        return Candidate.find({
-            createdBy: userId
+        return await Candidate.find({
+            createdBy: userId,
         }).sort({ createdAt: -1 });
-
     }
 
-    // default fallback
+    // fallback
     return [];
 };
 

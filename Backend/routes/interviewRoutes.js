@@ -8,6 +8,7 @@ import {
     updateInterview,
     deleteInterview,
     addFeedback,
+    getUpcomingInterviews,
 } from "../controllers/interviewController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { requirePermission } from "../middleware/permissionMiddleware.js";
@@ -46,7 +47,15 @@ router.get(
     getJobInterviews
 );
 
-// ─── SINGLE RESOURCE ─────────────────────────────────────────────────────────
+// ─── UPCOMING INTERVIEWS ─────────────────────────────
+router.get(
+    "/upcoming",
+    protect,
+    requirePermission(PERMISSIONS.INTERVIEW_VIEW),
+    getUpcomingInterviews
+);
+
+// ─── SINGLE RESOURCE ─────────────────────────────────
 router.get(
     "/:id",
     protect,

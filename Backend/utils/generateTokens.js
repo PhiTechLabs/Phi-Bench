@@ -6,22 +6,18 @@ export const generateAccessToken = (user) => {
 
         {
             id: user._id,
-
             role: user.roleId?.name,
-
             permissions: user.roleId?.permissions || [],
         },
 
         process.env.JWT_SECRET,
 
         {
-            expiresIn: "10s",
+            expiresIn: "15m",
         }
 
     );
-
 };
-
 export const generateRefreshToken = (user) => {
 
     return jwt.sign(
