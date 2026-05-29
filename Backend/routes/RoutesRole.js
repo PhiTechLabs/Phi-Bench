@@ -1,11 +1,11 @@
 import express from "express";
-
 import {
     getRoles,
     createRole,
     updateRole,
     deleteRole,
     getPermissions,
+    updateModulePermissions,
 } from "../controllers/roleController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -46,6 +46,15 @@ router.put(
     protect,
     requirePermission(PERMISSIONS.ROLE_EDIT),
     updateRole
+);
+
+router.put(
+    "/:id/permissions",
+    protect,
+    requirePermission(
+        PERMISSIONS.PERMISSION_EDIT
+    ),
+    updateModulePermissions
 );
 
 // ─── DELETE ROLE ───────────────────────────────────────────

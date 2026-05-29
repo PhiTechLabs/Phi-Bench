@@ -47,18 +47,16 @@ export const protect = async (req, res, next) => {
         // ─────────────────────────────────────────────
         req.user = {
 
-            id: user._id,
+        id: user._id,
 
-            username: user.username,
+        username: user.username,
 
-            // FULL ROLE OBJECT
-            role: user.roleId,
+        role: user.roleId,
 
-            // EASY ACCESS
-            permissions:
-                user.roleId?.permissions || [],
+        modulePermissions:
+            user.roleId?.modulePermissions || {},
 
-        };
+    };
 
         next();
 

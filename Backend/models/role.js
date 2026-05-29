@@ -1,50 +1,120 @@
 import mongoose from "mongoose";
-import { PERMISSIONS } from "../config/permissions.js";
 
-    const roleSchema = new mongoose.Schema(
+const modulePermissionSchema =
+    new mongoose.Schema(
+        {
+            view: {
+                type: String,
+                default: "none",
+            },
+
+            edit: {
+                type: String,
+                default: "none",
+            },
+
+            add: {
+                type: String,
+                default: "none",
+            },
+
+            delete: {
+                type: String,
+                default: "none",
+            },
+        },
+        { _id: false }
+    );
+
+const roleSchema = new mongoose.Schema(
     {
         name: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true,
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true,
         },
 
         description: {
-        type: String,
-        default: "",
+            type: String,
+            default: "",
         },
 
         hierarchyLevel: {
-        type: Number,
-        required: true,
+            type: Number,
+            required: true,
         },
 
-        permissions: [
-        {
-            type: String,
-            enum: ["*", ...Object.values(PERMISSIONS)],
+        // ───────────────── MODULE PERMISSIONS ─────────────────
+        modulePermissions: {
+            home: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            job: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            candidate: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            bench: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            submissions: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            interview: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            clients: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            report: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
         },
-        ],
 
         dataScope: {
-        type: String,
-        enum: ["SELF", "TEAM", "BRANCH", "ORGANIZATION", "CUSTOM"],
-        default: "SELF",
+            type: String,
+            enum: [
+                "SELF",
+                "TEAM",
+                "BRANCH",
+                "ORGANIZATION",
+                "CUSTOM",
+            ],
+            default: "SELF",
         },
 
         isSystemRole: {
-        type: Boolean,
-        default: false,
+            type: Boolean,
+            default: false,
         },
 
         createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
         },
     },
     { timestamps: true }
-    );
+);
 
-    export default mongoose.model("Role", roleSchema);
+export default mongoose.model(
+    "Role",
+    roleSchema
+);

@@ -185,3 +185,19 @@ export const addFeedbackService = async (id, { feedback, rating, status }) => {
 
     return interview;
 };
+
+// ─── GET UPCOMING INTERVIEWS ─────────────────────────
+export const getUpcomingInterviewsService = async () => {
+
+    const now = new Date();
+
+    return await Interview.find({
+        interviewDate: {
+            $gte: now,
+        },
+    })
+        .sort({ interviewDate: 1 })
+        .limit(5)
+        .populate("candidateId")
+        .populate("jobId");
+};

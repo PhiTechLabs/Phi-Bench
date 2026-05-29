@@ -335,6 +335,98 @@ export const updateRole = async (req, res) => {
     }
 };
 
+
+// ───────────────────────────────────────────────────────────
+// UPDATE MODULE PERMISSIONS
+// ───────────────────────────────────────────────────────────
+export const updateModulePermissions =
+    async (req, res) => {
+
+        try {
+
+            const { id } = req.params;
+
+            const {
+                module,
+                permissions,
+            } = req.body;
+
+            const role =
+                await Role.findById(id);
+
+            if (!role) {
+
+                return res.status(404).json({
+                    message:
+                        "Role not found",
+                });
+            }
+
+            // ───────────────── VALIDATE MODULE ─────────────────
+            const allowedModules = [
+                "home",
+                "job",
+                "candidate",
+                "bench",
+                "submissions",
+                "interview",
+                "clients",
+                "report",
+            ];
+
+            if (
+                !allowedModules.includes(
+                    module
+                )
+            ) {
+
+                return res.status(400).json({
+                    message:
+                        "Invalid module",
+                });
+            }
+
+            // ───────────────── UPDATE MODULE PERMISSIONS ─────────────────
+            role.modulePermissions[
+                module
+            ] = {
+                view:
+                    permissions.view ||
+                    "none",
+
+                edit:
+                    permissions.edit ||
+                    "none",
+
+                add:
+                    permissions.add ||
+                    "none",
+
+                delete:
+                    permissions.delete ||
+                    "none",
+            };
+
+            await role.save();
+
+            return res.status(200).json({
+
+                message:
+                    "Permissions updated successfully",
+
+                role,
+
+            });
+
+        } catch (error) {
+
+            return res.status(500).json({
+                message: error.message,
+            });
+        }
+    };
+
+    
 // ───────────────────────────────────────────────────────────
 // DELETE ROLE
 // ───────────────────────────────────────────────────────────
