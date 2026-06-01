@@ -28,9 +28,21 @@ export default function Permissions() {
 
     // ───────────────── STATES ─────────────────
     const [selectedModule, setSelectedModule] =
-        useState("");
+        useState(() =>
+            localStorage.getItem("selectedPermissionModule") || "Home"
+    );
 
     const [roles, setRoles] = useState([]);
+
+    const handleModuleChange = (value) => {
+
+        setSelectedModule(value);
+
+        localStorage.setItem(
+            "selectedPermissionModule",
+            value
+        );
+    };
 
     const [
         openPermissionModal,
@@ -59,6 +71,32 @@ export default function Permissions() {
         } catch (error) {
 
             console.error(error);
+        }
+    };
+
+    const handlePermissionSave = async (data) => {
+
+        try {
+
+            await axiosInstance.put(
+                `/roles/${selectedRole._id}/permissions`,
+                data
+            );
+
+            alert("Permissions updated successfully");
+
+            setOpenPermissionModal(false);
+
+            fetchRoles();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                error?.response?.data?.message ||
+                "Failed to update permissions"
+            );
         }
     };
 
@@ -114,9 +152,7 @@ export default function Permissions() {
                     <select
                         value={selectedModule}
                         onChange={(e) =>
-                            setSelectedModule(
-                                e.target.value
-                            )
+                            handleModuleChange(e.target.value)
                         }
                         className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-200"
                     >
@@ -309,8 +345,8 @@ export default function Permissions() {
                     setOpenPermissionModal(false)
                 }
                 role={selectedRole}
-                selectedModule={selectedModule}
-                fetchRoles={fetchRoles}
+                moduleName={selectedModule}
+                onSave={handlePermissionSave}
             />
 
         </div>
@@ -318,28 +354,30 @@ export default function Permissions() {
 }
 
 // ───────────────── STATUS COMPONENT ─────────────────
-function PermissionStatus({
-    allowed,
-}) {
+function PermissionStatus({ allowed }) {
+
+    const isAllowed =
+        allowed &&
+        allowed !== "none";
 
     return (
 
         <div
             className={`flex items-center gap-2 text-sm font-medium ${
-                allowed
+                isAllowed
                     ? "text-green-600"
                     : "text-red-500"
             }`}
         >
 
-            {allowed ? (
+            {isAllowed ? (
                 <FaCheckCircle />
             ) : (
                 <FaTimesCircle />
             )}
 
             <span>
-                {allowed
+                {isAllowed
                     ? "Allowed"
                     : "Denied"}
             </span>

@@ -144,6 +144,27 @@ export const requirePermission =
                         action:
                             "edit",
                     },
+
+                // INTERVIEW
+                [PERMISSIONS.INTERVIEW_VIEW]: {
+                    module: "interview",
+                    action: "view",
+                },
+
+                [PERMISSIONS.INTERVIEW_CREATE]: {
+                    module: "interview",
+                    action: "add",
+                },
+
+                [PERMISSIONS.INTERVIEW_EDIT]: {
+                    module: "interview",
+                    action: "edit",
+                },
+
+                [PERMISSIONS.INTERVIEW_DELETE]: {
+                    module: "interview",
+                    action: "delete",
+                },
             };
 
             const config =
@@ -153,8 +174,14 @@ export const requirePermission =
 
             if (!config) {
 
-                return next();
+                return res.status(403).json({
+                    message:
+                        `Permission mapping missing for ${requiredPermission}`,
+                });
             }
+
+            console.log("ROLE OBJECT");
+            console.log(JSON.stringify(role, null, 2));
 
             const modulePermissions =
                 role

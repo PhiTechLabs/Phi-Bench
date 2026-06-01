@@ -2,7 +2,7 @@ export const hasPermission = (user, permission) => {
 
     if (!user) return false;
 
-    // ───────────────── SUPER ADMIN FULL ACCESS ─────────────────
+    // Super Admin
     if (
         user.role === "super_admin" ||
         user.role?.name === "super_admin"
@@ -10,12 +10,25 @@ export const hasPermission = (user, permission) => {
         return true;
     }
 
-    const permissions = user.permissions || [];
+    const modulePermissions = user?.role?.modulePermissions;
 
-    // Wildcard permission
-    if (permissions.includes("*")) {
-        return true;
+    if (!modulePermissions) {
+        return false;
     }
 
-    return permissions.includes(permission);
+    const [module, action] = permission.split(".");
+
+    const permissionMap = {
+        create: "add",
+        view: "view",
+        edit: "edit",
+        delete: "delete"
+    };
+
+    const actualAction = permissionMap[action] || action;
+
+    const allowed =
+        modulePermissions?.[module]?.[actualAction];
+
+    return allowed && allowed !== "none";
 };

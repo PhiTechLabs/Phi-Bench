@@ -1,25 +1,39 @@
 import mongoose from "mongoose";
 
+const permissionValues = [
+    "none",
+    "own",
+    "all",
+    "approval",
+    "team",
+    "hierarchy",
+    "reporting",
+];
+
 const modulePermissionSchema =
     new mongoose.Schema(
         {
             view: {
                 type: String,
+                enum: permissionValues,
                 default: "none",
             },
 
             edit: {
                 type: String,
+                enum: permissionValues,
                 default: "none",
             },
 
             add: {
                 type: String,
+                enum: permissionValues,
                 default: "none",
             },
 
             delete: {
                 type: String,
+                enum: permissionValues,
                 default: "none",
             },
         },
