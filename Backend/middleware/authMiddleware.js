@@ -58,6 +58,19 @@ export const protect = async (req, res, next) => {
 
     };
 
+    console.log("USER ROLE FROM DB:");
+    console.log(
+        JSON.stringify(
+            user.roleId,
+            null,
+            2
+        )
+    );
+
+    console.log("========== REQ.USER ==========");
+    console.log(JSON.stringify(req.user, null, 2));
+    console.log("==============================");
+
         next();
 
     } catch (error) {

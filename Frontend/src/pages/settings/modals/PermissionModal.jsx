@@ -56,50 +56,37 @@ export default function PermissionModal({
             delete: "none",
         });
 
+        
+
     // ───────────────── LOAD EXISTING ─────────────────
-    useEffect(() => {
+useEffect(() => {
 
-        if (role?.permissions) {
+    if (!role || !moduleName) return;
 
-            const modulePermission =
-                role.permissions.find(
-                    (p) =>
-                        p.module ===
-                        moduleName.toLowerCase()
-                );
+    const modulePermission =
+        role?.modulePermissions?.[
+            moduleName.toLowerCase()
+        ];
 
-            if (modulePermission) {
+    setPermissions({
+        view:
+            modulePermission?.view ||
+            "none",
 
-                setPermissions({
-                    view:
-                        modulePermission.permissions
-                            ?.view || "none",
+        edit:
+            modulePermission?.edit ||
+            "none",
 
-                    edit:
-                        modulePermission.permissions
-                            ?.edit || "none",
+        add:
+            modulePermission?.add ||
+            "none",
 
-                    add:
-                        modulePermission.permissions
-                            ?.add || "none",
+        delete:
+            modulePermission?.delete ||
+            "none",
+    });
 
-                    delete:
-                        modulePermission.permissions
-                            ?.delete || "none",
-                });
-
-            } else {
-
-                setPermissions({
-                    view: "none",
-                    edit: "none",
-                    add: "none",
-                    delete: "none",
-                });
-            }
-        }
-
-    }, [role, moduleName]);
+}, [role, moduleName]);
 
     // ───────────────── HANDLE CHANGE ─────────────────
     const handleChange = (
@@ -116,11 +103,16 @@ export default function PermissionModal({
     // ───────────────── SAVE ─────────────────
     const handleSave = () => {
 
-        onSave({
-            module: moduleName.toLowerCase(),
-            permissions,
-        });
-    };
+            if (!moduleName) {
+                alert("No module selected");
+                return;
+            }
+
+            onSave({
+                module: moduleName.toLowerCase(),
+                permissions,
+            });
+        };
 
     if (!open) return null;
 
