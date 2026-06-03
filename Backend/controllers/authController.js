@@ -72,27 +72,31 @@ export const loginUser = async (req, res) => {
             await User.findById(user._id)
                 .populate("roleId");
 
+                console.log(
+                JSON.stringify(
+                    populatedUser.roleId,
+                    null,
+                    2
+                )
+            );
+
         return res.status(200).json({
 
             user: {
-
                 id: populatedUser._id,
+                username: populatedUser.username,
+                email: populatedUser.email,
+                role: populatedUser.roleId?.name,
 
-                username:
-                    populatedUser.username,
+                modulePermissions:
+                    populatedUser.roleId?.modulePermissions || {},
 
-                email:
-                    populatedUser.email,
+                hierarchyLevel:
+                    populatedUser.roleId?.hierarchyLevel,
 
-                role:
-                    populatedUser.roleId?.name,
-
-                permissions:
-                    populatedUser.roleId
-                        ?.permissions || [],
-
-            },
-
+                dataScope:
+                    populatedUser.roleId?.dataScope,
+            }
         });
 
     } catch (error) {
@@ -276,9 +280,7 @@ export const registerUser = async (
         if (!roleDoc) {
 
             const canCreateRole =
-                req.user?.permissions?.includes(
-                    "*"
-                );
+                req.user.role?.name === "super_admin";
 
             if (!canCreateRole) {
 
@@ -295,7 +297,6 @@ export const registerUser = async (
                 description:
                     `${normalizedRole} role`,
 
-                permissions: [],
 
                 hierarchyLevel:
                     currentUserRole
@@ -312,9 +313,7 @@ export const registerUser = async (
 
         // ─── HIERARCHY SECURITY ────────────────────────
         if (
-            !req.user.permissions?.includes(
-                "*"
-            ) &&
+            req.user.role.name !== "super_admin" &&
             roleDoc.hierarchyLevel <=
             currentUserRole.hierarchyLevel
         ) {
@@ -445,9 +444,7 @@ export const updateUser = async (
 
         // ─── PROTECT HIGHER USERS ──────────────────────
         if (
-            !req.user.permissions?.includes(
-                "*"
-            ) &&
+            req.user.role?.name !== "super_admin" &&
             targetUser.roleId
                 ?.hierarchyLevel <=
             currentUserRole.hierarchyLevel
@@ -484,9 +481,7 @@ export const updateUser = async (
             if (!roleDoc) {
 
                 const canCreateRole =
-                    req.user?.permissions?.includes(
-                        "*"
-                    );
+                    req.user.role?.name === "super_admin";
 
                 if (!canCreateRole) {
 
@@ -503,8 +498,6 @@ export const updateUser = async (
                     description:
                         `${normalizedRole} role`,
 
-                    permissions: [],
-
                     hierarchyLevel:
                         currentUserRole
                             .hierarchyLevel + 1,
@@ -520,9 +513,7 @@ export const updateUser = async (
 
             // ─── HIERARCHY SECURITY ────────────────────
             if (
-                !req.user.permissions?.includes(
-                    "*"
-                ) &&
+                req.user.role?.name !== "super_admin" &&
                 roleDoc.hierarchyLevel <=
                 currentUserRole.hierarchyLevel
             ) {
@@ -609,9 +600,7 @@ export const deleteUser = async (
 
         // ─── HIERARCHY PROTECTION ──────────────────────
         if (
-            !req.user.permissions?.includes(
-                "*"
-            ) &&
+            req.user.role?.name !== "super_admin" &&
             targetUser.roleId
                 ?.hierarchyLevel <=
             currentUserRole.hierarchyLevel

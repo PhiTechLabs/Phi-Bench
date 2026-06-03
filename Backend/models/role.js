@@ -101,6 +101,16 @@ const roleSchema = new mongoose.Schema(
                 type: modulePermissionSchema,
                 default: () => ({}),
             },
+
+            users: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
+
+            roles: {
+                type: modulePermissionSchema,
+                default: () => ({}),
+            },
         },
 
         dataScope: {

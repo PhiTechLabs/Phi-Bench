@@ -147,7 +147,7 @@ export default function Permissions() {
 
                 </div>
 
-                <div className="w-[260px] relative">
+                <div className="w-65 relative">
 
                     <select
                         value={selectedModule}

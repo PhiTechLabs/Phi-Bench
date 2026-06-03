@@ -1,21 +1,42 @@
 import { Navigate } from "react-router-dom";
-import { hasPermission } from "../utils/hasPermission";
-import {getCurrentUser} from "../utils/auth";
+import usePermissions from "../hooks/usePermission";
 
-const ProtectedRoute = ({ children, permission }) => {
-    const user = getCurrentUser();
+export default function ProtectedRoute({
+    permission,
+    children,
+}) {
 
-    // Not logged in
-    if (!user) {
-        return <Navigate to="/" replace />;
-    }
+    console.log("ROUTE PERMISSION:", permission);
 
-    // Permission check
-    if (permission && !hasPermission(user, permission)) {
-        return <Navigate to="/home" replace />;
+    console.log("ProtectedRoute Props =>", {
+    permission,
+    children
+});
+    const { can, user } = usePermissions();
+
+    console.log("USER:", user);
+
+
+    const result = can(
+        permission.module,
+        permission.action
+    );
+
+    console.log(
+        "CHECK:",
+        permission.module,
+        permission.action,
+        result
+    );
+
+    if (!result) {
+        return (
+            <Navigate
+                to="/unauthorized"
+                replace
+            />
+        );
     }
 
     return children;
-};
-
-export default ProtectedRoute;
+}

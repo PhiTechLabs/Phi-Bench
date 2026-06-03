@@ -17,7 +17,6 @@ import useRoleBase from "../hooks/useRoleBase.js";
 import { getCurrentUser } from "../utils/auth";
 import { hasPermission } from "../utils/hasPermission.js";
 
-import { PERMISSIONS } from "./settings/constants/permissions";
 
 import PermissionGuard from "../components/PermissionGuard";
 
@@ -68,24 +67,28 @@ const Candidates = () => {
   const user = getCurrentUser();
 
   const canView = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_VIEW
-  );
+  user,
+  "candidate",
+  "view"
+);
 
-  const canCreate = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_CREATE
-  );
+const canCreate = hasPermission(
+  user,
+  "candidate",
+  "add"
+);
 
-  const canEdit = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_EDIT
-  );
+const canEdit = hasPermission(
+  user,
+  "candidate",
+  "edit"
+);
 
-  const canDelete = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_DELETE
-  );
+const canDelete = hasPermission(
+  user,
+  "candidate",
+  "delete"
+);
 
   /* ──────────────────── ACCESS DENIED ──────────────────── */
 
@@ -564,9 +567,8 @@ const Candidates = () => {
             </button>
 
             <PermissionGuard
-              permission={
-                PERMISSIONS.CANDIDATE_CREATE
-              }
+              module="candidate"
+              action="add"
             >
 
               <button
@@ -600,12 +602,14 @@ const Candidates = () => {
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search name, skill, company…"
-          deletePermission={
-            PERMISSIONS.CANDIDATE_DELETE
-          }
-          bulkDeletePermission={
-            PERMISSIONS.CANDIDATE_DELETE
-          }
+          deletePermission={{
+            module: "candidate",
+            action: "delete"
+          }}
+          bulkDeletePermission={{
+            module: "candidate",
+            action: "delete"
+      }}
           emptyState={{
             title: "No candidates yet",
             hint:

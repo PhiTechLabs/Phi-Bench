@@ -20,12 +20,22 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
+console.log("USER_VIEW", PERMISSIONS.USER_VIEW);
+console.log("ROLE_VIEW", PERMISSIONS.ROLE_VIEW);
+console.log("PERMISSION_VIEW", PERMISSIONS.PERMISSION_VIEW);
+console.log("CLIENT_CREATE", PERMISSIONS.CLIENT_CREATE);
+
 export const roleRoutes = [
 
     {
         path: "home",
         element: (
-            <ProtectedRoute>
+            <ProtectedRoute
+                permission={{
+                    module: "home",
+                    action: "view",
+                }}
+            >
                 <Home />
             </ProtectedRoute>
         ),
@@ -161,7 +171,7 @@ export const roleRoutes = [
     {
         path: "settings/users",
         element: (
-            <ProtectedRoute permission={PERMISSIONS.USER_VIEW}>
+            <ProtectedRoute permission={PERMISSIONS.USERS_VIEW}>
                 <Users />
             </ProtectedRoute>
         ),
@@ -171,7 +181,7 @@ export const roleRoutes = [
     {
         path: "settings/roles",
         element: (
-            <ProtectedRoute permission={PERMISSIONS.ROLE_VIEW}>
+            <ProtectedRoute permission={PERMISSIONS.ROLES_VIEW}>
                 <Roles />
             </ProtectedRoute>
         ),
@@ -181,7 +191,7 @@ export const roleRoutes = [
     {
         path: "settings/permissions",
         element: (
-            <ProtectedRoute permission={PERMISSIONS.PERMISSION_VIEW}>
+            <ProtectedRoute permission={PERMISSIONS.ROLES_VIEW}>
                 <Permissions />
             </ProtectedRoute>
         ),

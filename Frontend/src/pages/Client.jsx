@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import DataTable from "../components/DataTable/DataTable";
 import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
 import useRoleBase from "../hooks/useRoleBase";
-import { getCurrentUser } from "../utils/auth";
-import { hasPermission } from "../utils/hasPermission";
-import { PERMISSIONS } from "../pages/settings/constants/permissions";
+
+import usePermissions from "../hooks/usePermission";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -40,15 +39,13 @@ const Client = () => {
   
   const roleBase = useRoleBase();
 
-  const user = getCurrentUser();
-  const canView = hasPermission(user, PERMISSIONS.CLIENT_VIEW);
-  const canEdit = hasPermission(user, PERMISSIONS.CLIENT_EDIT);
-  const canDelete = hasPermission(user, PERMISSIONS.CLIENT_DELETE);
+  const { can } = usePermissions();
+  const canCreate = can("clients", "add");
+  const canView = can("clients", "view");
+  const canEdit = can("clients", "edit");
+  const canDelete = can("clients", "delete");
 
-  if (!canView) {
-    return <div className="p-10 text-red-500">Access Denied</div>;
-  }
-
+  
   const refresh = useCallback(async () => {
     const data = await getAllClients();
     const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
@@ -71,9 +68,28 @@ const Client = () => {
     await refresh();
   };
   const handleStatusChange = async (id, newStatus) => {
-    setClients((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
-    await updateClient(id, { status: newStatus });
+    if (!canEdit) return;
+
+    setClients((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, status: newStatus }
+          : c
+      )
+    );
+
+    await updateClient(id, {
+      status: newStatus,
+    });
   };
+
+  if (!canView) {
+      return (
+          <div className="p-10 text-red-500">
+              Access Denied
+          </div>
+      );
+  }
 
   /* ── columns ── */
   const columns = [
@@ -87,7 +103,9 @@ const Client = () => {
     { key: "primaryEmail",   label: "Email",           width: 200, type: "text", defaultVisible: true, searchable: true },
     {
       key: "status", label: "Status", width: 130, type: "status",
-      statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
+      statusOptions: STATUS_OPTIONS, onStatusChange: canEdit
+    ? handleStatusChange
+    : undefined,
       defaultVisible: true, sortable: true, filterable: true,
     },
     { key: "createdAt",    label: "Created",      width: 110, type: "date", defaultVisible: true, sortable: true, sortType: "date" },
@@ -121,12 +139,16 @@ const Client = () => {
             <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
               Import Clients
             </button>
-            <button
-              onClick={() => navigate(`${roleBase}/add-client`)}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-            >
-              <span className="text-[14px] leading-none">+</span> Add Client
-            </button>
+
+            {canCreate && (
+              <button
+                onClick={() => navigate(`${roleBase}/add-client`)}
+                className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+              >
+                <span className="text-[14px] leading-none">+</span>
+                Add Client
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -137,9 +159,12 @@ const Client = () => {
           columns={columns}
           data={clients}
           storageKey="clients_table"
-          onRowClick={(row) => navigate(`${roleBase}/client-list/${row.id}`)}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
+          onRowClick={(row) => {
+            if (!canView) return;
+            navigate(`${roleBase}/client-list/${row.id}`);
+          }}
+          onDelete={canDelete ? handleDelete : null}
+          onBulkDelete={canDelete ? handleBulkDelete : null}
           searchPlaceholder="Search company, contact, manager…"
           emptyState={{
             title: "No clients yet",

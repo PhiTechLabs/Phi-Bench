@@ -114,7 +114,10 @@ const DataTable = ({
               </button>
             ))}
             {onBulkDelete && (
-              <PermissionGuard permission={bulkDeletePermission}>
+              <PermissionGuard
+                module={bulkDeletePermission?.module}
+                action={bulkDeletePermission?.action}
+              >
               <button
                 onClick={() => {
                   if (window.confirm(`Delete ${t.selectedIds.size} selected items?`)) {
@@ -321,7 +324,10 @@ const DataTable = ({
                         </td>
                       ))}
                       {onDelete && (
-                        <PermissionGuard permission={deletePermission}>
+                        <PermissionGuard
+                          module={deletePermission?.module}
+                          action={deletePermission?.action}
+                        >
                         <td
                           style={{ width: 44, minWidth: 44 }}
                           className="px-2 py-2 text-right align-middle"
