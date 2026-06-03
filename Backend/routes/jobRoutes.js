@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
     createJob,
     getAllJobs,
@@ -8,18 +9,20 @@ import {
 } from "../controllers/jobController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
+
+import {
+    createJobRules,
+    validate,
+} from "../validators/jobValidator.js";
+
 import { requirePermission } from "../middleware/permissionMiddleware.js";
-
-import { createJobRules, validate } from "../validators/jobValidator.js";
-
-import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
 router.post(
     "/",
     protect,
-    requirePermission(PERMISSIONS.JOB_CREATE),
+    requirePermission("job", "add"),
     createJobRules,
     validate,
     createJob
@@ -28,21 +31,21 @@ router.post(
 router.get(
     "/",
     protect,
-    requirePermission(PERMISSIONS.JOB_VIEW),
+    requirePermission("job", "view"),
     getAllJobs
 );
 
 router.get(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.JOB_VIEW),
+    requirePermission("job", "view"),
     getJobById
 );
 
 router.put(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.JOB_EDIT),
+    requirePermission("job", "edit"),
     createJobRules,
     validate,
     updateJob
@@ -51,7 +54,7 @@ router.put(
 router.delete(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.JOB_DELETE),
+    requirePermission("job", "delete"),
     deleteJob
 );
 

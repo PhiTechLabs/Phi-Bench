@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
     createInterview,
     listInterviews,
@@ -10,78 +11,72 @@ import {
     addFeedback,
     getUpcomingInterviews,
 } from "../controllers/interviewController.js";
+
 import { protect } from "../middleware/authMiddleware.js";
 import { requirePermission } from "../middleware/permissionMiddleware.js";
-import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
-// ─── COLLECTION ──────────────────────────────────────────────────────────────
 router.get(
     "/",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_VIEW),
+    requirePermission("interview", "view"),
     listInterviews
 );
 
 router.post(
     "/",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_CREATE),
+    requirePermission("interview", "add"),
     createInterview
 );
 
-// ─── NESTED: by candidate ─────────────────────────────────────────────────────
 router.get(
     "/candidate/:candidateId",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_VIEW),
+    requirePermission("interview", "view"),
     getCandidateInterviews
 );
 
-// ─── NESTED: by job ───────────────────────────────────────────────────────────
 router.get(
     "/job/:jobId",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_VIEW),
+    requirePermission("interview", "view"),
     getJobInterviews
 );
 
-// ─── UPCOMING INTERVIEWS ─────────────────────────────
 router.get(
     "/upcoming",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_VIEW),
+    requirePermission("interview", "view"),
     getUpcomingInterviews
 );
 
-// ─── SINGLE RESOURCE ─────────────────────────────────
 router.get(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_VIEW),
+    requirePermission("interview", "view"),
     getInterview
 );
 
 router.put(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_EDIT),
+    requirePermission("interview", "edit"),
     updateInterview
 );
 
 router.delete(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_DELETE),
+    requirePermission("interview", "delete"),
     deleteInterview
 );
 
-// ─── DEDICATED ACTIONS ───────────────────────────────────────────────────────
 router.patch(
     "/:id/feedback",
     protect,
-    requirePermission(PERMISSIONS.INTERVIEW_EDIT),
+    requirePermission("interview", "edit"),
     addFeedback
 );
 

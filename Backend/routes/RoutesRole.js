@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
     getRoles,
     createRole,
@@ -9,59 +10,49 @@ import {
 } from "../controllers/roleController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
-
 import { requirePermission } from "../middleware/permissionMiddleware.js";
-
-import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
-// ─── GET ALL ROLES ─────────────────────────────────────────
 router.get(
     "/",
     protect,
-    requirePermission(PERMISSIONS.ROLE_VIEW),
+    requirePermission("roles", "view"),
     getRoles
 );
 
-// ─── GET ALL AVAILABLE PERMISSIONS ─────────────────────────
 router.get(
     "/permissions",
     protect,
-    requirePermission(PERMISSIONS.ROLE_VIEW),
+    requirePermission("roles", "view"),
     getPermissions
 );
 
-// ─── CREATE ROLE ───────────────────────────────────────────
 router.post(
     "/",
     protect,
-    requirePermission(PERMISSIONS.ROLE_CREATE),
+    requirePermission("roles", "add"),
     createRole
 );
 
-// ─── UPDATE ROLE ───────────────────────────────────────────
 router.put(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.ROLE_EDIT),
+    requirePermission("roles", "edit"),
     updateRole
 );
 
 router.put(
     "/:id/permissions",
     protect,
-    requirePermission(
-        PERMISSIONS.PERMISSION_EDIT
-    ),
+    requirePermission("roles", "edit"),
     updateModulePermissions
 );
 
-// ─── DELETE ROLE ───────────────────────────────────────────
 router.delete(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.ROLE_DELETE),
+    requirePermission("roles", "delete"),
     deleteRole
 );
 

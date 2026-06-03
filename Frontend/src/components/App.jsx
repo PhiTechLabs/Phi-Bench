@@ -16,7 +16,7 @@ function App() {
                 <Route path="/setup" element={<Setup />} />
 
                 {/* PROTECTED ROUTES - No role prefix in URL */}
-                <Route element={<ProtectedRoute><Navbar /></ProtectedRoute>}>
+                <Route element={<Navbar />}>
                     {roleRoutes.map((route, index) => (
                         <Route key={index} {...route} />
                     ))}

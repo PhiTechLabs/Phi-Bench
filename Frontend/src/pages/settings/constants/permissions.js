@@ -1,60 +1,142 @@
+// permissions.js
+
+export const MODULES = {
+    JOB: "job",
+    CLIENT: "clients",
+    CANDIDATE: "candidate",
+    INTERVIEW: "interview",
+    REPORT: "report",
+    BENCH: "bench",
+    SUBMISSION: "submissions",
+    HOME: "home",
+    USERS: "users",
+    ROLES: "roles",
+};
+
+export const ACTIONS = {
+    VIEW: "view",
+    ADD: "add",
+    EDIT: "edit",
+    DELETE: "delete",
+};
+
 export const PERMISSIONS = {
+    JOB_VIEW: {
+        module: MODULES.JOB,
+        action: ACTIONS.VIEW,
+    },
 
-    // Candidate
-    CANDIDATE_VIEW: "candidate.view",
-    CANDIDATE_CREATE: "candidate.create",
-    CANDIDATE_EDIT: "candidate.edit",
-    CANDIDATE_DELETE: "candidate.delete",
+    JOB_ADD: {
+        module: MODULES.JOB,
+        action: ACTIONS.ADD,
+    },
 
-    // Jobs
-    JOB_VIEW: "job.view",
-    JOB_CREATE: "job.create",
-    JOB_EDIT: "job.edit",
-    JOB_DELETE: "job.delete",
+    JOB_EDIT: {
+        module: MODULES.JOB,
+        action: ACTIONS.EDIT,
+    },
 
-    // Clients
-    CLIENT_VIEW: "client.view",
-    CLIENT_CREATE: "client.create",
-    CLIENT_EDIT: "client.edit",
-    CLIENT_DELETE: "client.delete",
+    JOB_DELETE: {
+        module: MODULES.JOB,
+        action: ACTIONS.DELETE,
+    },
 
-    // Users
-    USER_VIEW: "user.view",
-    USER_CREATE: "user.create",
-    USER_EDIT: "user.edit",
-    USER_DELETE: "user.delete",
+    CANDIDATE_VIEW: {
+        module: MODULES.CANDIDATE,
+        action: ACTIONS.VIEW,
+    },
 
-    // Roles
-    ROLE_VIEW: "role.view",
-    ROLE_CREATE: "role.create",
-    ROLE_EDIT: "role.edit",
-    ROLE_DELETE: "role.delete",
+    CANDIDATE_ADD: {
+        module: MODULES.CANDIDATE,
+        action: ACTIONS.ADD,
+    },
 
-    // Interviews
-    INTERVIEW_VIEW: "interview.view",
-    INTERVIEW_CREATE: "interview.create",
-    INTERVIEW_EDIT: "interview.edit",
-    INTERVIEW_DELETE: "interview.delete",
+    CANDIDATE_EDIT: {
+        module: MODULES.CANDIDATE,
+        action: ACTIONS.EDIT,
+    },
 
-    // Submissions
-    SUBMISSION_VIEW: "submission.view",
-    SUBMISSION_CREATE: "submission.create",
-    SUBMISSION_EDIT: "submission.edit",
-    SUBMISSION_DELETE: "submission.delete",
+    CANDIDATE_DELETE: {
+        module: MODULES.CANDIDATE,
+        action: ACTIONS.DELETE,
+    },
 
-    // Reports
-    REPORT_VIEW: "report.view",
+    BENCH_VIEW: {
+        module: MODULES.BENCH,
+        action: ACTIONS.VIEW,
+    },
 
-    // Vendors
-    VENDOR_VIEW: "vendor.view",
+    SUBMISSION_VIEW: {
+        module: MODULES.SUBMISSION,
+        action: ACTIONS.VIEW,
+    },
 
-    // Bench
-    BENCH_VIEW: "bench.view",
+    INTERVIEW_VIEW: {
+        module: MODULES.INTERVIEW,
+        action: ACTIONS.VIEW,
+    },
 
-    // Settings
-    SETTINGS_VIEW: "settings.view",
+    CLIENT_VIEW: {
+        module: MODULES.CLIENT,
+        action: ACTIONS.VIEW,
+    },
 
-    // Permissions
-    PERMISSION_VIEW: "permission.view",
-    PERMISSION_EDIT: "permission.edit",
+    CLIENT_CREATE: {
+        module: MODULES.CLIENT,
+        action: ACTIONS.ADD,
+    },
+
+    REPORT_VIEW: {
+        module: MODULES.REPORT,
+        action: ACTIONS.VIEW,
+    },
+
+    USERS_VIEW: {
+        module: MODULES.USERS,
+        action: ACTIONS.VIEW,
+    },
+
+    USERS_ADD: {
+        module: MODULES.USERS,
+        action: ACTIONS.ADD,
+    },
+
+    USERS_EDIT: {
+        module: MODULES.USERS,
+        action: ACTIONS.EDIT,
+    },
+
+    USERS_DELETE: {
+        module: MODULES.USERS,
+        action: ACTIONS.DELETE,
+    },
+
+    ROLES_VIEW: {
+        module: MODULES.ROLES,
+        action: ACTIONS.VIEW,
+    },
+
+    ROLES_ADD: {
+        module: MODULES.ROLES,
+        action: ACTIONS.ADD,
+    },
+
+    ROLES_EDIT: {
+        module: MODULES.ROLES,
+        action: ACTIONS.EDIT,
+    },
+
+    ROLES_DELETE: {
+        module: MODULES.ROLES,
+        action: ACTIONS.DELETE,
+    },
+
+    SETTINGS_VIEW: {
+        module: MODULES.ROLES,
+        action: ACTIONS.VIEW,
+    },
+    VENDOR_VIEW: {
+        module: "vendors",
+        action: ACTIONS.VIEW,
+    },
 };

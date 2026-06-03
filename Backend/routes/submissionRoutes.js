@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
     createSubmission,
     listSubmissions,
@@ -8,62 +9,58 @@ import {
     updateSubmission,
     deleteSubmission,
 } from "../controllers/submissionController.js";
+
 import { protect } from "../middleware/authMiddleware.js";
 import { requirePermission } from "../middleware/permissionMiddleware.js";
-import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
-// ─── COLLECTION ──────────────────────────────────────────────────────────────
 router.get(
     "/",
     protect,
-    requirePermission(PERMISSIONS.SUBMISSION_VIEW),
+    requirePermission("submissions", "view"),
     listSubmissions
 );
 
 router.post(
     "/",
     protect,
-    requirePermission(PERMISSIONS.SUBMISSION_CREATE),
+    requirePermission("submissions", "add"),
     createSubmission
 );
 
-// ─── NESTED: by candidate ─────────────────────────────────────────────────────
 router.get(
     "/candidate/:candidateId",
     protect,
-    requirePermission(PERMISSIONS.SUBMISSION_VIEW),
+    requirePermission("submissions", "view"),
     getCandidateSubmissions
 );
 
-// ─── NESTED: by job ───────────────────────────────────────────────────────────
 router.get(
     "/job/:jobId",
     protect,
-    requirePermission(PERMISSIONS.SUBMISSION_VIEW),
+    requirePermission("submissions", "view"),
     getJobSubmissions
 );
 
-// ─── SINGLE RESOURCE ─────────────────────────────────────────────────────────
 router.get(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.SUBMISSION_VIEW),
+    requirePermission("submissions", "view"),
     getSubmission
 );
 
 router.put(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.SUBMISSION_EDIT),
+    requirePermission("submissions", "edit"),
     updateSubmission
 );
 
 router.delete(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.SUBMISSION_DELETE),
+    requirePermission("submissions", "delete"),
     deleteSubmission
 );
 

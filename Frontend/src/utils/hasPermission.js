@@ -1,34 +1,36 @@
-export const hasPermission = (user, permission) => {
+export const hasPermission = (
+    user,
+    module,
+    action
+) => {
 
     if (!user) return false;
 
+    const role =
+        user.role ||
+        user.roleId;
+
     // Super Admin
     if (
-        user.role === "super_admin" ||
-        user.role?.name === "super_admin"
+        role?.name === "super_admin" ||
+        user.role === "super_admin"
     ) {
         return true;
     }
 
-    const modulePermissions = user?.role?.modulePermissions;
+    const modulePermissions =
+        user.modulePermissions ||
+        role?.modulePermissions;
 
     if (!modulePermissions) {
         return false;
     }
 
-    const [module, action] = permission.split(".");
+    const permission =
+        modulePermissions?.[module]?.[action];
 
-    const permissionMap = {
-        create: "add",
-        view: "view",
-        edit: "edit",
-        delete: "delete"
-    };
-
-    const actualAction = permissionMap[action] || action;
-
-    const allowed =
-        modulePermissions?.[module]?.[actualAction];
-
-    return allowed && allowed !== "none";
+    return (
+        permission &&
+        permission !== "none"
+    );
 };

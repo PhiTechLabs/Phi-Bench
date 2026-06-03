@@ -8,7 +8,6 @@ import {
     FaTrash,
     FaSearch,
     FaUserShield,
-    FaArrowLeft,
 } from "react-icons/fa";
 
 import Toast from "./component/Toast";
@@ -16,22 +15,26 @@ import ConfirmDialog from "./component/ConfirmDialog";
 import RoleBadge from "./component/RoleBadge";
 import UserModal from "./modals/UserModal";
 
-import { getCurrentUser } from "../../utils/auth";
-import { hasPermission } from "../../utils/hasPermission";
-import { PERMISSIONS } from "./constants/permissions";
 import BackButton from "../../reusable/BackButton";
 
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
+import usePermissions from "../../hooks/usePermission";
+// import {MODULES, ACTIONS} from "./settings/constants/permissions";
+import { getCurrentUser } from "../../utils/auth";
 
 export default function Users() {
 
     const loggedUser = getCurrentUser();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
+    
 
     // ─── Permission checks ─────────────────────────────────────
-    const canCreate = hasPermission(loggedUser, PERMISSIONS.USER_CREATE);
-    const canEdit   = hasPermission(loggedUser, PERMISSIONS.USER_EDIT);
-    const canDelete = hasPermission(loggedUser, PERMISSIONS.USER_DELETE);
+    const { can } = usePermissions();
+
+    const canView = can("users", "view");
+    const canCreate = can("users", "add");
+    const canEdit = can("users", "edit");
+    const canDelete = can("users", "delete");
 
     // ─── State ─────────────────────────────────────────────────
     const [users, setUsers]               = useState([]);
@@ -93,7 +96,7 @@ export default function Users() {
     });
 
     // ─── Access denied (no USER_VIEW permission) ───────────────
-    if (!hasPermission(loggedUser, PERMISSIONS.USER_VIEW)) {
+    if (!canView) {
         return (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
                 <FaUserShield className="text-4xl text-gray-200 mx-auto mb-3" />
