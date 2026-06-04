@@ -20,9 +20,9 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
-console.log("USER_VIEW", PERMISSIONS.USER_VIEW);
-console.log("ROLE_VIEW", PERMISSIONS.ROLE_VIEW);
-console.log("PERMISSION_VIEW", PERMISSIONS.PERMISSION_VIEW);
+console.log("USERS_VIEW", PERMISSIONS.USERS_VIEW);
+console.log("ROLES_VIEW", PERMISSIONS.ROLES_VIEW);
+console.log("PERMISSIONS_VIEW", PERMISSIONS.PERMISSIONS_VIEW);
 console.log("CLIENT_CREATE", PERMISSIONS.CLIENT_CREATE);
 
 export const roleRoutes = [

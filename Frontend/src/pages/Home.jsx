@@ -16,6 +16,7 @@ import {
   listInterviews,
   listUpcomingInterviews,
 } from "../api/interviewsApi";
+import usePermissions from "../hooks/usePermission";
 
 /* ─────────────────────────────────────────────────────────────
  *  CONSTANTS
@@ -102,18 +103,41 @@ const Home = () => {
   /* ── single fetch routine, reused by initial load and polling ── */
   const isMountedRef = useRef(true);
 
+  const { can } = usePermissions();
+
   const fetchAll = useCallback(async () => {
     try {
       // Each call has its own .catch(() => fallback) so one failing API
       // never wipes out the whole dashboard.
-      const [jobsRes, candidatesRes, clientsRes, interviewsRes, upcomingRes] =
-        await Promise.all([
-          listJobs().catch((e) => { console.warn("jobs fetch failed:", e); return []; }),
-          listCandidates().catch((e) => { console.warn("candidates fetch failed:", e); return []; }),
-          getAllClients().catch((e) => { console.warn("clients fetch failed:", e); return []; }),
-          listInterviews().catch((e) => { console.warn("interviews fetch failed:", e); return []; }),
-          listUpcomingInterviews(5).catch((e) => { console.warn("upcoming fetch failed:", e); return []; }),
-        ]);
+      const promises = [
+        can("job", "view")
+            ? listJobs()
+            : Promise.resolve([]),
+
+        can("candidate", "view")
+            ? listCandidates()
+            : Promise.resolve([]),
+
+        can("clients", "view")
+            ? getAllClients()
+            : Promise.resolve([]),
+
+        can("interview", "view")
+            ? listInterviews()
+            : Promise.resolve([]),
+
+        can("interview", "view")
+            ? listUpcomingInterviews(5)
+            : Promise.resolve([]),
+    ];
+
+    const [
+        jobsRes,
+        candidatesRes,
+        clientsRes,
+        interviewsRes,
+        upcomingRes,
+    ] = await Promise.all(promises);
 
       if (!isMountedRef.current) return;
 

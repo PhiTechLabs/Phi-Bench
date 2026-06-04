@@ -6,6 +6,13 @@ export const requirePermission =
 
             const role = req.user?.role;
 
+            console.log("MODULE:", module);
+            console.log("ACTION:", action);
+            console.log(
+                "VALUE:",
+                role?.modulePermissions?.[module]?.[action]
+            );
+
             if (!role) {
 
                 return res.status(401).json({
@@ -16,9 +23,7 @@ export const requirePermission =
 
             // Super Admin Bypass
             if (role.name === "super_admin") {
-
                 return next();
-
             }
 
             const modulePermissions =

@@ -95,7 +95,7 @@ export default function Users() {
         return name.includes(q) || roleName.includes(q);
     });
 
-    // ─── Access denied (no USER_VIEW permission) ───────────────
+    // ─── Access denied (no USERs_VIEW permission) ───────────────
     if (!canView) {
         return (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
