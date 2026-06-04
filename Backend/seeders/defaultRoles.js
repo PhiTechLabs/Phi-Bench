@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import connectDB from "../config/db.js";
-import Role from "../models/Role.js";
+import Role from "../models/role.js";
 
 dotenv.config();
 

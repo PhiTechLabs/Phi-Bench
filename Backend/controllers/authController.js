@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import Role from "../models/Role.js";
+import Role from "../models/role.js";
 
 import {
     generateAccessToken,

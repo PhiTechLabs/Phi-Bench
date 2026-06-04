@@ -4,6 +4,8 @@ import axiosInstance from "../../api/axiosInstance";
 
 import PermissionModal from "./modals/PermissionModal";
 
+import BackButton from "../../reusable/BackButton";
+
 import {
     FaPen,
     FaCheckCircle,
@@ -111,7 +113,10 @@ export default function Permissions() {
             {/* HEADER */}
             <div className="flex items-center justify-between mb-6">
 
-                <div>
+                <div className="flex items-center gap-4">
+                    <div>
+                        <BackButton />
+                    </div>
 
                     <h1 className="text-2xl font-semibold text-gray-800">
 
