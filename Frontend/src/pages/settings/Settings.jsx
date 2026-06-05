@@ -1,5 +1,6 @@
     import { useState } from "react";
     import { useNavigate } from "react-router-dom";
+    import BackButton from "../../reusable/BackButton";
 
     // ============================================================
     // SETTINGS CONFIGURATION
@@ -209,13 +210,18 @@
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 
         {/* Title */}
-        <div>
+        <div className="flex items-center gap-4">
+            <div>
+                <BackButton to="/dashboard" className="mb-3" />
+            </div>
+            <div>
             <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
             Settings
             </h1>
             <p className="text-sm text-slate-500 mt-1">
             Manage your workspace preferences and integrations
             </p>
+            </div>
         </div>
 
         {/* Search */}
