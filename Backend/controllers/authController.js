@@ -188,6 +188,12 @@ export const refreshAccessToken = async (
             });
         }
 
+        if (user.refreshToken !== refreshToken) {
+            return res.status(403).json({
+                message: "Refresh token mismatch",
+            });
+        }
+
         const newAccessToken =
             generateAccessToken(user);
 
