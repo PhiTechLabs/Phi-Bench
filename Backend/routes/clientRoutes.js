@@ -10,22 +10,20 @@ import {
 
 import { protect } from "../middleware/authMiddleware.js";
 
-import { requirePermission } from "../middleware/permissionMiddleware.js";
-
 import {
     createClientRules,
     updateClientRules,
-    validate
+    validate,
 } from "../validators/clientValidator.js";
 
-import { PERMISSIONS } from "../config/permissions.js";
+import { requirePermission } from "../middleware/permissionMiddleware.js";
 
 const router = express.Router();
 
 router.post(
     "/",
     protect,
-    requirePermission(PERMISSIONS.CLIENT_CREATE),
+    requirePermission("clients", "add"),
     createClientRules,
     validate,
     createClient
@@ -34,21 +32,21 @@ router.post(
 router.get(
     "/",
     protect,
-    requirePermission(PERMISSIONS.CLIENT_VIEW),
+    requirePermission("clients", "view"),
     getAllClients
 );
 
 router.get(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.CLIENT_VIEW),
+    requirePermission("clients", "view"),
     getClientById
 );
 
 router.put(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.CLIENT_EDIT),
+    requirePermission("clients", "edit"),
     updateClientRules,
     validate,
     updateClient
@@ -57,7 +55,7 @@ router.put(
 router.delete(
     "/:id",
     protect,
-    requirePermission(PERMISSIONS.CLIENT_DELETE),
+    requirePermission("clients", "delete"),
     deleteClient
 );
 

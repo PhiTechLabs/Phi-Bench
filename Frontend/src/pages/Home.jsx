@@ -9,6 +9,14 @@ import { getStatusStyle, INTERVIEW_STATUS_STYLES } from "../utils/submissionStat
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const POLL_MS = 60_000;
+import { listJobs }       from "../api/jobsApi";
+import { listCandidates } from "../api/candidatesApi";
+import { getAllClients }  from "../api/clientApi";
+import {
+  listInterviews,
+  listUpcomingInterviews,
+} from "../api/interviewsApi";
+import usePermissions from "../hooks/usePermission";
 
 const SUBMISSION_PIPELINE = [
   { key: "For Validation",      label: "Validation",   color: "#3B82F6", bg: "#EFF6FF" },
@@ -188,6 +196,66 @@ const Home = () => {
     setSubmissions(Array.isArray(sub) ? sub : []);
     setLastUpdated(new Date());
     setLoading(false);
+  
+  }, []);
+  /* ── single fetch routine, reused by initial load and polling ── */
+  const isMountedRef = useRef(true);
+
+  const { can } = usePermissions();
+
+  const fetchAll = useCallback(async () => {
+    try {
+      // Each call has its own .catch(() => fallback) so one failing API
+      // never wipes out the whole dashboard.
+      const promises = [
+        can("job", "view")
+            ? listJobs()
+            : Promise.resolve([]),
+
+        can("candidate", "view")
+            ? listCandidates()
+            : Promise.resolve([]),
+
+        can("clients", "view")
+            ? getAllClients()
+            : Promise.resolve([]),
+
+        can("interview", "view")
+            ? listInterviews()
+            : Promise.resolve([]),
+
+        can("interview", "view")
+            ? listUpcomingInterviews(5)
+            : Promise.resolve([]),
+    ];
+
+    const [
+        jobsRes,
+        candidatesRes,
+        clientsRes,
+        interviewsRes,
+        upcomingRes,
+    ] = await Promise.all(promises);
+
+      if (!isMountedRef.current) return;
+
+      setJobs(Array.isArray(jobsRes) ? jobsRes : []);
+      setCandidates(Array.isArray(candidatesRes) ? candidatesRes : []);
+
+      // clientApi returns { clients: [...] } or { data: [...] } or []
+      const clientList = Array.isArray(clientsRes)
+        ? clientsRes
+        : clientsRes?.clients || clientsRes?.data || [];
+      setClients(clientList);
+
+      setInterviews(Array.isArray(interviewsRes) ? interviewsRes : []);
+      setUpcoming(Array.isArray(upcomingRes) ? upcomingRes : []);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.warn("Dashboard fetch failed:", err);
+    } finally {
+      if (isMountedRef.current) setLoading(false);
+    }
   }, []);
 
   useEffect(() => {

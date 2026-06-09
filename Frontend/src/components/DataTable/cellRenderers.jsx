@@ -38,7 +38,10 @@ export const renderCell = ({ column, row, rowIndex, pageStart = 0, ctx = {} }) =
       return <ExperienceCell row={row} valueKey={column.key} />;
     case "toggle":
     return (
-      <PermissionGuard permission={PERMISSIONS.CANDIDATE_EDIT}>
+      <PermissionGuard
+          module="candidate"
+          action="edit"
+      >
         <ToggleCell
           on={!!value}
           onToggle={() => column.onToggle?.(row.id)}
@@ -47,7 +50,10 @@ export const renderCell = ({ column, row, rowIndex, pageStart = 0, ctx = {} }) =
     );
     case "status":
       return (
-        <PermissionGuard permission={PERMISSIONS.CANDIDATE_EDIT}>
+        <PermissionGuard
+          module="candidate"
+          action="edit"
+        >
           <StatusCell
             value={value}
             options={column.statusOptions || []}

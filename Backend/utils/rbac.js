@@ -7,9 +7,9 @@ export const canManageRole = (
         return false;
     }
 
-    // SUPER ADMIN BYPASS
     if (
-        currentUserRole.permissions?.includes("*")
+        currentUserRole.name ===
+        "super_admin"
     ) {
         return true;
     }

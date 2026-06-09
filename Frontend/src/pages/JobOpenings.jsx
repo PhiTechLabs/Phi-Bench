@@ -9,9 +9,7 @@ import {
   deleteJob,
 } from "../api/jobsApi";
 import useRoleBase from "../hooks/useRoleBase";
-import { getCurrentUser } from "../utils/auth";
-import { hasPermission } from "../utils/hasPermission";
-import { PERMISSIONS } from "../pages/settings/constants/permissions";
+import usePermissions from "../hooks/usePermission";
 
 
 
@@ -42,10 +40,14 @@ const JobOpenings = () => {
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
-  const user = getCurrentUser();
-  const canCreate = hasPermission(user, PERMISSIONS.JOB_CREATE);
-  const canEdit = hasPermission(user, PERMISSIONS.JOB_EDIT);
-  const canDelete = hasPermission(user, PERMISSIONS.JOB_DELETE);
+  const { can } = usePermissions();
+
+const canView = can("job", "view");
+const canCreate = can("job", "add");
+const canEdit = can("job", "edit");
+const canDelete = can("job", "delete");
+
+  
 
   const refresh = useCallback(async () => {
     try {
@@ -72,7 +74,12 @@ const JobOpenings = () => {
       alert(getApiErrorMessage(err));
     }
   };
-  const handleDelete = (row) => setConfirmDel(row);
+
+  const handleDelete = (row) => {
+    if (!canDelete) return;
+    setConfirmDel(row);
+  };
+
   const confirmDelete = async () => {
     try {
       await deleteJob(confirmDel.id);
@@ -83,6 +90,7 @@ const JobOpenings = () => {
       alert(getApiErrorMessage(err));
     }
   };
+
   const handleBulkDelete = async (ids) => {
     try {
       await Promise.all(ids.map((id) => deleteJob(id)));
@@ -92,13 +100,27 @@ const JobOpenings = () => {
       alert(getApiErrorMessage(err));
     }
   };
-  const handleStatusChange = async (id, newStatus) => {
-    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status: newStatus } : j)));
+
+  const handleStatusChange = async (
+    id,
+    newStatus
+  ) => {
+
+    if (!canEdit) return;
+
+    setJobs((prev) =>
+      prev.map((j) =>
+        j.id === id
+          ? { ...j, status: newStatus }
+          : j
+      )
+    );
+
     try {
-      await updateJob(id, { status: newStatus });
+      await updateJob(id, {
+        status: newStatus,
+      });
     } catch (err) {
-      console.warn("Status update failed:", err?.response?.data || err);
-      alert(getApiErrorMessage(err));
       await refresh();
     }
   };
@@ -115,7 +137,9 @@ const JobOpenings = () => {
     { key: "salary",     label: "Salary / Rate", width: 140, type: "text",     defaultVisible: true, searchable: true },
     {
       key: "status", label: "Status", width: 120, type: "status",
-      statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
+      statusOptions: STATUS_OPTIONS, onStatusChange: canEdit
+    ? handleStatusChange
+    : undefined,
       defaultVisible: true, sortable: true, filterable: true,
     },
     { key: "contact",    label: "Contact",       width: 150, type: "text", searchable: true },
@@ -129,8 +153,22 @@ const JobOpenings = () => {
   ];
 
   if (showForm) {
-    return <JobForm setShowForm={setShowForm} onSave={handleAdd} />;
+      return (
+          <JobForm
+              onSubmit={handleAdd}
+              onCancel={() => setShowForm(false)}
+          />
+      );
   }
+
+  if (!canView) {
+      return (
+          <div className="p-10 text-red-500">
+              Access Denied
+          </div>
+      );
+  }
+
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
@@ -152,12 +190,17 @@ const JobOpenings = () => {
             <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
               Import Jobs
             </button>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-            >
-              <span className="text-[14px] leading-none">+</span> Add Job
-            </button>
+
+            {canCreate && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+              >
+                <span className="text-[14px] leading-none">+</span>
+                Add Job
+              </button>
+            )}
+
           </div>
         </div>
       </div>
@@ -168,9 +211,12 @@ const JobOpenings = () => {
           columns={columns}
           data={jobs}
           storageKey="jobs_table"
-          onRowClick={(row) => navigate(`${roleBase}/jobs/${row.id}`)}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
+          onRowClick={(row) => {
+              if (!canView) return;
+              navigate(`${roleBase}/jobs/${row.id}`);
+          }}
+          onDelete={canDelete ? handleDelete : null}
+          onBulkDelete={canDelete ? handleBulkDelete : null}
           searchPlaceholder="Search title, client, skills…"
           emptyState={{
             title: "No job openings yet",

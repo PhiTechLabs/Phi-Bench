@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import connectDB from "../config/db.js";
-import Role from "../models/Role.js";
-import { PERMISSIONS } from "../config/permissions.js";
+import Role from "../models/role.js";
 
 dotenv.config();
 
@@ -12,7 +11,77 @@ const roles = [
         hierarchyLevel: 1,
         dataScope: "ORGANIZATION",
         isSystemRole: true,
-        permissions: ["*"],
+
+        modulePermissions: {
+            home: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+
+            job: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+
+            candidate: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+
+            clients: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+
+            interview: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+
+            submissions: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+
+            bench: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+
+            report: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
+            users: {
+                view: "all",
+                add: "all",
+                edit: "all",
+                delete: "all",
+            },
+
+            roles: {
+                view: "all",
+                add: "all",
+                edit: "all",
+                delete: "all",
+            },
+        }
     },
 
     {
@@ -21,38 +90,42 @@ const roles = [
         dataScope: "BRANCH",
         isSystemRole: true,
 
-        permissions: [
+        modulePermissions: {
+            home: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
 
-            // Candidates
-            PERMISSIONS.CANDIDATE_VIEW,
-            PERMISSIONS.CANDIDATE_CREATE,
-            PERMISSIONS.CANDIDATE_EDIT,
-            PERMISSIONS.CANDIDATE_DELETE,
+            job: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
 
-            // Jobs
-            PERMISSIONS.JOB_VIEW,
-            PERMISSIONS.JOB_CREATE,
-            PERMISSIONS.JOB_EDIT,
-            PERMISSIONS.JOB_DELETE,
+            candidate: {
+                view: "all",
+                edit: "all",
+                add: "all",
+                delete: "all",
+            },
 
-            // Clients
-            PERMISSIONS.CLIENT_VIEW,
-            PERMISSIONS.CLIENT_CREATE,
-            PERMISSIONS.CLIENT_EDIT,
-            PERMISSIONS.CLIENT_DELETE,
+            users: {
+                view: "all",
+                add: "all",
+                edit: "all",
+                delete: "all",
+            },
 
-            // Users
-            PERMISSIONS.USER_VIEW,
-            PERMISSIONS.USER_CREATE,
-            PERMISSIONS.USER_EDIT,
-            PERMISSIONS.USER_DELETE,
-
-            // Roles
-            PERMISSIONS.ROLE_VIEW,
-            PERMISSIONS.ROLE_CREATE,
-            PERMISSIONS.ROLE_EDIT,
-            PERMISSIONS.ROLE_DELETE,
-        ],
+            roles: {
+                view: "all",
+                add: "all",
+                edit: "all",
+                delete: "all",
+            }
+        }
     },
 
     {
@@ -61,17 +134,7 @@ const roles = [
         dataScope: "TEAM",
         isSystemRole: true,
 
-        permissions: [
-
-            PERMISSIONS.CANDIDATE_VIEW,
-            PERMISSIONS.CANDIDATE_CREATE,
-            PERMISSIONS.CANDIDATE_EDIT,
-
-            PERMISSIONS.JOB_VIEW,
-            PERMISSIONS.JOB_CREATE,
-
-            PERMISSIONS.CLIENT_VIEW,
-        ],
+        
     },
 
     {
@@ -80,15 +143,6 @@ const roles = [
         dataScope: "SELF",
         isSystemRole: true,
 
-        permissions: [
-
-            PERMISSIONS.CANDIDATE_VIEW,
-            PERMISSIONS.CANDIDATE_CREATE,
-
-            PERMISSIONS.JOB_VIEW,
-
-            PERMISSIONS.CLIENT_VIEW,
-        ],
     },
 
     {
@@ -97,9 +151,6 @@ const roles = [
         dataScope: "CUSTOM",
         isSystemRole: true,
 
-        permissions: [
-            PERMISSIONS.JOB_VIEW,
-        ],
     },
 
 ];

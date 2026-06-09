@@ -1,13 +1,36 @@
-export const hasPermission = (user, permission) => {
+export const hasPermission = (
+    user,
+    module,
+    action
+) => {
 
     if (!user) return false;
 
-    const permissions = user.permissions || [];
+    const role =
+        user.role ||
+        user.roleId;
 
     // Super Admin
-    if (permissions.includes("*")) {
+    if (
+        role?.name === "super_admin" ||
+        user.role === "super_admin"
+    ) {
         return true;
     }
 
-    return permissions?.includes(permission);
+    const modulePermissions =
+        user.modulePermissions ||
+        role?.modulePermissions;
+
+    if (!modulePermissions) {
+        return false;
+    }
+
+    const permission =
+        modulePermissions?.[module]?.[action];
+
+    return (
+        permission &&
+        permission !== "none"
+    );
 };

@@ -2,70 +2,75 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
-
-    const token = req.cookies?.accessToken;
-
-    if (!token) {
-
-        return res.status(401).json({
-            message: "Not authorized, no token",
-        });
-    }
-
     try {
 
+        const token = req.cookies?.accessToken;
+
+        if (!token) {
+            return res.status(401).json({
+                message: "Not authorized, no token",
+            });
+        }
+
+        // Verify JWT
         const decoded = jwt.verify(
             token,
             process.env.JWT_SECRET
         );
 
-        // ─────────────────────────────────────────────
-        // FETCH USER WITH ROLE
-        // ─────────────────────────────────────────────
+        console.log("JWT DECODED:", decoded);
+
+        // Fetch user + role
         const user = await User.findById(decoded.id)
             .populate("roleId");
 
         if (!user) {
-
             return res.status(401).json({
                 message: "User not found",
             });
         }
 
-        // ─────────────────────────────────────────────
-        // BLOCK INACTIVE USERS
-        // ─────────────────────────────────────────────
         if (!user.isActive) {
-
             return res.status(403).json({
                 message: "User account is inactive",
             });
         }
 
-        // ─────────────────────────────────────────────
-        // ATTACH USER TO REQUEST
-        // ─────────────────────────────────────────────
+        // Create req.user BEFORE logging it
         req.user = {
-
             id: user._id,
-
             username: user.username,
-
-            // FULL ROLE OBJECT
             role: user.roleId,
-
-            // EASY ACCESS
-            permissions:
-                user.roleId?.permissions || [],
-
+            modulePermissions:
+                user.roleId?.modulePermissions || {},
         };
+
+        console.log(
+            "AUTH ROLE:",
+            JSON.stringify(user.roleId, null, 2)
+        );
+
+        console.log(
+            "REQ.USER:",
+            JSON.stringify(req.user, null, 2)
+        );
 
         next();
 
     } catch (error) {
 
+        console.error(
+            "AUTH MIDDLEWARE ERROR:"
+        );
+
+        console.error(error);
+
+        console.error(
+            error?.stack
+        );
+
         return res.status(401).json({
-            message: "Token invalid or expired",
+            message: "Invalid or expired token",
         });
     }
 };

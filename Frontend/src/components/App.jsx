@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import ProtectedRoute from "./ProtectedRoute";
 import { roleRoutes } from "../routes/roleRoutes";
 import Setup from "../pages/Setup";
+import Unauthorized from "../pages/Unauthorized";
 
 function App() {
     return (
@@ -15,8 +16,13 @@ function App() {
                 {/* SETUP — accessible by all roles, outside Navbar layout */}
                 <Route path="/setup" element={<Setup />} />
 
+                <Route
+                    path="/unauthorized"
+                    element={<Unauthorized />}
+                />
+
                 {/* PROTECTED ROUTES - No role prefix in URL */}
-                <Route element={<ProtectedRoute><Navbar /></ProtectedRoute>}>
+                <Route element={<Navbar />}>
                     {roleRoutes.map((route, index) => (
                         <Route key={index} {...route} />
                     ))}

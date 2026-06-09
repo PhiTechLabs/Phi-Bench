@@ -8,7 +8,9 @@ import {
     updateInterviewService,
     deleteInterviewService,
     addFeedbackService,
+    getUpcomingInterviewsService,
 } from "../services/interviewService.js";
+
 
 // ─── CREATE INTERVIEW ─────────────────────────────────────────────────────────
 export const createInterview = asyncHandler(async (req, res) => {
@@ -62,4 +64,14 @@ export const addFeedback = asyncHandler(async (req, res) => {
 export const deleteInterview = asyncHandler(async (req, res) => {
     await deleteInterviewService(req.params.id);
     res.json({ message: "Interview deleted successfully" });
+});
+// ─── UPCOMING INTERVIEWS ─────────────────────────────
+export const getUpcomingInterviews = asyncHandler(async (req, res) => {
+
+    const interviews = await getUpcomingInterviewsService();
+
+    res.json({
+        count: interviews.length,
+        interviews,
+    });
 });

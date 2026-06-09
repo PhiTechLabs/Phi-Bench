@@ -1,7 +1,6 @@
-import Role from "../models/Role.js";
+import Role from "../models/role.js";
 import User from "../models/User.js";
 
-import { PERMISSIONS } from "../config/permissions.js";
 
 import { canManageRole } from "../utils/rbac.js";
 
@@ -57,7 +56,18 @@ export const getPermissions = async (req, res) => {
     try {
 
         return res.status(200).json({
-            permissions: Object.values(PERMISSIONS),
+            modules: [
+                "home",
+                "job",
+                "candidate",
+                "bench",
+                "submissions",
+                "interview",
+                "clients",
+                "report",
+                "users",
+                "roles",
+            ],
         });
 
     } catch (error) {
@@ -72,15 +82,19 @@ export const getPermissions = async (req, res) => {
 // CREATE ROLE
 // ───────────────────────────────────────────────────────────
 export const createRole = async (req, res) => {
+    console.log(
+    "ROLE CREATE BODY",
+    JSON.stringify(req.body, null, 2)
+);
 
     try {
 
         let {
             name,
             description,
-            permissions,
             hierarchyLevel,
             dataScope,
+            modulePermissions,
         } = req.body;
 
         // ─────────────────────────────────────────────
@@ -99,7 +113,7 @@ export const createRole = async (req, res) => {
         // HIERARCHY ENFORCEMENT
         // ─────────────────────────────────────────────
         if (
-            !currentUserRole.permissions?.includes("*") &&
+            currentUserRole.name !== "super_admin" &&
             Number(hierarchyLevel) <=
             currentUserRole.hierarchyLevel
         ) {
@@ -118,7 +132,6 @@ export const createRole = async (req, res) => {
             .toLowerCase()
             .replace(/\s+/g, "_");
 
-        const safePermissions = permissions || [];
 
         // ─────────────────────────────────────────────
         // DUPLICATE CHECK
@@ -134,45 +147,19 @@ export const createRole = async (req, res) => {
             });
         }
 
-        // ─────────────────────────────────────────────
-        // VALIDATE PERMISSIONS
-        // ─────────────────────────────────────────────
-        const validPermissions =
-            Object.values(PERMISSIONS);
-
-        const invalidPermissions =
-            safePermissions.filter(
-                (permission) =>
-                    !validPermissions.includes(permission)
-            );
-
-        if (invalidPermissions.length > 0) {
-
-            return res.status(400).json({
-                message: "Invalid permissions detected",
-                invalidPermissions,
-            });
-        }
+        
 
         // ─────────────────────────────────────────────
         // CREATE ROLE
         // ─────────────────────────────────────────────
         const role = await Role.create({
-
             name: normalizedName,
-
             description: description || "",
-
             hierarchyLevel: Number(hierarchyLevel),
-
-            permissions: safePermissions,
-
+            modulePermissions: modulePermissions || {},
             dataScope: dataScope || "SELF",
-
             createdBy: req.user.id,
-
             isSystemRole: false,
-
         });
 
         return res.status(201).json({
@@ -203,7 +190,6 @@ export const updateRole = async (req, res) => {
         let {
             name,
             description,
-            permissions,
             hierarchyLevel,
             dataScope,
         } = req.body;
@@ -274,31 +260,6 @@ export const updateRole = async (req, res) => {
             }
         }
 
-        if (permissions !== undefined) {
-
-            const safePermissions =
-                permissions || [];
-
-            const validPermissions =
-                Object.values(PERMISSIONS);
-
-            const invalidPermissions =
-                safePermissions.filter(
-                    (permission) =>
-                        !validPermissions.includes(permission)
-                );
-
-            if (invalidPermissions.length > 0) {
-
-                return res.status(400).json({
-                    message:
-                        "Invalid permissions detected",
-                    invalidPermissions,
-                });
-            }
-
-            role.permissions = safePermissions;
-        }
 
         if (name) {
             role.name = normalizedName;
@@ -335,6 +296,100 @@ export const updateRole = async (req, res) => {
     }
 };
 
+
+// ───────────────────────────────────────────────────────────
+// UPDATE MODULE PERMISSIONS
+// ───────────────────────────────────────────────────────────
+export const updateModulePermissions =
+    async (req, res) => {
+
+        try {
+
+            const { id } = req.params;
+
+            const {
+                module,
+                permissions,
+            } = req.body;
+
+            const role =
+                await Role.findById(id);
+
+            if (!role) {
+
+                return res.status(404).json({
+                    message:
+                        "Role not found",
+                });
+            }
+
+            // ───────────────── VALIDATE MODULE ─────────────────
+            const allowedModules = [
+                "home",
+                "job",
+                "candidate",
+                "bench",
+                "submissions",
+                "interview",
+                "clients",
+                "report",
+                "users",
+                "roles",
+            ];
+
+            if (
+                !allowedModules.includes(
+                    module
+                )
+            ) {
+
+                return res.status(400).json({
+                    message:
+                        "Invalid module",
+                });
+            }
+
+            // ───────────────── UPDATE MODULE PERMISSIONS ─────────────────
+            role.modulePermissions[
+                module
+            ] = {
+                view:
+                    permissions.view ||
+                    "none",
+
+                edit:
+                    permissions.edit ||
+                    "none",
+
+                add:
+                    permissions.add ||
+                    "none",
+
+                delete:
+                    permissions.delete ||
+                    "none",
+            };
+
+            await role.save();
+
+            return res.status(200).json({
+
+                message:
+                    "Permissions updated successfully",
+
+                role,
+
+            });
+
+        } catch (error) {
+
+            return res.status(500).json({
+                message: error.message,
+            });
+        }
+    };
+
+    
 // ───────────────────────────────────────────────────────────
 // DELETE ROLE
 // ───────────────────────────────────────────────────────────

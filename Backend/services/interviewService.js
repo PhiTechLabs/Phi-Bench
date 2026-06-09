@@ -272,3 +272,40 @@ export const deleteInterviewService = async (id) => {
     }
     return interview;
 };
+
+// ─── ADD FEEDBACK ─────────────────────────────────────────────────────────────
+export const addFeedbackService = async (id, { feedback, rating, status }) => {
+    const interview = await Interview.findByIdAndUpdate(
+        id,
+        {
+            feedback: feedback || "",
+            rating:   rating   || null,
+            status:   status   || "Completed",
+        },
+        { new: true, runValidators: true }
+    );
+
+    if (!interview) {
+        const err = new Error("Interview not found");
+        err.statusCode = 404;
+        throw err;
+    }
+
+    return interview;
+};
+
+// ─── GET UPCOMING INTERVIEWS ─────────────────────────
+export const getUpcomingInterviewsService = async () => {
+
+    const now = new Date();
+
+    return await Interview.find({
+        interviewDate: {
+            $gte: now,
+        },
+    })
+        .sort({ interviewDate: 1 })
+        .limit(5)
+        .populate("candidateId")
+        .populate("jobId");
+};

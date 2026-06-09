@@ -100,10 +100,17 @@ const Navbar = () => {
   },
 ];
 
+console.log("USER", user);
+
   const primaryMenu = allPrimaryMenu.filter(item => {
     if (!item.permission) return true;
-    return hasPermission(user, item.permission);
-  });
+
+    return hasPermission(
+        user,
+        item.permission.module,
+        item.permission.action
+    );
+});
 
   const secondaryMenu = [
 
@@ -136,10 +143,14 @@ const Navbar = () => {
       },
   ];
 
-  const filteredSecondaryMenu = secondaryMenu.filter(item => {
-      if (!item.permission) return true;
-      return hasPermission(user, item.permission);
-  });
+    const filteredSecondaryMenu = secondaryMenu.filter(item => {
+        if (!item.permission) return true;
+        return hasPermission(
+            user,
+            item.permission.module,
+            item.permission.action
+        );
+    });
 
   const fullMenu = [...primaryMenu, ...filteredSecondaryMenu];
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
@@ -228,18 +239,23 @@ const Navbar = () => {
             </button>
           </div>
 
-          {hasPermission(user, PERMISSIONS.SETTINGS_VIEW) && (
+          {hasPermission(
+            user,
+            PERMISSIONS.SETTINGS_VIEW.module,
+            PERMISSIONS.SETTINGS_VIEW.action
+        ) && (
             <button
-              onClick={() => navigate("/settings")}
-              className={`p-2 rounded-lg text-lg transition
-                ${isActive("/settings")
-                  ? "bg-blue-700 text-white"
-                  : "text-blue-200 hover:bg-blue-800 hover:text-white"
-                }`}
+                onClick={() => navigate("/settings")}
+                className={`p-2 rounded-lg text-lg transition
+                    ${
+                        isActive("/settings")
+                            ? "bg-blue-700 text-white"
+                            : "text-blue-200 hover:bg-blue-800 hover:text-white"
+                    }`}
             >
-              <FaCog />
+                <FaCog />
             </button>
-          )}
+        )}
 
           <button
             onClick={() => setProfileOpen(true)}
@@ -298,7 +314,9 @@ const Navbar = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-lg">{user?.username}</p>
-                  <p className="text-sm opacity-80 capitalize">{user?.role}</p>
+                  <p className="text-sm opacity-80 capitalize">
+                    {user?.roleId?.name || user?.role}
+                </p>
                 </div>
               </div>
 
@@ -318,7 +336,7 @@ const Navbar = () => {
               </div>
               <div className="bg-gray-50 p-4 rounded-xl shadow-sm">
                 <p className="text-sm text-gray-500">Role</p>
-                <p className="font-medium text-gray-800 capitalize">{user?.role}</p>
+                <p className="font-medium text-gray-800 capitalize">{user?.roleId?.name || user?.role}</p>
               </div>
               <div className="border-t pt-4" />
               <button
