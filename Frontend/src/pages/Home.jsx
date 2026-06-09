@@ -203,60 +203,60 @@ const Home = () => {
 
   const { can } = usePermissions();
 
-  const fetchAll = useCallback(async () => {
-    try {
-      // Each call has its own .catch(() => fallback) so one failing API
-      // never wipes out the whole dashboard.
-      const promises = [
-        can("job", "view")
-            ? listJobs()
-            : Promise.resolve([]),
+  // const fetchAll = useCallback(async () => {
+  //   try {
+  //     // Each call has its own .catch(() => fallback) so one failing API
+  //     // never wipes out the whole dashboard.
+  //     const promises = [
+  //       can("job", "view")
+  //           ? listJobs()
+  //           : Promise.resolve([]),
 
-        can("candidate", "view")
-            ? listCandidates()
-            : Promise.resolve([]),
+  //       can("candidate", "view")
+  //           ? listCandidates()
+  //           : Promise.resolve([]),
 
-        can("clients", "view")
-            ? getAllClients()
-            : Promise.resolve([]),
+  //       can("clients", "view")
+  //           ? getAllClients()
+  //           : Promise.resolve([]),
 
-        can("interview", "view")
-            ? listInterviews()
-            : Promise.resolve([]),
+  //       can("interview", "view")
+  //           ? listInterviews()
+  //           : Promise.resolve([]),
 
-        can("interview", "view")
-            ? listUpcomingInterviews(5)
-            : Promise.resolve([]),
-    ];
+  //       can("interview", "view")
+  //           ? listUpcomingInterviews(5)
+  //           : Promise.resolve([]),
+  //   ];
 
-    const [
-        jobsRes,
-        candidatesRes,
-        clientsRes,
-        interviewsRes,
-        upcomingRes,
-    ] = await Promise.all(promises);
+  //   const [
+  //       jobsRes,
+  //       candidatesRes,
+  //       clientsRes,
+  //       interviewsRes,
+  //       upcomingRes,
+  //   ] = await Promise.all(promises);
 
-      if (!isMountedRef.current) return;
+  //     if (!isMountedRef.current) return;
 
-      setJobs(Array.isArray(jobsRes) ? jobsRes : []);
-      setCandidates(Array.isArray(candidatesRes) ? candidatesRes : []);
+  //     setJobs(Array.isArray(jobsRes) ? jobsRes : []);
+  //     setCandidates(Array.isArray(candidatesRes) ? candidatesRes : []);
 
-      // clientApi returns { clients: [...] } or { data: [...] } or []
-      const clientList = Array.isArray(clientsRes)
-        ? clientsRes
-        : clientsRes?.clients || clientsRes?.data || [];
-      setClients(clientList);
+  //     // clientApi returns { clients: [...] } or { data: [...] } or []
+  //     const clientList = Array.isArray(clientsRes)
+  //       ? clientsRes
+  //       : clientsRes?.clients || clientsRes?.data || [];
+  //     setClients(clientList);
 
-      setInterviews(Array.isArray(interviewsRes) ? interviewsRes : []);
-      setUpcoming(Array.isArray(upcomingRes) ? upcomingRes : []);
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.warn("Dashboard fetch failed:", err);
-    } finally {
-      if (isMountedRef.current) setLoading(false);
-    }
-  }, []);
+  //     setInterviews(Array.isArray(interviewsRes) ? interviewsRes : []);
+  //     setUpcoming(Array.isArray(upcomingRes) ? upcomingRes : []);
+  //     setLastUpdated(new Date());
+  //   } catch (err) {
+  //     console.warn("Dashboard fetch failed:", err);
+  //   } finally {
+  //     if (isMountedRef.current) setLoading(false);
+  //   }
+  // }, []);
 
   useEffect(() => {
     mounted.current = true;

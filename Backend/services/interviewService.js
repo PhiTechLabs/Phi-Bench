@@ -219,60 +219,6 @@ export const updateInterviewService = async (id, payload) => {
     return interview;
 };
 
-// ─── ADD FEEDBACK (with outcome → auto-advance submission) ───────────────────
-export const addFeedbackService = async (id, { feedback, rating, outcome, notes }, userId) => {
-
-    const interview = await Interview.findById(id).populate("submission");
-    if (!interview) {
-        const err = new Error("Interview not found");
-        err.statusCode = 404;
-        throw err;
-    }
-
-    // Map outcome to interview status
-    let interviewStatus = "Completed";
-    if (outcome === "No Show") interviewStatus = "No Show";
-    else if (outcome === "Client Reschedule" || outcome === "Candidate Reschedule") interviewStatus = "Rescheduled";
-    else if (outcome === "Backout") interviewStatus = "Cancelled";
-
-    const updated = await Interview.findByIdAndUpdate(
-        id,
-        {
-            feedback: feedback || "",
-            rating:   rating   || null,
-            outcome:  outcome  || "Done",
-            status:   interviewStatus,
-            notes:    notes || interview.notes,
-        },
-        { new: true, runValidators: true }
-    );
-
-    // Auto-advance submission status based on outcome
-    if (interview.submission) {
-        const submissionId = interview.submission._id || interview.submission;
-        await advanceSubmissionStatus(
-            submissionId,
-            interview.interviewRound,
-            outcome || "Done",
-            userId,
-            `Feedback submitted for ${interview.interviewRound} interview`
-        );
-    }
-
-    return updated;
-};
-
-// ─── DELETE INTERVIEW ─────────────────────────────────────────────────────────
-export const deleteInterviewService = async (id) => {
-    const interview = await Interview.findByIdAndDelete(id);
-    if (!interview) {
-        const err = new Error("Interview not found");
-        err.statusCode = 404;
-        throw err;
-    }
-    return interview;
-};
-
 // ─── ADD FEEDBACK ─────────────────────────────────────────────────────────────
 export const addFeedbackService = async (id, { feedback, rating, status }) => {
     const interview = await Interview.findByIdAndUpdate(
@@ -309,3 +255,15 @@ export const getUpcomingInterviewsService = async () => {
         .populate("candidateId")
         .populate("jobId");
 };
+
+// ─── DELETE INTERVIEW ─────────────────────────────────────────────────────────
+export const deleteInterviewService = async (id) => {
+    const interview = await Interview.findByIdAndDelete(id);
+    if (!interview) {
+        const err = new Error("Interview not found");
+        err.statusCode = 404;
+        throw err;
+    }
+    return interview;
+};
+

@@ -18,21 +18,6 @@ import { requirePermission } from "../middleware/permissionMiddleware.js";
 const router = express.Router();
 
 // ─── COLLECTION ──────────────────────────────────────────────────────────────
-router.get("/", protect, requirePermission(PERMISSIONS.SUBMISSION_VIEW), listSubmissions);
-router.post("/", protect, requirePermission(PERMISSIONS.SUBMISSION_CREATE), createSubmission);
-
-// ─── NESTED ──────────────────────────────────────────────────────────────────
-router.get("/candidate/:candidateId", protect, requirePermission(PERMISSIONS.SUBMISSION_VIEW), getCandidateSubmissions);
-router.get("/job/:jobId", protect, requirePermission(PERMISSIONS.SUBMISSION_VIEW), getJobSubmissions);
-
-// ─── SINGLE RESOURCE ─────────────────────────────────────────────────────────
-router.get("/:id", protect, requirePermission(PERMISSIONS.SUBMISSION_VIEW), getSubmission);
-router.put("/:id", protect, requirePermission(PERMISSIONS.SUBMISSION_EDIT), updateSubmission);
-router.delete("/:id", protect, requirePermission(PERMISSIONS.SUBMISSION_DELETE), deleteSubmission);
-
-// ─── SPECIAL ACTIONS ─────────────────────────────────────────────────────────
-router.patch("/:id/force-status", protect, requirePermission(PERMISSIONS.SUBMISSION_EDIT), forceStatus);
-router.get("/:id/transitions", protect, requirePermission(PERMISSIONS.SUBMISSION_VIEW), getAllowedTransitions);
 router.get(
     "/",
     protect,
@@ -47,6 +32,7 @@ router.post(
     createSubmission
 );
 
+// ─── NESTED ──────────────────────────────────────────────────────────────────
 router.get(
     "/candidate/:candidateId",
     protect,
@@ -61,6 +47,7 @@ router.get(
     getJobSubmissions
 );
 
+// ─── SINGLE RESOURCE ─────────────────────────────────────────────────────────
 router.get(
     "/:id",
     protect,
@@ -80,6 +67,21 @@ router.delete(
     protect,
     requirePermission("submissions", "delete"),
     deleteSubmission
+);
+
+// ─── SPECIAL ACTIONS ─────────────────────────────────────────────────────────
+router.patch(
+    "/:id/force-status",
+    protect,
+    requirePermission("submissions", "edit"),
+    forceStatus
+);
+
+router.get(
+    "/:id/transitions",
+    protect,
+    requirePermission("submissions", "view"),
+    getAllowedTransitions
 );
 
 export default router;
