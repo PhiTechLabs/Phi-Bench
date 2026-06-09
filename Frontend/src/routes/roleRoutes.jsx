@@ -5,6 +5,7 @@ import Candidates from "../pages/Candidates";
 import Interviews from "../pages/Interviews";
 import Bench from "../pages/Bench";
 import Submissions from "../pages/Submissions";
+import SubmissionDetail from "../pages/SubmissionDetail";
 import Vendors from "../pages/Vendors";
 import Reports from "../pages/Reports";
 import Settings from "../pages/settings/Settings";
@@ -133,6 +134,15 @@ export const roleRoutes = [
         element: (
             <ProtectedRoute permission={PERMISSIONS.SUBMISSION_VIEW}>
                 <Submissions />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "submissions/:id",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.SUBMISSION_VIEW}>
+                <SubmissionDetail />
             </ProtectedRoute>
         ),
     },

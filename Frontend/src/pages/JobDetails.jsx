@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getJobById, deleteJob, updateJob } from "../api/jobsApi";
-import { getJobSubmissions } from "../api/submissionsApi";
+import { getJobSubmissions, updateSubmission } from "../api/submissionsApi";
 import { getJobInterviews } from "../api/interviewsApi";
 import useRoleBase from "../hooks/useRoleBase";
+import ChangeStatusModal from "../components/modals/ChangeStatusModal";
+import InterviewFeedbackModal from "../components/modals/InterviewFeedbackModal";
+import { getStatusStyle, INTERVIEW_STATUS_STYLES, INTERVIEW_OUTCOME_STYLES } from "../utils/submissionStatuses";
+import { SubmissionsTable, InterviewsTable } from "../components/shared/PipelineTables";
 
 // ─── ICON ─────────────────────────────────────────────────────────────────────
 const Icon = ({ d, size = 16, className = "" }) => (
@@ -37,28 +41,7 @@ const JOB_STATUS = {
     Filled:    { bg: "#EFF6FF", text: "#1E40AF", dot: "#3B82F6", border: "#BFDBFE" },
 };
 
-const SUB_STATUS = {
-    Submitted:              { bg: "#EFF6FF", text: "#1D4ED8", dot: "#3B82F6" },
-    "Under Review":         { bg: "#F5F3FF", text: "#6D28D9", dot: "#8B5CF6" },
-    Shortlisted:            { bg: "#ECFDF5", text: "#065F46", dot: "#10B981" },
-    "Interview Scheduled":  { bg: "#FFF7ED", text: "#C2410C", dot: "#F97316" },
-    "Offer Extended":       { bg: "#FEF9C3", text: "#854D0E", dot: "#EAB308" },
-    Hired:                  { bg: "#DCFCE7", text: "#166534", dot: "#22C55E" },
-    Rejected:               { bg: "#FEF2F2", text: "#991B1B", dot: "#EF4444" },
-    "On Hold":              { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF" },
-    Withdrawn:              { bg: "#F9FAFB", text: "#6B7280", dot: "#D1D5DB" },
-};
-
-const IV_STATUS = {
-    Scheduled:   { bg: "#EFF6FF", text: "#1D4ED8", dot: "#3B82F6" },
-    Confirmed:   { bg: "#ECFDF5", text: "#065F46", dot: "#10B981" },
-    Completed:   { bg: "#F0FDF4", text: "#166534", dot: "#22C55E" },
-    Cancelled:   { bg: "#FEF2F2", text: "#991B1B", dot: "#EF4444" },
-    "No Show":   { bg: "#FFF7ED", text: "#C2410C", dot: "#F97316" },
-    Rescheduled: { bg: "#F5F3FF", text: "#6D28D9", dot: "#8B5CF6" },
-};
-
-// ─── BADGE ────────────────────────────────────────────────────────────────────
+// ─── BADGE (used for job status) ─────────────────────────────────────────────
 const Badge = ({ label, map }) => {
     const cfg = (map && map[label]) || { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF" };
     return (
@@ -83,6 +66,8 @@ const JobDetails = () => {
     const [error, setError]         = useState("");
     const [activeTab, setActiveTab] = useState("details");
     const [statusLoading, setStatusLoading] = useState(false);
+    const [statusModalSub, setStatusModalSub] = useState(null);
+    const [feedbackModalIv, setFeedbackModalIv] = useState(null);
 
     useEffect(() => {
         let active = true;
@@ -177,6 +162,7 @@ const JobDetails = () => {
     ];
 
     return (
+        <>
         <div className="min-h-screen bg-[#F4F6F9]">
 
             {/* ═══ STICKY HEADER ═══ */}
@@ -342,11 +328,13 @@ const JobDetails = () => {
                     )}
 
                     {activeTab === "submissions" && (
-                        <SubmissionsTab submissions={submissions} roleBase={roleBase} navigate={navigate} />
+                        <SubmissionsTab submissions={submissions} roleBase={roleBase} navigate={navigate}
+                            onChangeStatus={(s) => setStatusModalSub(s)} />
                     )}
 
                     {activeTab === "interviews" && (
-                        <InterviewsTab interviews={interviews} roleBase={roleBase} navigate={navigate} />
+                        <InterviewsTab interviews={interviews} roleBase={roleBase} navigate={navigate}
+                            onFeedback={(iv) => setFeedbackModalIv(iv)} />
                     )}
                 </div>
 
@@ -443,170 +431,116 @@ const JobDetails = () => {
                 </div>
             </div>
         </div>
+
+        {/* ═══════════════ MODALS ═══════════════ */}
+        {statusModalSub && (
+            <ChangeStatusModal
+                submission={statusModalSub}
+                onClose={() => setStatusModalSub(null)}
+                onSuccess={async () => {
+                    const fresh = await getJobSubmissions(id).catch(() => []);
+                    setSubs(fresh || []);
+                    setStatusModalSub(null);
+                }}
+            />
+        )}
+        {feedbackModalIv && (
+            <InterviewFeedbackModal
+                interview={feedbackModalIv}
+                onClose={() => setFeedbackModalIv(null)}
+                onSuccess={async () => {
+                    const [freshSubs, freshIvs] = await Promise.all([
+                        getJobSubmissions(id).catch(() => []),
+                        getJobInterviews(id).catch(() => []),
+                    ]);
+                    setSubs(freshSubs || []);
+                    setIvs(freshIvs || []);
+                    setFeedbackModalIv(null);
+                }}
+            />
+        )}
+        </>
     );
 };
 
 // ─── SUBMISSIONS TAB ──────────────────────────────────────────────────────────
-const SubmissionsTab = ({ submissions, roleBase, navigate }) => {
-    const PIPELINE_STAGES = [
-        "Submitted", "Under Review", "Shortlisted",
-        "Interview Scheduled", "Offer Extended", "Hired"
-    ];
-
-    const stageCounts = PIPELINE_STAGES.reduce((acc, s) => {
-        acc[s] = submissions.filter((sub) => sub.status === s).length;
-        return acc;
-    }, {});
-
-    if (!submissions.length) return (
-        <EmptyState icon={icons.doc} title="No submissions yet"
-            message="No candidates have been submitted to this job yet." />
-    );
+const SubmissionsTab = ({ submissions, roleBase, navigate, onChangeStatus }) => {
+    // Pipeline funnel summary counts
+    const counts = {
+        validation:  submissions.filter((s) => s.status === "For Validation").length,
+        submitted:   submissions.filter((s) => s.status === "Submitted To Client").length,
+        interview:   submissions.filter((s) => s.status && (s.status.includes("Schedule") || s.status.includes("Scheduled") || s.status.includes("Feedback"))).length,
+        finalSelect: submissions.filter((s) => s.status === "Final Select" || s.status === "HR Discussion" || s.status === "Offer Sent" || s.status === "Offer Accepted").length,
+        joined:      submissions.filter((s) => s.status === "Joined").length,
+        rejected:    submissions.filter((s) => s.status && (s.status.includes("Reject") || s.status === "BGV Failed" || s.status === "Absconded")).length,
+    };
 
     return (
         <div className="space-y-5">
             {/* Pipeline funnel */}
-            <div className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-                <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] px-5 py-3">
-                    <span className="text-[11px] font-semibold uppercase tracking-widest text-[#94A3B8]">
-                        Submission Pipeline
-                    </span>
-                </div>
-                <div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-[#F1F5F9]">
-                    {PIPELINE_STAGES.map((stage) => {
-                        const cfg = SUB_STATUS[stage] || { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF" };
-                        return (
-                            <div key={stage} className="flex flex-col items-center px-2 py-4">
-                                <p className="text-[22px] font-bold" style={{ color: cfg.dot }}>
-                                    {stageCounts[stage]}
-                                </p>
-                                <p className="mt-1 text-[9.5px] font-semibold text-center leading-tight uppercase tracking-wide"
-                                    style={{ color: cfg.text }}>
-                                    {stage}
-                                </p>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Submission cards */}
-            <div className="space-y-3">
-                {submissions.map((sub) => (
-                    <div key={sub.id || sub._id}
-                        className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm p-5 hover:shadow-md transition cursor-pointer"
-                        onClick={() => navigate(`${roleBase}/candidates/${sub.candidate?._id || sub.candidate}`)}>
-                        <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[13px] font-bold shrink-0">
-                                    {initials(sub.candidateName)}
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[14px] font-semibold text-[#1E293B] truncate">
-                                        {sub.candidateName || "Unnamed Candidate"}
-                                    </p>
-                                    <p className="text-[12px] text-[#64748B] mt-0.5">
-                                        Submitted {fmtDate(sub.submittedDate || sub.createdAt)}
-                                    </p>
-                                </div>
-                            </div>
-                            <Badge label={sub.status} map={SUB_STATUS} />
-                        </div>
-                        {sub.recruiterNotes && (
-                            <div className="mt-3 rounded-lg bg-[#F8FAFC] border border-[#F1F5F9] px-4 py-2.5">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1">Notes</p>
-                                <p className="text-[12px] text-[#475569]">{sub.recruiterNotes}</p>
-                            </div>
-                        )}
+            {submissions.length > 0 && (
+                <div className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
+                    <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] px-5 py-2.5">
+                        <span className="text-[10.5px] font-semibold uppercase tracking-widest text-[#94A3B8]">Pipeline Overview</span>
                     </div>
-                ))}
-            </div>
+                    <div className="grid grid-cols-6 divide-x divide-[#F1F5F9]">
+                        {[
+                            { label: "Validation",   value: counts.validation,  color: "#3B82F6" },
+                            { label: "Submitted",    value: counts.submitted,   color: "#EA580C" },
+                            { label: "Interviewing", value: counts.interview,   color: "#7C3AED" },
+                            { label: "Final Stage",  value: counts.finalSelect, color: "#10B981" },
+                            { label: "Joined",       value: counts.joined,      color: "#059669" },
+                            { label: "Rejected",     value: counts.rejected,    color: "#EF4444" },
+                        ].map((s) => (
+                            <div key={s.label} className="flex flex-col items-center px-3 py-3">
+                                <p className="text-[20px] font-bold" style={{ color: s.color }}>{s.value}</p>
+                                <p className="mt-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-[#94A3B8] text-center">{s.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            <SubmissionsTable
+                submissions={submissions}
+                context="job"
+                onChangeStatus={onChangeStatus}
+                onRowClick={(row) => navigate(`${roleBase}/candidates/${row.candidate?._id || row.candidate}`)}
+            />
         </div>
     );
 };
 
 // ─── INTERVIEWS TAB ───────────────────────────────────────────────────────────
-const InterviewsTab = ({ interviews, roleBase, navigate }) => {
-    if (!interviews.length) return (
-        <EmptyState icon={icons.calendar} title="No interviews yet"
-            message="No interviews have been scheduled for this job yet." />
-    );
-
+const InterviewsTab = ({ interviews, roleBase, navigate, onFeedback }) => {
     const stats = [
-        { label: "Total",     value: interviews.length,                                                                    color: "#2563EB" },
-        { label: "Scheduled", value: interviews.filter((iv) => iv.status === "Scheduled").length,                          color: "#7C3AED" },
-        { label: "Completed", value: interviews.filter((iv) => iv.status === "Completed").length,                          color: "#059669" },
+        { label: "Total",     value: interviews.length,                                                                     color: "#2563EB" },
+        { label: "Scheduled", value: interviews.filter((iv) => iv.status === "Scheduled").length,                           color: "#7C3AED" },
+        { label: "Completed", value: interviews.filter((iv) => iv.status === "Completed").length,                           color: "#059669" },
         { label: "Cancelled", value: interviews.filter((iv) => iv.status === "Cancelled" || iv.status === "No Show").length, color: "#DC2626" },
     ];
 
-    // Group by round
-    const byRound = interviews.reduce((acc, iv) => {
-        const r = iv.interviewRound || "General";
-        if (!acc[r]) acc[r] = [];
-        acc[r].push(iv);
-        return acc;
-    }, {});
-
     return (
         <div className="space-y-5">
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-4">
-                {stats.map((s) => (
-                    <div key={s.label}
-                        className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm p-4 text-center">
-                        <p className="text-[24px] font-bold" style={{ color: s.color }}>{s.value}</p>
-                        <p className="text-[11px] font-medium text-[#94A3B8] mt-1">{s.label}</p>
-                    </div>
-                ))}
-            </div>
-
-            {/* Grouped by round */}
-            {Object.entries(byRound).map(([round, ivs]) => (
-                <div key={round} className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-                    <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] px-5 py-3 flex items-center justify-between">
-                        <span className="text-[11px] font-semibold uppercase tracking-widest text-[#94A3B8]">
-                            {round}
-                        </span>
-                        <span className="rounded-full bg-[#E2E8F0] px-2.5 py-0.5 text-[11px] font-bold text-[#64748B]">
-                            {ivs.length}
-                        </span>
-                    </div>
-                    <div className="divide-y divide-[#F1F5F9]">
-                        {ivs.map((iv) => (
-                            <div key={iv.id || iv._id}
-                                className="flex items-start justify-between gap-4 px-5 py-4 hover:bg-[#F8FAFC] transition cursor-pointer"
-                                onClick={() => navigate(`${roleBase}/candidates/${iv.candidate?._id || iv.candidate}`)}>
-                                <div className="flex items-center gap-3">
-                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[12px] font-bold shrink-0">
-                                        {initials(iv.candidateName)}
-                                    </div>
-                                    <div>
-                                        <p className="text-[13px] font-semibold text-[#1E293B]">
-                                            {iv.candidateName || "Unnamed"}
-                                        </p>
-                                        <div className="flex items-center gap-3 mt-0.5 text-[11px] text-[#94A3B8]">
-                                            <span className="flex items-center gap-1">
-                                                <Icon d={icons.calendar} size={11} />
-                                                {fmtDate(iv.scheduledDate)}
-                                                {iv.scheduledTime && ` at ${iv.scheduledTime}`}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Icon d={icons.clock} size={11} />
-                                                {iv.duration || 60} min
-                                            </span>
-                                            {iv.interviewType && <span>{iv.interviewType}</span>}
-                                        </div>
-                                    </div>
-                                </div>
-                                <Badge label={iv.status} map={IV_STATUS} />
-                            </div>
-                        ))}
-                    </div>
+            {interviews.length > 0 && (
+                <div className="grid grid-cols-4 gap-4">
+                    {stats.map((s) => (
+                        <div key={s.label} className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm p-4 text-center">
+                            <p className="text-[24px] font-bold" style={{ color: s.color }}>{s.value}</p>
+                            <p className="text-[11px] font-medium text-[#94A3B8] mt-1">{s.label}</p>
+                        </div>
+                    ))}
                 </div>
-            ))}
+            )}
+            <InterviewsTable
+                interviews={interviews}
+                context="job"
+                onFeedback={onFeedback}
+                onRowClick={(row) => navigate(`${roleBase}/candidates/${row.candidate?._id || row.candidate}`)}
+            />
         </div>
     );
 };
+
 
 // ─── SHARED SMALL COMPONENTS ──────────────────────────────────────────────────
 const CeipalCard = ({ title, children }) => (

@@ -1,11 +1,15 @@
-    import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
     import { useParams, useNavigate } from "react-router-dom";
     import { getCandidate, toggleBench, deleteCandidate, updateCandidate } from "../api/candidatesApi";
     import { getCandidateSubmissions } from "../api/submissionsApi";
     import { getCandidateInterviews } from "../api/interviewsApi";
     import SubmitToJobModal from "../components/modals/SubmitToJobModal";
     import ScheduleInterviewModal from "../components/modals/ScheduleInterviewModal";
+    import ChangeStatusModal from "../components/modals/ChangeStatusModal";
+    import InterviewFeedbackModal from "../components/modals/InterviewFeedbackModal";
     import useRoleBase from "../hooks/useRoleBase";
+    import { getStatusStyle, INTERVIEW_STATUS_STYLES, INTERVIEW_OUTCOME_STYLES } from "../utils/submissionStatuses";
+    import { SubmissionsTable, InterviewsTable } from "../components/shared/PipelineTables";
 
     // ─── ICONS ───────────────────────────────────────────────────────────────────
 
@@ -38,29 +42,17 @@
     x:           "M6 18L18 6M6 6l12 12",
     };
 
-    // ─── STATUS CONFIG ────────────────────────────────────────────────────────────
 
-    const STATUS_CONFIG = {
-    New:         { bg: "#EFF6FF", text: "#1D4ED8", dot: "#3B82F6" },
-    Screening:   { bg: "#FFFBEB", text: "#B45309", dot: "#F59E0B" },
-    Shortlisted: { bg: "#F0FDF4", text: "#15803D", dot: "#22C55E" },
-    Interview:   { bg: "#F5F3FF", text: "#6D28D9", dot: "#8B5CF6" },
-    Offer:       { bg: "#FFF7ED", text: "#C2410C", dot: "#F97316" },
-    Hired:       { bg: "#ECFDF5", text: "#065F46", dot: "#10B981" },
-    Rejected:    { bg: "#FEF2F2", text: "#B91C1C", dot: "#EF4444" },
-    "On Hold":   { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF" },
-    Withdrawn:   { bg: "#F9FAFB", text: "#6B7280", dot: "#D1D5DB" },
-    };
 
-    const StatusBadge = ({ status }) => {
-    const s = status || "New";
-    const cfg = STATUS_CONFIG[s] || STATUS_CONFIG.New;
+    const StatusBadge = ({ status, type = "submission" }) => {
+    const s = type === "interview"
+        ? (INTERVIEW_STATUS_STYLES?.[status] || { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF" })
+        : getStatusStyle(status);
     return (
-        <span style={{ background: cfg.bg, color: cfg.text }}
-        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border"
-        style={{ background: cfg.bg, color: cfg.text, borderColor: cfg.dot + "55" }}>
-        <span className="h-1.5 w-1.5 rounded-full" style={{ background: cfg.dot }} />
-        {s}
+        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border"
+        style={{ background: s.bg, color: s.text, borderColor: (s.border || s.dot + "55") }}>
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.dot }} />
+        {status}
         </span>
     );
     };
@@ -81,6 +73,8 @@
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [showInterviewModal, setShowInterviewModal] = useState(false);
+    const [statusModalSub, setStatusModalSub] = useState(null);
+    const [feedbackModalIv, setFeedbackModalIv] = useState(null);
 
     useEffect(() => {
         let active = true;
@@ -406,12 +400,12 @@
 
             {/* ── SUBMISSIONS TAB ── */}
             {activeTab === "submissions" && (
-                <SubmissionsTab submissions={submissions} />
+                <SubmissionsTab submissions={submissions} onChangeStatus={(s) => setStatusModalSub(s)} />
             )}
 
             {/* ── INTERVIEWS TAB ── */}
             {activeTab === "interviews" && (
-                <InterviewsTab interviews={interviews} />
+                <InterviewsTab interviews={interviews} onFeedback={(iv) => setFeedbackModalIv(iv)} />
             )}
             </div>
 
@@ -538,10 +532,42 @@
             candidate={candidate}
             onClose={() => setShowInterviewModal(false)}
             onSuccess={async () => {
-                // Refresh interviews list after successful schedule
-                const fresh = await getCandidateInterviews(id).catch(() => []);
-                setInterviews(fresh || []);
+                // Refresh both lists after scheduling
+                const [freshSubs, freshIvs] = await Promise.all([
+                    getCandidateSubmissions(id).catch(() => []),
+                    getCandidateInterviews(id).catch(() => []),
+                ]);
+                setSubmissions(freshSubs || []);
+                setInterviews(freshIvs || []);
                 setActiveTab("interviews");
+            }}
+            />
+        )}
+
+        {statusModalSub && (
+            <ChangeStatusModal
+            submission={statusModalSub}
+            onClose={() => setStatusModalSub(null)}
+            onSuccess={async () => {
+                const fresh = await getCandidateSubmissions(id).catch(() => []);
+                setSubmissions(fresh || []);
+                setStatusModalSub(null);
+            }}
+            />
+        )}
+
+        {feedbackModalIv && (
+            <InterviewFeedbackModal
+            interview={feedbackModalIv}
+            onClose={() => setFeedbackModalIv(null)}
+            onSuccess={async () => {
+                const [freshSubs, freshIvs] = await Promise.all([
+                    getCandidateSubmissions(id).catch(() => []),
+                    getCandidateInterviews(id).catch(() => []),
+                ]);
+                setSubmissions(freshSubs || []);
+                setInterviews(freshIvs || []);
+                setFeedbackModalIv(null);
             }}
             />
         )}
@@ -617,72 +643,21 @@
     </div>
     );
 
-    const SubmissionsTab = ({ submissions }) => {
-    if (!Array.isArray(submissions) || submissions.length === 0) return (
-        <div className="rounded-xl bg-white border border-[#E2E8F0] p-12 text-center shadow-sm">
-        <Icon d={icons.document} size={40} className="mx-auto text-[#CBD5E1] mb-4" />
-        <p className="text-[15px] font-semibold text-[#1E293B]">No submissions yet</p>
-        <p className="text-[13px] text-[#94A3B8] mt-1">This candidate hasn't been submitted to any jobs.</p>
-        </div>
+    const SubmissionsTab = ({ submissions, onChangeStatus }) => (
+    <SubmissionsTable
+        submissions={submissions}
+        context="candidate"
+        onChangeStatus={onChangeStatus}
+    />
     );
 
-    return (
-        <div className="space-y-3">
-        {submissions.map((s) => (
-            <div key={s.id} className="rounded-xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                <p className="text-[14px] font-semibold text-[#1E293B]">{s.jobTitle || "Untitled Job"}</p>
-                <p className="text-[12px] text-[#64748B] mt-0.5">{s.clientName || "—"}</p>
-                <p className="text-[11px] text-[#94A3B8] mt-2">Submitted: {fmtDate(s.submittedDate)}</p>
-                </div>
-                <StatusBadge status={s.status} />
-            </div>
-            {s.recruiterNotes && (
-                <div className="mt-3 rounded-lg bg-[#F8FAFC] border border-[#F1F5F9] p-3">
-                <p className="text-[11px] font-semibold text-[#94A3B8] mb-1">NOTES</p>
-                <p className="text-[12px] text-[#475569]">{s.recruiterNotes}</p>
-                </div>
-            )}
-            </div>
-        ))}
-        </div>
+    const InterviewsTab = ({ interviews, onFeedback }) => (
+    <InterviewsTable
+        interviews={interviews}
+        context="candidate"
+        onFeedback={onFeedback}
+    />
     );
-    };
-
-    const InterviewsTab = ({ interviews }) => {
-    if (!Array.isArray(interviews) || interviews.length === 0) return (
-        <div className="rounded-xl bg-white border border-[#E2E8F0] p-12 text-center shadow-sm">
-        <Icon d={icons.calendar} size={40} className="mx-auto text-[#CBD5E1] mb-4" />
-        <p className="text-[15px] font-semibold text-[#1E293B]">No interviews scheduled</p>
-        <p className="text-[13px] text-[#94A3B8] mt-1">No interviews have been scheduled yet.</p>
-        </div>
-    );
-
-    return (
-        <div className="space-y-3">
-        {interviews.map((iv) => (
-            <div key={iv.id} className="rounded-xl bg-white border border-[#E2E8F0] p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                <p className="text-[14px] font-semibold text-[#1E293B]">{iv.jobTitle || "Untitled Job"}</p>
-                <p className="text-[12px] text-[#64748B] mt-0.5">{iv.interviewRound}</p>
-                <div className="flex gap-4 mt-2 text-[11px] text-[#94A3B8]">
-                    <span className="flex items-center gap-1">
-                    <Icon d={icons.calendar} size={12} /> {fmtDate(iv.scheduledDate)} {iv.scheduledTime && `at ${iv.scheduledTime}`}
-                    </span>
-                    <span className="flex items-center gap-1">
-                    <Icon d={icons.clock} size={12} /> {iv.duration || "—"} min
-                    </span>
-                </div>
-                </div>
-                <StatusBadge status={iv.status} />
-            </div>
-            </div>
-        ))}
-        </div>
-    );
-    };
 
     const Modal = ({ title, onClose, children }) => (
     <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">

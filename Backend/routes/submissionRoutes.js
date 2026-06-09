@@ -8,6 +8,8 @@ import {
     getSubmission,
     updateSubmission,
     deleteSubmission,
+    forceStatus,
+    getAllowedTransitions,
 } from "../controllers/submissionController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -15,6 +17,7 @@ import { requirePermission } from "../middleware/permissionMiddleware.js";
 
 const router = express.Router();
 
+// ─── COLLECTION ──────────────────────────────────────────────────────────────
 router.get(
     "/",
     protect,
@@ -29,6 +32,7 @@ router.post(
     createSubmission
 );
 
+// ─── NESTED ──────────────────────────────────────────────────────────────────
 router.get(
     "/candidate/:candidateId",
     protect,
@@ -43,6 +47,7 @@ router.get(
     getJobSubmissions
 );
 
+// ─── SINGLE RESOURCE ─────────────────────────────────────────────────────────
 router.get(
     "/:id",
     protect,
@@ -62,6 +67,21 @@ router.delete(
     protect,
     requirePermission("submissions", "delete"),
     deleteSubmission
+);
+
+// ─── SPECIAL ACTIONS ─────────────────────────────────────────────────────────
+router.patch(
+    "/:id/force-status",
+    protect,
+    requirePermission("submissions", "edit"),
+    forceStatus
+);
+
+router.get(
+    "/:id/transitions",
+    protect,
+    requirePermission("submissions", "view"),
+    getAllowedTransitions
 );
 
 export default router;
