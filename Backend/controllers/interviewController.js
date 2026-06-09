@@ -31,7 +31,7 @@ export const getCandidateInterviews = asyncHandler(async (req, res) => {
     res.json({ count: interviews.length, interviews });
 });
 
-// ─── GET INTERVIEWS FOR A JOB ─────────────────────────────────────────────────
+// ─── GET INTERVIEWS FOR A JOB ────────────────────────────────────────────────
 export const getJobInterviews = asyncHandler(async (req, res) => {
     const interviews = await getJobInterviewsService(req.params.jobId);
     res.json({ count: interviews.length, interviews });
@@ -49,14 +49,17 @@ export const updateInterview = asyncHandler(async (req, res) => {
     res.json({ message: "Interview updated successfully", interview });
 });
 
+// ─── ADD FEEDBACK (drives submission status forward) ─────────────────────────
+export const addFeedback = asyncHandler(async (req, res) => {
+    const interview = await addFeedbackService(req.params.id, req.body, req.user.id);
+    res.json({
+        message: "Feedback submitted successfully",
+        interview,
+    });
+});
+
 // ─── DELETE INTERVIEW ─────────────────────────────────────────────────────────
 export const deleteInterview = asyncHandler(async (req, res) => {
     await deleteInterviewService(req.params.id);
     res.json({ message: "Interview deleted successfully" });
-});
-
-// ─── ADD FEEDBACK ─────────────────────────────────────────────────────────────
-export const addFeedback = asyncHandler(async (req, res) => {
-    const interview = await addFeedbackService(req.params.id, req.body);
-    res.json({ message: "Feedback added successfully", interview });
 });

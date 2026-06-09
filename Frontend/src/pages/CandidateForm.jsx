@@ -116,18 +116,22 @@ const YEARS = Array.from(
 /* ──────────────────── STATUS OPTIONS ──────────────────── */
 
 const STATUS_OPTIONS = [
-  "Available",
-  "Interviewing",
-  "On Project",
-  "Hold",
-  "Inactive",
+  "New",
+  "Screening",
+  "Shortlisted",
+  "Interview",
+  "Offer",
+  "Hired",
+  "Rejected",
+  "On Hold",
+  "Withdrawn",
 ];
 
 /* ──────────────────── MAIN COMPONENT ──────────────────── */
 
 const CandidateForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({
-    status: "Available",
+    status: "New",
     onBench: true,
   });
 

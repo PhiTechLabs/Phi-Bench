@@ -1,6 +1,55 @@
-import Interview from "../models/Interview.js";
+import Interview, { ROUND_TO_STATUS } from "../models/Interview.js";
+import Submission from "../models/Submission.js";
 import Candidate from "../models/Candidate.js";
 import Job from "../models/Job.js";
+
+// ─── HELPER: advance submission status after interview action ─────────────────
+const advanceSubmissionStatus = async (submissionId, interviewRound, outcome, userId, note = "") => {
+    if (!submissionId) return;
+
+    const roundMap = ROUND_TO_STATUS[interviewRound];
+    if (!roundMap) return;
+
+    let newStatus;
+    switch (outcome) {
+        case "Done":
+            newStatus = roundMap.feedbackPending;
+            break;
+        case "Cleared":
+            newStatus = roundMap.nextPending;
+            break;
+        case "Selected":
+            newStatus = "Final Select";
+            break;
+        case "Rejected":
+            newStatus = roundMap.rejected;
+            break;
+        case "Backout":
+            newStatus = roundMap.backout;
+            break;
+        case "No Show":
+        case "Client Reschedule":
+        case "Candidate Reschedule":
+            newStatus = roundMap.schedulePending;
+            break;
+        default:
+            return;
+    }
+
+    if (!newStatus) return;
+
+    await Submission.findByIdAndUpdate(submissionId, {
+        $set:  { status: newStatus },
+        $push: {
+            statusHistory: {
+                status:    newStatus,
+                changedAt: new Date(),
+                changedBy: userId,
+                note:      note || `Auto-updated from interview outcome: ${outcome}`,
+            },
+        },
+    });
+};
 
 // ─── CREATE INTERVIEW ─────────────────────────────────────────────────────────
 export const createInterviewService = async (payload, userId) => {
@@ -20,7 +69,6 @@ export const createInterviewService = async (payload, userId) => {
         notes,
     } = payload;
 
-    // Fetch candidate and job to denormalize names
     const [candidate, job] = await Promise.all([
         Candidate.findById(candidateId),
         Job.findById(jobId),
@@ -38,6 +86,8 @@ export const createInterviewService = async (payload, userId) => {
         throw err;
     }
 
+    const round = interviewRound || "L1";
+
     const interview = await Interview.create({
         candidate:      candidateId,
         job:            jobId,
@@ -45,7 +95,7 @@ export const createInterviewService = async (payload, userId) => {
         candidateName:  candidate.name || `${candidate.firstName} ${candidate.lastName}`.trim(),
         jobTitle:       job.title,
         clientName:     job.client,
-        interviewRound: interviewRound || "Round 1",
+        interviewRound: round,
         interviewType:  interviewType || "Phone Screen",
         scheduledDate:  new Date(scheduledDate),
         scheduledTime:  scheduledTime || "",
@@ -57,6 +107,22 @@ export const createInterviewService = async (payload, userId) => {
         status:         "Scheduled",
         createdBy:      userId,
     });
+
+    // Auto-advance submission to "Lx Scheduled"
+    if (submissionId && ROUND_TO_STATUS[round]) {
+        const scheduledStatus = ROUND_TO_STATUS[round].scheduled;
+        await Submission.findByIdAndUpdate(submissionId, {
+            $set:  { status: scheduledStatus },
+            $push: {
+                statusHistory: {
+                    status:    scheduledStatus,
+                    changedAt: new Date(),
+                    changedBy: userId,
+                    note:      `${round} interview scheduled`,
+                },
+            },
+        });
+    }
 
     return interview;
 };
@@ -135,7 +201,6 @@ export const updateInterviewService = async (id, payload) => {
         notes:          payload.notes,
     };
 
-    // Remove undefined keys
     Object.keys(allowedUpdates).forEach(
         (key) => allowedUpdates[key] === undefined && delete allowedUpdates[key]
     );
@@ -154,6 +219,49 @@ export const updateInterviewService = async (id, payload) => {
     return interview;
 };
 
+// ─── ADD FEEDBACK (with outcome → auto-advance submission) ───────────────────
+export const addFeedbackService = async (id, { feedback, rating, outcome, notes }, userId) => {
+
+    const interview = await Interview.findById(id).populate("submission");
+    if (!interview) {
+        const err = new Error("Interview not found");
+        err.statusCode = 404;
+        throw err;
+    }
+
+    // Map outcome to interview status
+    let interviewStatus = "Completed";
+    if (outcome === "No Show") interviewStatus = "No Show";
+    else if (outcome === "Client Reschedule" || outcome === "Candidate Reschedule") interviewStatus = "Rescheduled";
+    else if (outcome === "Backout") interviewStatus = "Cancelled";
+
+    const updated = await Interview.findByIdAndUpdate(
+        id,
+        {
+            feedback: feedback || "",
+            rating:   rating   || null,
+            outcome:  outcome  || "Done",
+            status:   interviewStatus,
+            notes:    notes || interview.notes,
+        },
+        { new: true, runValidators: true }
+    );
+
+    // Auto-advance submission status based on outcome
+    if (interview.submission) {
+        const submissionId = interview.submission._id || interview.submission;
+        await advanceSubmissionStatus(
+            submissionId,
+            interview.interviewRound,
+            outcome || "Done",
+            userId,
+            `Feedback submitted for ${interview.interviewRound} interview`
+        );
+    }
+
+    return updated;
+};
+
 // ─── DELETE INTERVIEW ─────────────────────────────────────────────────────────
 export const deleteInterviewService = async (id) => {
     const interview = await Interview.findByIdAndDelete(id);
@@ -162,26 +270,5 @@ export const deleteInterviewService = async (id) => {
         err.statusCode = 404;
         throw err;
     }
-    return interview;
-};
-
-// ─── ADD FEEDBACK ─────────────────────────────────────────────────────────────
-export const addFeedbackService = async (id, { feedback, rating, status }) => {
-    const interview = await Interview.findByIdAndUpdate(
-        id,
-        {
-            feedback: feedback || "",
-            rating:   rating   || null,
-            status:   status   || "Completed",
-        },
-        { new: true, runValidators: true }
-    );
-
-    if (!interview) {
-        const err = new Error("Interview not found");
-        err.statusCode = 404;
-        throw err;
-    }
-
     return interview;
 };
