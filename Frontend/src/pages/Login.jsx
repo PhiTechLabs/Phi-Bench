@@ -30,7 +30,7 @@ export default function Login() {
 
         try {
             const res = await api.post("/auth/login", {
-                username: data.username,
+                loginId: data.loginId,
                 password: data.password,
             });
 
@@ -138,7 +138,7 @@ export default function Login() {
                             </label>
                             <input
                                 type="text"
-                                name="username"
+                                name="loginId"
                                 placeholder="Enter your username / E-mail"
                                 defaultValue={localStorage.getItem("rememberedUser") || ""}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent placeholder-gray-400 transition duration-200"
