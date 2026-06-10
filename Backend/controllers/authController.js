@@ -15,18 +15,27 @@ export const loginUser = async (req, res) => {
 
     try {
 
-        const { username, password } = req.body;
+        const { loginId, password } = req.body;
+
+        if (!loginId || !password) {
+            return res.status(400).json({
+                message: "Login ID and password are required",
+            });
+        }
 
         const user = await User.findOne({
-            username,
+            $or: [
+                { username: loginId },
+                { email: loginId.toLowerCase() },
+            ],
         })
-            .select("+password")
-            .populate("roleId");
+        .select("+password")
+        .populate("roleId");
 
         if (!user) {
 
             return res.status(400).json({
-                message: "User not found",
+                message: "Invalid credentials",
             });
         }
 
@@ -50,6 +59,12 @@ export const loginUser = async (req, res) => {
 
         user.refreshToken = refreshToken;
 
+        console.log("LOGIN USER:");
+console.log(user);
+
+console.log("EMAIL:");
+console.log(user.email);
+
         await user.save();
 
         // ─── ACCESS TOKEN COOKIE ─────────────────────────
@@ -70,7 +85,11 @@ export const loginUser = async (req, res) => {
 
         const populatedUser =
             await User.findById(user._id)
-                .populate("roleId");
+                .populate("roleId")
+                .populate(
+                    "managerId",
+                    "username email"
+                );
 
                 console.log(
                 JSON.stringify(
@@ -87,6 +106,7 @@ export const loginUser = async (req, res) => {
                 username: populatedUser.username,
                 email: populatedUser.email,
                 role: populatedUser.roleId?.name,
+                managerId:populatedUser.managerId,
 
                 modulePermissions:
                     populatedUser.roleId?.modulePermissions || {},
@@ -233,18 +253,29 @@ export const registerUser = async (
 
         const {
             username,
+            email,
             password,
             role,
         } = req.body;
 
         // ─── VALIDATION ────────────────────────────────
-        if (!username || !password || !role) {
+        if (!username || !email || !password || !role) {
 
             return res.status(400).json({
                 message:
                     "All fields are required",
             });
         }
+
+        const emailExists =
+            await User.findOne({ email });
+
+        if (emailExists) {
+            return res.status(400).json({
+                message: "Email already exists"
+            });
+        }
+
 
         // ─── CHECK EXISTING USER ───────────────────────
         const userExists =
@@ -339,6 +370,8 @@ export const registerUser = async (
 
             username,
 
+            email,
+
             password: hashedPassword,
 
             roleId: roleDoc._id,
@@ -390,8 +423,11 @@ export const getAllUsers = async (
         const users = await User.find()
             .select("-password")
             .sort({ createdAt: -1 })
-            .populate("roleId");
-
+            .populate("roleId")
+            .populate(
+                "managerId",
+                "username email"
+            );
         return res.status(200).json({
 
             count: users.length,
@@ -422,9 +458,11 @@ export const updateUser = async (
 
         const {
             username,
+            email,
             role,
             password,
         } = req.body;
+
 
         // ─── FIND TARGET USER ──────────────────────────
         const targetUser =
@@ -468,6 +506,25 @@ export const updateUser = async (
         if (username) {
 
             updateFields.username = username;
+        }
+        
+        // ─── UPDATE EMAIL ──────────────────────────────
+        if (email) {
+
+            const existingEmail =
+                await User.findOne({
+                    email,
+                    _id: { $ne: id }
+                });
+
+            if (existingEmail) {
+
+                return res.status(400).json({
+                    message: "Email already exists"
+                });
+            }
+
+            updateFields.email = email;
         }
 
         // ─── UPDATE ROLE ───────────────────────────────

@@ -10,7 +10,9 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
     // ─── Form state ────────────────────────────────────────────
     const [form, setForm] = useState({
         username: user?.username || "",
+        email: user?.email || "",
         password: "",
+        managerId: user?.managerId?._id || "",
     });
 
     // ─── Role combobox state ───────────────────────────────────
@@ -19,6 +21,10 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
             ? user.roleId.name.replace(/_/g, " ")
             : ""
     );
+
+    const [users, setUsers] = useState([]);
+    const [loadingUsers, setLoadingUsers] = useState(true);
+
     const [selectedRole, setSelectedRole] = useState(user?.roleId?.name || ""); // actual value sent to API
     const [roles, setRoles]               = useState([]);
     const [filteredRoles, setFilteredRoles] = useState([]);
@@ -58,6 +64,38 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
             }
         };
         fetchRoles();
+    }, []);
+
+    useEffect(() => {
+
+        const fetchUsers = async () => {
+
+            try {
+
+                const res =
+                    await axiosInstance.get(
+                        "/auth/users"
+                    );
+
+                setUsers(
+                    res.data.users || []
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "Failed to load users",
+                    err
+                );
+
+            } finally {
+
+                setLoadingUsers(false);
+            }
+        };
+
+        fetchUsers();
+
     }, []);
 
     // ─── Filter dropdown as user types ────────────────────────
@@ -197,6 +235,12 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                 "Username is required."
             );
         }
+        if (!form.email.trim()) {
+
+            return setError(
+                "Email is required."
+            );
+        }
 
         if (
             !isEdit &&
@@ -205,6 +249,18 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
             return setError(
                 "Password is required."
+            );
+        }
+
+        const emailRegex =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (
+            !emailRegex.test(form.email)
+        ) {
+
+            return setError(
+                "Enter a valid email address."
             );
         }
 
@@ -246,7 +302,14 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                     username:
                         form.username.trim(),
 
-                    role: roleName,
+                    email:
+                        form.email.trim(),
+
+                    role:
+                        roleName,
+
+                    managerId:
+                        form.managerId || null,
                 };
 
                 // only update password if entered
@@ -276,14 +339,20 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                 await axiosInstance.post(
                     "/auth/register",
                     {
-
                         username:
                             form.username.trim(),
+
+                        email:
+                            form.email.trim(),
 
                         password:
                             form.password,
 
-                        role: roleName,
+                        role:
+                            roleName,
+
+                        managerId:
+                            form.managerId || null,
                     }
                 );
 
@@ -406,6 +475,33 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                             >
                                 {showPw ? <FaEyeSlash /> : <FaEye />}
                             </button>
+                        </div>
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                            Email
+                        </label>
+
+                        <div className="relative">
+                            <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs" />
+
+                            <input
+                                type="email"
+                                value={form.email}
+                                onChange={(e) => {
+
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        email: e.target.value,
+                                    }));
+
+                                    setError("");
+                                }}
+                                placeholder="Enter email"
+                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            />
                         </div>
                     </div>
 
@@ -538,6 +634,48 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                             }
                         </p>
                     </div>
+
+                    {/* Reporting Manager DropDown */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                            Reporting To
+                        </label>
+
+                        <select
+                            value={form.managerId}
+                            onChange={(e) =>
+                                setForm((prev) => ({
+                                    ...prev,
+                                    managerId: e.target.value,
+                                }))
+                            }
+                            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        >
+                            <option value="">
+                                Select Reporting Manager
+                            </option>
+
+                            {users.map((u) => (
+
+                                user?._id === u._id
+                                    ? null
+                                    : (
+                                        <option
+                                            key={u._id}
+                                            value={u._id}
+                                        >
+                                            {u.username}
+                                        </option>
+                                    )
+
+                            ))}
+                        </select>
+
+                        <p className="text-xs text-gray-400 mt-1">
+                            This user will report to the selected manager.
+                        </p>
+                    </div>
+                    
                 </div>
 
                 {/* ── FOOTER ── */}

@@ -7,8 +7,8 @@ const run = async () => {
 
 
     console.log(hash);
-    console.log(adminHash);
-    console.log(clientHash);
+    // console.log(adminHash);
+    // console.log(clientHash);
 };
 
 run();

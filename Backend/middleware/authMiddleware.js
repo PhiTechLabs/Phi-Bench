@@ -22,7 +22,8 @@ export const protect = async (req, res, next) => {
 
         // Fetch user + role
         const user = await User.findById(decoded.id)
-            .populate("roleId");
+            .populate("roleId")
+            .populate("managerId");
 
         if (!user) {
             return res.status(401).json({
@@ -41,6 +42,7 @@ export const protect = async (req, res, next) => {
             id: user._id,
             username: user.username,
             role: user.roleId,
+            managerId: user.managerId,
             modulePermissions:
                 user.roleId?.modulePermissions || {},
         };
