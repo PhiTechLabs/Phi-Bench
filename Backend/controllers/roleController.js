@@ -11,7 +11,18 @@ export const getRoles = async (req, res) => {
 
     try {
 
-        const roles = await Role.find()
+        const query = {};
+
+        if (
+            req.user?.role?.name !==
+            "super_admin"
+        ) {
+            query.name = {
+                $ne: "super_admin",
+            };
+        }
+
+        const roles = await Role.find(query)
             .sort({ createdAt: -1 })
             .lean();
 
@@ -196,6 +207,17 @@ export const updateRole = async (req, res) => {
 
         const role = await Role.findById(id);
 
+        if (
+            role.name === "super_admin" &&
+            req.user.role.name !==
+            "super_admin"
+        ) {
+            return res.status(403).json({
+                message:
+                    "Super Admin role cannot be modified",
+            });
+        }
+
         if (!role) {
 
             return res.status(404).json({
@@ -315,11 +337,37 @@ export const updateModulePermissions =
             const role =
                 await Role.findById(id);
 
+                if (
+                    role.name === "super_admin" &&
+                    req.user.role.name !==
+                    "super_admin"
+                ) {
+                    return res.status(403).json({
+                        message:
+                            "Super Admin permissions cannot be modified",
+                    });
+                }
+
             if (!role) {
 
                 return res.status(404).json({
                     message:
                         "Role not found",
+                });
+            }
+
+            const currentUserRole =
+                req.user.role;
+
+            if (
+                !canManageRole(
+                    currentUserRole,
+                    role
+                )
+            ) {
+                return res.status(403).json({
+                    message:
+                        "You cannot modify this role",
                 });
             }
 
@@ -427,8 +475,17 @@ export const deleteRole = async (req, res) => {
         }
 
         // ─────────────────────────────────────────────
-        // PROTECT SYSTEM ROLES
+        // PROTECT SYSTEM ROLES AND SUPERADMIN
         // ─────────────────────────────────────────────
+        if (
+            role.name === "super_admin"
+        ) {
+            return res.status(403).json({
+                message:
+                    "Super Admin role cannot be deleted",
+            });
+        }
+
         if (role.isSystemRole) {
 
             return res.status(403).json({

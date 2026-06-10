@@ -162,9 +162,9 @@ export default function Permissions() {
                         className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-200"
                     >
 
-                        <option value="">
+                        {/* <option value="">
                             Select Module
-                        </option>
+                        </option> */}
 
                         {modules.map((module) => (
 
@@ -226,9 +226,9 @@ export default function Permissions() {
                             const modulePermissions =
                                 currentModuleKey
                                     ? role
-                                          ?.modulePermissions?.[
-                                          currentModuleKey
-                                      ]
+                                            ?.modulePermissions?.[
+                                            currentModuleKey
+                                        ]
                                     : null;
 
                             return (
