@@ -117,10 +117,14 @@ const canDelete = can("job", "delete");
     );
 
     try {
-      await updateJob(id, {
-        status: newStatus,
-      });
+   const current = jobs.find((j) => j.id === id);
+
+await updateJob(id, {
+  ...current,
+  status: newStatus,
+});
     } catch (err) {
+      console.error("updateJob error:", err);
       await refresh();
     }
   };

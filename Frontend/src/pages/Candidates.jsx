@@ -24,27 +24,42 @@ import PermissionGuard from "../components/PermissionGuard";
 
 const STATUS_OPTIONS = [
   {
-    value: "Available",
+    value: "New",
     color: "bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]",
   },
   {
-    value: "Interviewing",
+    value: "Screening",
     color: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]",
   },
   {
-    value: "On Project",
+    value: "Shortlisted",
+    color: "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
+  },
+  {
+    value: "Interview",
     color: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]",
   },
   {
-    value: "Hold",
+    value: "Offer",
+    color: "bg-[#DCFCE7] text-[#166534] border-[#86EFAC]",
+  },
+  {
+    value: "Hired",
+    color: "bg-[#D1FAE5] text-[#065F46] border-[#6EE7B7]",
+  },
+  {
+    value: "Rejected",
+    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]",
+  },
+  {
+    value: "On Hold",
     color: "bg-[#F5F4F0] text-[#6B6860] border-[#E0DDD6]",
   },
   {
-    value: "Inactive",
-    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]",
+    value: "Withdrawn",
+    color: "bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]",
   },
 ];
-
 /* ──────────────────── COMPONENT ──────────────────── */
 
 const Candidates = () => {
@@ -260,13 +275,16 @@ const canDelete = hasPermission(
       )
     );
 
-    try {
+try {
+  console.log("ID:", id);
+  console.log("STATUS:", newStatus);
 
-      await updateCandidate(id, {
-        status: newStatus,
-      });
+  const result = await updateCandidate(id, {
+    status: newStatus,
+  });
 
-    } catch (err) {
+  console.log("SUCCESS:", result);
+} catch (err) {
 
       console.error(err);
 

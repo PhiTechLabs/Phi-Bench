@@ -68,7 +68,6 @@ const DataTable = ({
   });
 
   const [showAddColumn, setShowAddColumn] = useState(false);
-  const [showFilterFor, setShowFilterFor] = useState(null);
 
   return (
     <div className="w-full">
@@ -139,10 +138,10 @@ const DataTable = ({
       <div className="rounded-xl border border-[#E8E6E0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         {/* Hint bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-xl border-b border-[#F0EDE8] bg-[#FAFAF8] px-4 py-2 text-[10.5px] text-[#9B9890]">
-          <span className="flex items-center gap-1.5">
+          {/* <span className="flex items-center gap-1.5">
             <DragHintIcon />
             Drag headers to reorder · Click to sort · Hover to remove
-          </span>
+          </span> */}
           <div className="relative flex gap-2 p-1">
             <button
               onClick={() => setShowAddColumn((s) => !s)}
@@ -253,17 +252,6 @@ const DataTable = ({
                           )}
                         </span>
                         <div className="flex items-center gap-0.5">
-                          {col.filterable && distincts.length > 0 && (
-                            <FilterButton
-                              active={!!t.filters[col.key]}
-                              open={showFilterFor === col.key}
-                              onToggle={() => setShowFilterFor((k) => (k === col.key ? null : col.key))}
-                              options={distincts}
-                              selected={t.filters[col.key] ? Array.from(t.filters[col.key]) : []}
-                              onChange={(vals) => t.setColumnFilter(col.key, vals)}
-                              onClose={() => setShowFilterFor(null)}
-                            />
-                          )}
                           {col.removable !== false && !col.fixed && (
                             <button
                               onClick={(e) => { e.stopPropagation(); t.removeColumn(col.key); }}
@@ -311,7 +299,7 @@ const DataTable = ({
                         <td
                           key={col.key}
                           style={{ width: col.width, minWidth: col.width }}
-                          className={`overflow-hidden px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18] ${
+                          className={`overflow-visible px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18] ${
                             col.type === "sno" ? "bg-[#FAFAF8] text-center font-medium text-[#6B6860]" : ""
                           } ${colIdx !== t.columns.length - 1 ? "border-r border-[#F5F4F0]" : ""}`}
                         >
