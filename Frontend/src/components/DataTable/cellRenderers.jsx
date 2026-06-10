@@ -27,7 +27,17 @@ export const renderCell = ({ column, row, rowIndex, pageStart = 0, ctx = {} }) =
       if (column.avatar && value) {
         return <TextCellWithAvatar value={value} bold={column.bold} link={column.link} />;
       }
-      return <TextCell value={value} bold={column.bold} link={column.link} inline Edit={column.inlineEdit} onEdit={column.onCellEdit} row={row} colKey={column.key} />;
+      return (
+  <TextCell
+    value={value}
+    bold={column.bold}
+    link={column.link}
+    inlineEdit={column.inlineEdit}
+    onEdit={column.onCellEdit}
+    row={row}
+    colKey={column.key}
+  />
+);
     case "chips":
       return <ChipsCell value={value} max={column.maxChips || 2} inlineEdit={column.inlineEdit} onEdit={column.onCellEdit} row={row} colKey={column.key} />;
     case "money":
@@ -228,6 +238,8 @@ const ToggleCell = ({ on, onToggle }) => (
 /* ──────────────────── STATUS DROPDOWN ──────────────────── */
 const StatusCell = ({ value, options, onChange }) => {
   const [open, setOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
+  const [menuPos, setMenuPos] = useState({ left: 0, top: 0 });
   const ref = useRef();
   const current = value || options[0]?.value || "";
   const currentOption = options.find((o) => o.value === current);
@@ -239,16 +251,26 @@ const StatusCell = ({ value, options, onChange }) => {
   }, []);
 
   return (
-    <div ref={ref} className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+    <div
+  ref={ref}
+  className="relative inline-block overflow-visible"
+  onClick={(e) => e.stopPropagation()}
+>
       <button
-        type="button"
-        onClick={() => {
+       onClick={() => {
+  if (!onChange) return;
 
-            if (onChange) {
-                setOpen((s) => !s);
-            }
+  const rect = ref.current?.getBoundingClientRect();
+  const menuHeight = 260;
+  const spaceBelow = window.innerHeight - rect.bottom;
 
-        }}
+  setMenuPos({
+    left: rect.left,
+    top: spaceBelow < menuHeight ? rect.top - menuHeight - 8 : rect.bottom + 4,
+  });
+
+  setOpen((s) => !s);
+}}
                 className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all hover:shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
           currentOption?.color || "bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]"
         }`}
@@ -260,7 +282,15 @@ const StatusCell = ({ value, options, onChange }) => {
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-40 overflow-hidden rounded-lg border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+        <div
+  style={{
+    position: "fixed",
+    left: menuPos.left,
+    top: menuPos.top,
+    zIndex: 99999,
+  }}
+  className="w-40 overflow-hidden rounded-lg border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+>
           <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-[#9B9890]">
             Update Status
           </div>

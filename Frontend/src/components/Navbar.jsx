@@ -301,7 +301,7 @@ console.log("USER", user);
             onClick={() => setProfileOpen(false)}
           />
           <div className="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-50">
-            <div className="bg-blue-600 text-white p-6">
+            <div className="bg-blue-900 text-white p-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Profile</h2>
                 <button onClick={() => setProfileOpen(false)}>

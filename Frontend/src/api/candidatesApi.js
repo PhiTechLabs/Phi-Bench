@@ -32,7 +32,7 @@ const normalize = (candidate) => {
                 .toUpperCase(),
 
         // safe defaults
-        status: candidate.status || "Available",
+        status: candidate.status || "New",
         onBench: Boolean(candidate.onBench),
 
         // normalize arrays
@@ -192,6 +192,12 @@ export const updateCandidate = async (id, payload) => {
         );
 
     } catch (err) {
+
+  console.log("FULL ERROR", err);
+  console.log("RESPONSE", err.response);
+  console.log("DATA", err.response?.data);
+
+  console.error("updateCandidate error:", err);
 
         console.error("updateCandidate error:", err);
 
