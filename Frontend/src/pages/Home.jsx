@@ -348,7 +348,7 @@ const Home = () => {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-[22px] font-bold text-[#1C1B18]">
-              {greeting()}{user?.username ? `, ${user.username}` : ""} 👋
+              {greeting()}{user?.username ? `, ${user.username}` : ""}
             </h1>
             <p className="mt-0.5 text-[12.5px] text-[#9B9890]">
               Here's what's happening across your bench pipeline
@@ -516,7 +516,7 @@ const Home = () => {
                 </span>
               )}
             </div>
-            <div className="divide-y divide-[#F5F4F0] max-h-[300px] overflow-y-auto">
+            <div className="divide-y divide-[#F5F4F0] max-h-75 overflow-y-auto">
               {todayInterviews.length === 0 ? (
                 <EmptyBlock msg="No interviews scheduled for today" />
               ) : (
@@ -565,7 +565,7 @@ const Home = () => {
                 </span>
               )}
             </div>
-            <div className="divide-y divide-[#F5F4F0] max-h-[300px] overflow-y-auto">
+            <div className="divide-y divide-[#F5F4F0] max-h-75 overflow-y-auto">
               {actionNeeded.length === 0 ? (
                 <div className="py-8 text-center">
                   <Ico d={I.check} size={24} className="mx-auto text-[#10B981] mb-2" />
@@ -690,7 +690,7 @@ const Home = () => {
               <button onClick={() => navigate("/interviews")}
                 className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</button>
             </div>
-            <div className="divide-y divide-[#F5F4F0] max-h-[330px] overflow-y-auto">
+            <div className="divide-y divide-[#F5F4F0] max-h-82.5 overflow-y-auto">
               {upcomingInterviews.length === 0 ? (
                 <EmptyBlock msg="No interviews scheduled this week" />
               ) : (
