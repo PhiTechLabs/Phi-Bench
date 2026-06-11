@@ -2,7 +2,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 export default function BackButton({
-    label = "Back",
+    label = "",
     className = "",
 }) {
 
@@ -14,8 +14,8 @@ export default function BackButton({
             onClick={() => navigate(-1)}
             className={`
                 flex items-center gap-2
-                px-4 py-2
-                rounded-xl
+                px-3.5 py-2
+                rounded-lg
                 border border-gray-200
                 bg-white
                 text-gray-700
@@ -28,9 +28,9 @@ export default function BackButton({
 
             <FaArrowLeft size={13} />
 
-            <span className="text-sm font-medium">
+            {/* <span className="text-sm font-medium">
                 {label}
-            </span>
+            </span> */}
 
         </button>
     );
