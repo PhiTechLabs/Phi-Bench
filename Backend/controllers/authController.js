@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Role from "../models/role.js";
+import Branch from "../models/Branch.js";
 
 import {
     generateAccessToken,
@@ -30,7 +31,12 @@ export const loginUser = async (req, res) => {
             ],
         })
         .select("+password")
-        .populate("roleId");
+        .populate("roleId")
+        .populate("branchId")
+        .populate(
+            "managerId",
+            "username email"
+        );
 
         if (!user) {
 
@@ -86,6 +92,7 @@ console.log(user.email);
         const populatedUser =
             await User.findById(user._id)
                 .populate("roleId")
+                .populate("branchId")
                 .populate(
                     "managerId",
                     "username email"
@@ -106,6 +113,13 @@ console.log(user.email);
                 username: populatedUser.username,
                 email: populatedUser.email,
                 role: populatedUser.roleId?.name,
+                branch: populatedUser.branchId
+                    ? {
+                        id: populatedUser.branchId._id,
+                        name: populatedUser.branchId.name,
+                        code: populatedUser.branchId.code,
+                    }
+                    : null,
                 managerId:populatedUser.managerId,
 
                 modulePermissions:
@@ -256,10 +270,12 @@ export const registerUser = async (
             email,
             password,
             role,
+            branchId,
+            managerId,
         } = req.body;
 
         // ─── VALIDATION ────────────────────────────────
-        if (!username || !email || !password || !role) {
+        if (!username || !email || !password || !role || !branchId) {
 
             return res.status(400).json({
                 message:
@@ -365,6 +381,17 @@ export const registerUser = async (
         const hashedPassword =
             await bcrypt.hash(password, 10);
 
+
+            const branch =
+                await Branch.findById(branchId);
+
+            if (!branch) {
+
+                return res.status(400).json({
+                    message: "Invalid branch",
+                });
+            }
+
         // ─── CREATE USER ───────────────────────────────
         const user = await User.create({
 
@@ -375,7 +402,9 @@ export const registerUser = async (
             password: hashedPassword,
 
             roleId: roleDoc._id,
+            branchId: branch._id,
 
+            managerId: managerId || null,
         });
 
         await user.populate("roleId");
@@ -424,9 +453,15 @@ export const getAllUsers = async (
             .select("-password")
             .sort({ createdAt: -1 })
             .populate("roleId")
+            .populate("branchId")
             .populate(
                 "managerId",
                 "username email"
+            );
+
+            console.log(
+                "FIRST USER BRANCH:",
+                users[0]?.branchId
             );
         return res.status(200).json({
 
@@ -461,6 +496,8 @@ export const updateUser = async (
             email,
             role,
             password,
+            branchId,
+            managerId,
         } = req.body;
 
 
@@ -597,6 +634,28 @@ export const updateUser = async (
             updateFields.password =
                 await bcrypt.hash(password, 10);
         }
+
+        if (branchId) { 
+
+            const branch =
+                await Branch.findById(
+                    branchId
+                );
+
+            if (!branch) {
+
+                return res.status(400).json({
+                    message:
+                        "Invalid branch",
+                });
+            }
+
+            updateFields.branchId =
+                branchId;
+        }
+
+        updateFields.managerId =
+            managerId || null;
 
         // ─── UPDATE USER ───────────────────────────────
         const updatedUser =

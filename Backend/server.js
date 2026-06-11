@@ -11,6 +11,7 @@ import jobRoutes from "./routes/jobRoutes.js";
 import router from "./routes/RoutesRole.js"
 import submissionRoutes from "./routes/submissionRoutes.js";
 import interviewRoutes  from "./routes/interviewRoutes.js";
+import branchRoutes from "./routes/branchRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -29,7 +30,8 @@ app.use("/api/interviews",  interviewRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/candidates", candidateRoutes); // NEW
-app.use("/api/jobs", jobRoutes); // NEW  
+app.use("/api/jobs", jobRoutes); // NEW
+app.use("/api/branches", branchRoutes); // NEW
 app.use("/api/roles", router); //  NEW
 app.get("/", (req, res) => {
     res.send("API Running");
