@@ -6,15 +6,15 @@ export default function ProtectedRoute({
     children,
 }) {
 
-    console.log("ROUTE PERMISSION:", permission);
+    // console.log("ROUTE PERMISSION:", permission);
 
-    console.log("ProtectedRoute Props =>", {
-    permission,
-    children
-});
+    // console.log("ProtectedRoute Props =>", {
+    //     permission,
+    //     children
+    // });
     const { can, user } = usePermissions();
 
-    console.log("USER:", user);
+    // console.log("USER:", user);
 
 
     const result = can(
@@ -22,12 +22,12 @@ export default function ProtectedRoute({
         permission.action
     );
 
-    console.log(
-        "CHECK:",
-        permission.module,
-        permission.action,
-        result
-    );
+    // console.log(
+    //     "CHECK:",
+    //     permission.module,
+    //     permission.action,
+    //     result
+    // );
 
     if (!result) {
         return (

@@ -6,12 +6,12 @@ export const requirePermission =
 
             const role = req.user?.role;
 
-            console.log("MODULE:", module);
-            console.log("ACTION:", action);
-            console.log(
-                "VALUE:",
-                role?.modulePermissions?.[module]?.[action]
-            );
+            // console.log("MODULE:", module);
+            // console.log("ACTION:", action);
+            // console.log(
+            //     "VALUE:",
+            //     role?.modulePermissions?.[module]?.[action]
+            // );
 
             if (!role) {
 
