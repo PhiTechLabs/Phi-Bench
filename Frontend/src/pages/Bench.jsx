@@ -88,34 +88,6 @@ const Bench = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      {/* ════════ COMPACT HEADER BAR ════════ */}
-      <div className="border-b border-[#E8E6E0] bg-white">
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <div className="flex items-center gap-4">
-            <div>
-              <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
-                Bench
-                <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
-                  {list.length}
-                </span>
-              </button>
-              <p className="mt-1 text-[10.5px] text-[#9B9890]">
-                Candidates currently available for new opportunities
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Customize table
-            </button>
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Export List
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ════════ TABLE (EDGE-TO-EDGE) ════════ */}
       <div className="w-full">
         <DataTable
           columns={columns}

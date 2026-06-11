@@ -89,25 +89,6 @@ const Submissions = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-
-      {/* header */}
-      <div className="border-b border-[#E8E6E0] bg-white">
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
-            All Submissions
-            <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
-              {submissions.length}
-            </span>
-          </button>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm hover:bg-[#1741B6] transition">
-            <span className="text-[14px] leading-none">+</span> New Submission
-          </button>
-        </div>
-      </div>
-
-      {/* table — clicking a row opens SubmissionDetail */}
       <div className="w-full">
         <DataTable
           columns={columns}
@@ -118,6 +99,13 @@ const Submissions = () => {
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, client…"
           emptyState={{ title: "No submissions yet", hint: "Click + New Submission to get started" }}
+          actions={
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm hover:bg-[#1741B6] transition">
+              <span className="text-[14px] leading-none">+</span> New Submission
+            </button>
+          }
         />
       </div>
 
