@@ -37,11 +37,11 @@ export default function RolesTab() {
 
     // ───────────────── COLUMN WIDTHS ─────────────────
     const [columnWidths, setColumnWidths] = useState({
-        roles: 26,
+        roles: 22,
         users: 18,
         privileges: 22,
         created: 18,
-        actions: 16,
+        actions: 18,
     });
 
     const resizingColumn = useRef(null);
@@ -478,7 +478,7 @@ export default function RolesTab() {
                                             <button
                                                 onClick={() =>
                                                     navigate(
-                                                        `/settings/permissions/${role._id}`
+                                                        `/settings/permissions`
                                                     )
                                                 }
                                                 className="text-blue-600 hover:text-sky-500 text-sm font-semibold transition"
