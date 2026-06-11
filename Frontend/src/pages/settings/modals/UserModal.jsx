@@ -145,29 +145,6 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
         setError("");
     };
 
-    // ─── Resolve role: existing → use it; new → create first ──
-    // const resolveRole = async () => {
-    //     const snake = toSnakeCase(roleInput);
-    //     if (!snake) return null;
-
-    //     // Already confirmed from dropdown
-    //     if (selectedRole) return selectedRole;
-
-    //     // Check if it matches an existing role
-    //     const match = roles.find((r) => r.name === snake);
-    //     if (match) return match.name;
-
-    //     // New role — create it on the fly
-    //     const res = await axiosInstance.post("/roles", {
-    //         name: snake,
-    //         description: "",
-    //         hierarchyLevel: 99,          // default low hierarchy
-    //         permissions: [],
-    //         dataScope: "SELF",
-    //     });
-    //     return res.data.role.name;
-    // };
-
     const resolveRole = async (roleName) => {
 
         const normalizedRole =
