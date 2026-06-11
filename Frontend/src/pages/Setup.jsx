@@ -17,7 +17,6 @@ export default function Setup() {
 
     const loggedUser = getCurrentUser();
 
-    // console.log(loggedUser);
 
     return (
 
@@ -154,11 +153,11 @@ export default function Setup() {
                                 <div className="bg-gray-50 rounded-xl p-4">
 
                                     <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                                        User ID
+                                        Email
                                     </p>
 
-                                    <p className="text-gray-500 text-xs font-mono">
-                                        {loggedUser?.id}
+                                    <p className="text-gray-800 font-medium truncate">
+                                        {loggedUser?.email || "—"}
                                     </p>
 
                                 </div>
