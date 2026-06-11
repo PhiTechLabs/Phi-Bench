@@ -31,6 +31,22 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [loadingRoles, setLoadingRoles] = useState(true);
 
+    // ─── Branch state ───────────────────────────────────────
+    const [branches, setBranches] = useState([]);
+    const [loadingBranches, setLoadingBranches] = useState(true);
+
+    const [selectedBranch, setSelectedBranch] =
+        useState(user?.branchId?._id || "");
+
+    const [showBranchForm, setShowBranchForm] =
+        useState(false);
+
+    const [newBranch, setNewBranch] =
+        useState({
+            name: "",
+            code: "",
+        });
+
     // ─── UI state ──────────────────────────────────────────────
     const [showPw, setShowPw]   = useState(false);
     const [loading, setLoading] = useState(false);
@@ -38,6 +54,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
     const dropdownRef = useRef(null);
     const inputRef    = useRef(null);
+
 
     // ─── Close dropdown on outside click ──────────────────────
     useEffect(() => {
@@ -66,6 +83,40 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
         fetchRoles();
     }, []);
 
+    // ─── Fetch branches ───────────────────────────────────────
+    useEffect(() => {
+
+        const fetchBranches = async () => {
+
+            try {
+
+                const res =
+                    await axiosInstance.get(
+                        "/branches"
+                    );
+
+                setBranches(
+                    res.data.branches || []
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "Failed to load branches",
+                    err
+                );
+
+            } finally {
+
+                setLoadingBranches(false);
+            }
+        };
+
+        fetchBranches();
+
+    }, []);
+
+    // ─── Fetch users for manager dropdown ─────────────────────
     useEffect(() => {
 
         const fetchUsers = async () => {
@@ -138,6 +189,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
         setError("");
     };
 
+    /// When user types in the role input, we optimistically clear the selectedRole
     const handleRoleInputChange = (val) => {
         setRoleInput(val);
         setSelectedRole("");
@@ -145,6 +197,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
         setError("");
     };
 
+    /// â Resolve role: if it exists, return name; if not, create and return new name
     const resolveRole = async (roleName) => {
 
         const normalizedRole =
@@ -203,6 +256,63 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
         }
     };
 
+    // ─── Create new branch ───────────────────────────────────
+    const createBranch = async () => {
+
+        if (
+            !newBranch.name.trim() ||
+            !newBranch.code.trim()
+        ) {
+
+            setError(
+                "Branch name and code are required."
+            );
+
+            return;
+        }
+
+        try {
+
+            const res =
+                await axiosInstance.post(
+                    "/branches",
+                    {
+                        name:
+                            newBranch.name.trim(),
+
+                        code:
+                            newBranch.code.trim(),
+                    }
+                );
+
+            const branch =
+                res.data.branch;
+
+            setBranches((prev) => [
+                branch,
+                ...prev,
+            ]);
+
+            setSelectedBranch(
+                branch._id
+            );
+
+            setShowBranchForm(false);
+
+            setNewBranch({
+                name: "",
+                code: "",
+            });
+
+        } catch (err) {
+
+            setError(
+                err.response?.data?.message ||
+                "Failed to create branch"
+            );
+        }
+    };
+
     // ─── Submit ────────────────────────────────────────────────
     const handleSubmit = async () => {
 
@@ -248,6 +358,13 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
             );
         }
 
+        if (!selectedBranch) {
+
+            return setError(
+                "Please select a branch."
+            );
+        }
+
         setLoading(true);
 
         setError("");
@@ -284,6 +401,9 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                     role:
                         roleName,
+
+                    branchId:
+                        selectedBranch,
 
                     managerId:
                         form.managerId || null,
@@ -328,6 +448,9 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                         role:
                             roleName,
 
+                        branchId:
+                            selectedBranch,
+
                         managerId:
                             form.managerId || null,
                     }
@@ -367,18 +490,21 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
     return (
         <div
-            className="fixed inset-0 bg-black/50 z-[998] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 z-998 flex items-center justify-center p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className={`bg-white rounded-3xl shadow-2xl w-full transition-all duration-300
+                    ${showBranchForm ? "max-w-5xl" : "max-w-2xl"}
+                `}
+            >
 
                 {/* ── HEADER ── */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
                     <div>
-                        <h2 className="text-base font-semibold text-gray-800">
+                        <h2 className="text-2xl font-bold text-gray-900">
                             {isEdit ? "Edit User" : "Create New User"}
                         </h2>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-sm text-gray-400 mt-1">
                             {isEdit
                                 ? "Update username, password, or role"
                                 : "Fill in the details to add a new user"}
@@ -386,18 +512,21 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 transition"
+                        className="w-8 h-8 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-400 transition"
                     >
                         <RxCross2 />
                     </button>
                 </div>
 
                 {/* ── BODY ── */}
-                <div className="px-6 py-5 space-y-4">
+                <div className="flex">
+
+                    {/* LEFT SIDE - USER FORM */}
+                    <div className="flex-1 px-8 py-7 space-y-5 max-w-xl">
 
                     {/* Error */}
                     {error && (
-                        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-lg">
+                        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
                             <span>⚠</span> {error}
                         </div>
                     )}
@@ -418,7 +547,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                 }}
                                 placeholder="Enter username"
                                 autoFocus
-                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                         </div>
                     </div>
@@ -443,7 +572,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     setForm((p) => ({ ...p, password: e.target.value }));
                                 }}
                                 placeholder={isEdit ? "New password (optional)" : "Enter password"}
-                                className="w-full pl-9 pr-10 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-full pl-9 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                             <button
                                 type="button"
@@ -477,7 +606,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     setError("");
                                 }}
                                 placeholder="Enter email"
-                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                         </div>
                     </div>
@@ -502,7 +631,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                 onFocus={() => setDropdownOpen(true)}
                                 placeholder={loadingRoles ? "Loading roles..." : "Search or type a role..."}
                                 disabled={loadingRoles}
-                                className="w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                                className="w-full pl-9 pr-9 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-50 disabled:text-gray-400"
                             />
 
                             {/* Clear button */}
@@ -532,12 +661,12 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                                     {/* Existing roles list */}
                                     {filteredRoles.length > 0 && (
-                                        <ul className="max-h-44 overflow-y-auto py-1">
+                                        <ul className="max-h-44 overflow-y-auto py-3">
                                             {filteredRoles.map((r) => (
                                                 <li
                                                     key={r._id}
                                                     onClick={() => handleRoleSelect(r)}
-                                                    className="flex items-center justify-between px-4 py-2.5 hover:bg-blue-50 cursor-pointer group"
+                                                    className="flex items-center justify-between px-4 py-3 hover:bg-blue-50 cursor-pointer group"
                                                 >
                                                     <div>
                                                         <p className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
@@ -612,6 +741,69 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                         </p>
                     </div>
 
+                    {/* Branch */}
+                    <div>
+
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                            Branch
+                        </label>
+
+                        <div className="flex gap-2">
+
+                            <select
+                                value={selectedBranch}
+                                onChange={(e) =>
+                                    setSelectedBranch(
+                                        e.target.value
+                                    )
+                                }
+                                disabled={loadingBranches}
+                                className="flex-1 px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            >
+                                <option value="">
+                                    Select Branch
+                                </option>
+
+                                {branches.map((branch) => (
+
+                                    <option
+                                        key={branch._id}
+                                        value={branch._id}
+                                    >
+                                        {branch.name}
+                                    </option>
+
+                                ))}
+                            </select>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowBranchForm(true)}
+                                className="
+                                    w-11
+                                    h-11
+                                    flex
+                                    items-center
+                                    justify-center
+                                    rounded-xl
+                                    bg-blue-700
+                                    hover:bg-blue-800
+                                    text-white
+                                    shadow-sm
+                                    transition
+                                "
+                            >
+                                <FaPlus />
+                            </button>
+
+                        </div>
+
+                        <p className="text-xs text-gray-400 mt-1">
+                            Assign this user to a branch.
+                        </p>
+
+                    </div>
+
                     {/* Reporting Manager DropDown */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1.5">
@@ -626,7 +818,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     managerId: e.target.value,
                                 }))
                             }
-                            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             <option value="">
                                 Select Reporting Manager
@@ -652,28 +844,157 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                             This user will report to the selected manager.
                         </p>
                     </div>
+
                     
+                        </div>
+
+                    {/* RIGHT SIDE - BRANCH PANEL WILL GO HERE */}
+                    {showBranchForm && (
+
+                    <div className="
+                        w-[340px]
+                        border-l
+                        border-gray-200
+                        bg-gradient-to-b
+                        from-gray-50
+                        to-white
+                        p-6
+                        animate-in
+                    ">
+
+                        <div className="flex items-center justify-between mb-5">
+
+                            <div>
+
+                                <h3 className="text-lg font-semibold text-gray-800">
+                                    New Branch
+                                </h3>
+
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Create and assign instantly
+                                </p>
+
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowBranchForm(false)}
+                                className="text-gray-400 hover:text-red-500"
+                            >
+                                <RxCross2 size={18} />
+                            </button>
+
+                        </div>
+
+                        <div className="space-y-4">
+
+                            <div>
+
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                    Branch Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    value={newBranch.name}
+                                    onChange={(e) =>
+                                        setNewBranch(prev => ({
+                                            ...prev,
+                                            name: e.target.value
+                                        }))
+                                    }
+                                    placeholder="Noida Branch"
+                                    className="
+                                        w-full
+                                        px-4
+                                        py-3
+                                        rounded-xl
+                                        border
+                                        border-gray-200
+                                        focus:ring-2
+                                        focus:ring-blue-500
+                                        focus:outline-none
+                                    "
+                                />
+
+                            </div>
+
+                            <div>
+
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                    Branch Code
+                                </label>
+
+                                <input
+                                    type="text"
+                                    value={newBranch.code}
+                                    onChange={(e) =>
+                                        setNewBranch(prev => ({
+                                            ...prev,
+                                            code: e.target.value.toUpperCase()
+                                        }))
+                                    }
+                                    placeholder="NOD001"
+                                    className="
+                                        w-full
+                                        px-4
+                                        py-3
+                                        rounded-xl
+                                        border
+                                        border-gray-200
+                                        focus:ring-2
+                                        focus:ring-blue-500
+                                        focus:outline-none
+                                    "
+                                />
+
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={createBranch}
+                                className="
+                                    w-full
+                                    bg-blue-700
+                                    hover:bg-blue-800
+                                    text-white
+                                    py-3
+                                    rounded-xl
+                                    font-medium
+                                    transition
+                                "
+                            >
+                                Create Branch
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    )}
+
                 </div>
 
-                {/* ── FOOTER ── */}
-                <div className="flex gap-3 px-6 pb-6">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="flex-1 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                        {loading
-                            ? isEdit ? "Saving..." : "Creating..."
-                            : isEdit ? "Save Changes" : "Create User"
-                        }
-                    </button>
-                </div>
+                    {/* ── FOOTER ── */}
+                    <div className="flex gap-3 px-6 pb-6">
+                        <button
+                            onClick={onClose}
+                            className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={loading}
+                            className="flex-1 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {loading
+                                ? isEdit ? "Saving..." : "Creating..."
+                                : isEdit ? "Save Changes" : "Create User"
+                            }
+                        </button>
+                    </div>
+                
             </div>
         </div>
     );
