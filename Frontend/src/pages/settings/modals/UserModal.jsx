@@ -493,8 +493,13 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
             className="fixed inset-0 bg-black/50 z-998 flex items-center justify-center p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className={`bg-white rounded-3xl shadow-2xl w-full transition-all duration-300
-                    ${showBranchForm ? "max-w-5xl" : "max-w-2xl"}
+            <div
+                className={`
+                    bg-white rounded-3xl shadow-2xl w-full
+                    transition-all duration-300
+                    max-h-[75vh]
+                    flex flex-col
+                    ${showBranchForm ? "max-w-xl" : "md:max-w-sm" }
                 `}
             >
 
@@ -519,14 +524,14 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                 </div>
 
                 {/* ── BODY ── */}
-                <div className="flex">
+                <div className="flex flex-1 overflow-y-auto">
 
                     {/* LEFT SIDE - USER FORM */}
-                    <div className="flex-1 px-8 py-7 space-y-5 max-w-xl">
+                    <div className="flex-1 px-6 py-5 space-y-4 max-w-xl">
 
                     {/* Error */}
                     {error && (
-                        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
+                        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-xl">
                             <span>⚠</span> {error}
                         </div>
                     )}
@@ -547,7 +552,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                 }}
                                 placeholder="Enter username"
                                 autoFocus
-                                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                         </div>
                     </div>
@@ -572,7 +577,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     setForm((p) => ({ ...p, password: e.target.value }));
                                 }}
                                 placeholder={isEdit ? "New password (optional)" : "Enter password"}
-                                className="w-full pl-9 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-full pl-9 pr-10 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                             <button
                                 type="button"
@@ -606,7 +611,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     setError("");
                                 }}
                                 placeholder="Enter email"
-                                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                         </div>
                     </div>
@@ -631,7 +636,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                 onFocus={() => setDropdownOpen(true)}
                                 placeholder={loadingRoles ? "Loading roles..." : "Search or type a role..."}
                                 disabled={loadingRoles}
-                                className="w-full pl-9 pr-9 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                                className="w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-50 disabled:text-gray-400"
                             />
 
                             {/* Clear button */}
@@ -666,7 +671,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                                 <li
                                                     key={r._id}
                                                     onClick={() => handleRoleSelect(r)}
-                                                    className="flex items-center justify-between px-4 py-3 hover:bg-blue-50 cursor-pointer group"
+                                                    className="flex items-center justify-between px-4 py-2.5 hover:bg-blue-50 cursor-pointer group"
                                                 >
                                                     <div>
                                                         <p className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
@@ -698,7 +703,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                                     );
                                                     setDropdownOpen(false);
                                                 }}
-                                                className="flex items-center gap-3 px-4 py-3 hover:bg-green-50 cursor-pointer group"
+                                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-green-50 cursor-pointer group"
                                             >
                                                 <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                                                     <FaPlus className="text-green-600 text-[10px]" />
@@ -722,7 +727,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                                     {/* Empty state */}
                                     {filteredRoles.length === 0 && !showCreateOption && (
-                                        <div className="px-4 py-3 text-sm text-gray-400 text-center">
+                                        <div className="px-4 py-2.5 text-sm text-gray-400 text-center">
                                             No roles found
                                         </div>
                                     )}
@@ -758,7 +763,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     )
                                 }
                                 disabled={loadingBranches}
-                                className="flex-1 px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             >
                                 <option value="">
                                     Select Branch
@@ -818,7 +823,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     managerId: e.target.value,
                                 }))
                             }
-                            className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             <option value="">
                                 Select Reporting Manager
@@ -851,11 +856,11 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                     {/* RIGHT SIDE - BRANCH PANEL WILL GO HERE */}
                     {showBranchForm && (
 
-                    <div className="
-                        w-[340px]
+                    <div className=" 
+                        w-62.5
                         border-l
                         border-gray-200
-                        bg-gradient-to-b
+                        bg-linear-to-b
                         from-gray-50
                         to-white
                         p-6
@@ -890,7 +895,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                             <div>
 
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-semibold text-gray-600 mb-1">
                                     Branch Name
                                 </label>
 
@@ -906,14 +911,15 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     placeholder="Noida Branch"
                                     className="
                                         w-full
-                                        px-4
-                                        py-3
+                                        px-3
+                                        py-2
                                         rounded-xl
                                         border
                                         border-gray-200
                                         focus:ring-2
                                         focus:ring-blue-500
                                         focus:outline-none
+                                        text-sm
                                     "
                                 />
 
@@ -921,7 +927,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                             <div>
 
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-semibold text-gray-600 mb-1">
                                     Branch Code
                                 </label>
 
@@ -937,14 +943,15 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     placeholder="NOD001"
                                     className="
                                         w-full
-                                        px-4
-                                        py-3
+                                        px-3
+                                        py-2
                                         rounded-xl
                                         border
                                         border-gray-200
                                         focus:ring-2
                                         focus:ring-blue-500
                                         focus:outline-none
+                                        text-sm
                                     "
                                 />
 
@@ -954,14 +961,15 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                 type="button"
                                 onClick={createBranch}
                                 className="
-                                    w-full
+                                    w-[65%] ml-5
                                     bg-blue-700
                                     hover:bg-blue-800
                                     text-white
-                                    py-3
-                                    rounded-xl
+                                    py-2.5 
+                                    rounded-lg
                                     font-medium
                                     transition
+                                    text-sm
                                 "
                             >
                                 Create Branch
@@ -976,18 +984,39 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                 </div>
 
                     {/* ── FOOTER ── */}
-                    <div className="flex gap-3 px-6 pb-6">
+                    <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
                         <button
                             onClick={onClose}
-                            className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition"
-                        >
+                            className="
+    px-6
+    py-2.5
+    rounded-xl
+    border
+    border-gray-200
+    text-gray-600
+    text-sm
+    font-medium
+    hover:bg-gray-50
+    transition
+"                        >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={loading}
-                            className="flex-1 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
+                            className="
+    px-6
+    py-2.5
+    rounded-xl
+    bg-blue-700
+    hover:bg-blue-800
+    text-white
+    text-sm
+    font-medium
+    transition
+    disabled:opacity-60
+    disabled:cursor-not-allowed
+">
                             {loading
                                 ? isEdit ? "Saving..." : "Creating..."
                                 : isEdit ? "Save Changes" : "Create User"
