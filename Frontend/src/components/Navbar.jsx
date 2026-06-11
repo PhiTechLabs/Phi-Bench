@@ -79,6 +79,13 @@ const Navbar = () => {
   },
 
   {
+    name: "Bench",
+    path: "/bench",
+    icon: <MdPeopleAlt />,
+    permission: PERMISSIONS.BENCH_VIEW
+  },
+
+  {
     name: "Jobs",
     path: "/jobs",
     icon: <FaBriefcase />,
@@ -86,18 +93,22 @@ const Navbar = () => {
   },
 
   {
-    name: "Candidates",
-    path: "/candidates",
-    icon: <FaUsers />,
-    permission: PERMISSIONS.CANDIDATE_VIEW
+      name: "Submissions",
+      path: "/submissions",
+      icon: <FaPaperPlane />,
+      permission: PERMISSIONS.SUBMISSION_VIEW
   },
 
   {
-    name: "Bench",
-    path: "/bench",
-    icon: <MdPeopleAlt />,
-    permission: PERMISSIONS.BENCH_VIEW
+      name: "Interviews",
+      path: "/interviews",
+      icon: <FaUserTie />,
+      permission: PERMISSIONS.INTERVIEW_VIEW
   },
+
+  
+
+  
 ];
 
 console.log("USER", user);
@@ -114,19 +125,12 @@ console.log("USER", user);
 
   const secondaryMenu = [
 
-      {
-          name: "Submissions",
-          path: "/submissions",
-          icon: <FaPaperPlane />,
-          permission: PERMISSIONS.SUBMISSION_VIEW
-      },
-
-      {
-          name: "Interviews",
-          path: "/interviews",
-          icon: <FaUserTie />,
-          permission: PERMISSIONS.INTERVIEW_VIEW
-      },
+  {
+    name: "Candidates",
+    path: "/candidates",
+    icon: <FaUsers />,
+    permission: PERMISSIONS.CANDIDATE_VIEW
+  },
 
       {
           name: "Clients",
