@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import DataTable from "../components/DataTable/DataTable";
 import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
 import useRoleBase from "../hooks/useRoleBase";
-
-import usePermissions from "../hooks/usePermission";
+import { getCurrentUser } from "../utils/auth";
+import { hasPermission } from "../utils/hasPermission";
+import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
 /* ──────────────────── STATUS PIPELINE ──────────────────── */
 const STATUS_OPTIONS = [
@@ -39,13 +40,15 @@ const Client = () => {
   
   const roleBase = useRoleBase();
 
-  const { can } = usePermissions();
-  const canCreate = can("clients", "add");
-  const canView = can("clients", "view");
-  const canEdit = can("clients", "edit");
-  const canDelete = can("clients", "delete");
+  const user = getCurrentUser();
+  const canView = hasPermission(user, PERMISSIONS.CLIENT_VIEW);
+  const canEdit = hasPermission(user, PERMISSIONS.CLIENT_EDIT);
+  const canDelete = hasPermission(user, PERMISSIONS.CLIENT_DELETE);
 
-  
+  if (!canView) {
+    return <div className="p-10 text-red-500">Access Denied</div>;
+  }
+
   const refresh = useCallback(async () => {
     const data = await getAllClients();
     const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
@@ -68,28 +71,9 @@ const Client = () => {
     await refresh();
   };
   const handleStatusChange = async (id, newStatus) => {
-    if (!canEdit) return;
-
-    setClients((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, status: newStatus }
-          : c
-      )
-    );
-
-    await updateClient(id, {
-      status: newStatus,
-    });
+    setClients((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
+    await updateClient(id, { status: newStatus });
   };
-
-  if (!canView) {
-      return (
-          <div className="p-10 text-red-500">
-              Access Denied
-          </div>
-      );
-  }
 
   /* ── columns ── */
   const columns = [
@@ -103,9 +87,7 @@ const Client = () => {
     { key: "primaryEmail",   label: "Email",           width: 200, type: "text", defaultVisible: true, searchable: true },
     {
       key: "status", label: "Status", width: 130, type: "status",
-      statusOptions: STATUS_OPTIONS, onStatusChange: canEdit
-    ? handleStatusChange
-    : undefined,
+      statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
       defaultVisible: true, sortable: true, filterable: true,
     },
     { key: "createdAt",    label: "Created",      width: 110, type: "date", defaultVisible: true, sortable: true, sortType: "date" },
@@ -120,56 +102,27 @@ const Client = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      {/* ════════ COMPACT HEADER BAR ════════ */}
-      <div className="border-b border-[#E8E6E0] bg-white">
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <div className="flex items-center gap-4">
-            <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
-              My Clients 
-              <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
-                {clients.length}
-              </span>
-            </button>
-            {/* <button className="text-[11px] text-[#1C4ED8] hover:underline">+ 3 more...</button> */}
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Customize table
-            </button>
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Import Clients
-            </button>
-
-            {canCreate && (
-              <button
-                onClick={() => navigate(`${roleBase}/add-client`)}
-                className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-              >
-                <span className="text-[14px] leading-none">+</span>
-                Add Client
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ════════ TABLE (EDGE-TO-EDGE) ════════ */}
       <div className="w-full">
         <DataTable
           columns={columns}
           data={clients}
           storageKey="clients_table"
-          onRowClick={(row) => {
-            if (!canView) return;
-            navigate(`${roleBase}/client-list/${row.id}`);
-          }}
-          onDelete={canDelete ? handleDelete : null}
-          onBulkDelete={canDelete ? handleBulkDelete : null}
+          onRowClick={(row) => navigate(`${roleBase}/client-list/${row.id}`)}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search company, contact, manager…"
           emptyState={{
             title: "No clients yet",
             hint: "Click + Add Client to get started",
           }}
+          actions={
+            <button
+              onClick={() => navigate(`${roleBase}/add-client`)}
+              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm transition-all hover:bg-[#1741B6]"
+            >
+              <span className="text-[14px] leading-none">+</span> Add Client
+            </button>
+          }
         />
       </div>
 

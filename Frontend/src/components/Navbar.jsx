@@ -159,7 +159,7 @@ console.log("USER", user);
     <div className="flex flex-col min-h-screen bg-gray-100">
 
       {/* ── TOP NAVBAR ── */}
-      <nav className="bg-blue-900 text-white h-16 flex items-center px-4 md:px-6 shadow-md fixed top-0 left-0 right-0 z-30">
+      <nav className="bg-blue-900 text-white h-16 flex items-center px-4 md:px-6 shadow-md fixed top-0 left-0 right-0 z-[70]">
 
         <button onClick={() => setMobileOpen(true)} className="md:hidden text-xl mr-3 text-white">
           <FaBars />
@@ -203,7 +203,7 @@ console.log("USER", user);
             </button>
 
             {dropdownOpen && (
-              <div className="absolute top-12 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-50 border border-gray-100">
+  <div className="absolute top-full mt-2 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-[80] border border-gray-100">
                 {filteredSecondaryMenu.map((item) => (
                   <button
                     key={item.name}

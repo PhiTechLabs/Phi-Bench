@@ -17,6 +17,7 @@ import useRoleBase from "../hooks/useRoleBase.js";
 import { getCurrentUser } from "../utils/auth";
 import { hasPermission } from "../utils/hasPermission.js";
 
+import { PERMISSIONS } from "./settings/constants/permissions";
 
 import PermissionGuard from "../components/PermissionGuard";
 
@@ -24,42 +25,27 @@ import PermissionGuard from "../components/PermissionGuard";
 
 const STATUS_OPTIONS = [
   {
-    value: "New",
+    value: "Available",
     color: "bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]",
   },
   {
-    value: "Screening",
+    value: "Interviewing",
     color: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]",
   },
   {
-    value: "Shortlisted",
-    color: "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
-  },
-  {
-    value: "Interview",
+    value: "On Project",
     color: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]",
   },
   {
-    value: "Offer",
-    color: "bg-[#DCFCE7] text-[#166534] border-[#86EFAC]",
-  },
-  {
-    value: "Hired",
-    color: "bg-[#D1FAE5] text-[#065F46] border-[#6EE7B7]",
-  },
-  {
-    value: "Rejected",
-    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]",
-  },
-  {
-    value: "On Hold",
+    value: "Hold",
     color: "bg-[#F5F4F0] text-[#6B6860] border-[#E0DDD6]",
   },
   {
-    value: "Withdrawn",
-    color: "bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]",
+    value: "Inactive",
+    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]",
   },
 ];
+
 /* ──────────────────── COMPONENT ──────────────────── */
 
 const Candidates = () => {
@@ -82,28 +68,24 @@ const Candidates = () => {
   const user = getCurrentUser();
 
   const canView = hasPermission(
-  user,
-  "candidate",
-  "view"
-);
+    user,
+    PERMISSIONS.CANDIDATE_VIEW
+  );
 
-const canCreate = hasPermission(
-  user,
-  "candidate",
-  "add"
-);
+  const canCreate = hasPermission(
+    user,
+    PERMISSIONS.CANDIDATE_CREATE
+  );
 
-const canEdit = hasPermission(
-  user,
-  "candidate",
-  "edit"
-);
+  const canEdit = hasPermission(
+    user,
+    PERMISSIONS.CANDIDATE_EDIT
+  );
 
-const canDelete = hasPermission(
-  user,
-  "candidate",
-  "delete"
-);
+  const canDelete = hasPermission(
+    user,
+    PERMISSIONS.CANDIDATE_DELETE
+  );
 
   /* ──────────────────── ACCESS DENIED ──────────────────── */
 
@@ -275,16 +257,13 @@ const canDelete = hasPermission(
       )
     );
 
-try {
-  console.log("ID:", id);
-  console.log("STATUS:", newStatus);
+    try {
 
-  const result = await updateCandidate(id, {
-    status: newStatus,
-  });
+      await updateCandidate(id, {
+        status: newStatus,
+      });
 
-  console.log("SUCCESS:", result);
-} catch (err) {
+    } catch (err) {
 
       console.error(err);
 
@@ -553,65 +532,7 @@ try {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-
-      {/* ════════ HEADER ════════ */}
-
-      <div className="border-b border-[#E8E6E0] bg-white">
-
-        <div className="flex items-center justify-between px-4 py-2.5">
-
-          <div className="flex items-center gap-4">
-
-            <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
-
-              My Candidates
-
-              <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
-                {candidates.length}
-              </span>
-
-            </button>
-
-          </div>
-
-          <div className="flex items-center gap-3">
-
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Customize table
-            </button>
-
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Import Candidates
-            </button>
-
-            <PermissionGuard
-              module="candidate"
-              action="add"
-            >
-
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-              >
-                <span className="text-[14px] leading-none">
-                  +
-                </span>
-
-                Add Candidate
-              </button>
-
-            </PermissionGuard>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* ════════ TABLE ════════ */}
-
       <div className="w-full">
-
         <DataTable
           columns={columns}
           data={candidates}
@@ -620,19 +541,22 @@ try {
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search name, skill, company…"
-          deletePermission={{
-            module: "candidate",
-            action: "delete"
-          }}
-          bulkDeletePermission={{
-            module: "candidate",
-            action: "delete"
-      }}
+          deletePermission={PERMISSIONS.CANDIDATE_DELETE}
+          bulkDeletePermission={PERMISSIONS.CANDIDATE_DELETE}
           emptyState={{
             title: "No candidates yet",
-            hint:
-              "Click + Add Candidate to get started",
+            hint: "Click + Add Candidate to get started",
           }}
+          actions={
+            <PermissionGuard permission={PERMISSIONS.CANDIDATE_CREATE}>
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm transition-all hover:bg-[#1741B6]"
+              >
+                <span className="text-[14px] leading-none">+</span> Add Candidate
+              </button>
+            </PermissionGuard>
+          }
         />
 
       </div>

@@ -9,7 +9,9 @@ import {
   deleteJob,
 } from "../api/jobsApi";
 import useRoleBase from "../hooks/useRoleBase";
-import usePermissions from "../hooks/usePermission";
+import { getCurrentUser } from "../utils/auth";
+import { hasPermission } from "../utils/hasPermission";
+import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
 
 
@@ -40,14 +42,10 @@ const JobOpenings = () => {
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
-  const { can } = usePermissions();
-
-const canView = can("job", "view");
-const canCreate = can("job", "add");
-const canEdit = can("job", "edit");
-const canDelete = can("job", "delete");
-
-  
+  const user = getCurrentUser();
+  const canCreate = hasPermission(user, PERMISSIONS.JOB_CREATE);
+  const canEdit = hasPermission(user, PERMISSIONS.JOB_EDIT);
+  const canDelete = hasPermission(user, PERMISSIONS.JOB_DELETE);
 
   const refresh = useCallback(async () => {
     try {
@@ -74,12 +72,7 @@ const canDelete = can("job", "delete");
       alert(getApiErrorMessage(err));
     }
   };
-
-  const handleDelete = (row) => {
-    if (!canDelete) return;
-    setConfirmDel(row);
-  };
-
+  const handleDelete = (row) => setConfirmDel(row);
   const confirmDelete = async () => {
     try {
       await deleteJob(confirmDel.id);
@@ -90,7 +83,6 @@ const canDelete = can("job", "delete");
       alert(getApiErrorMessage(err));
     }
   };
-
   const handleBulkDelete = async (ids) => {
     try {
       await Promise.all(ids.map((id) => deleteJob(id)));
@@ -100,31 +92,13 @@ const canDelete = can("job", "delete");
       alert(getApiErrorMessage(err));
     }
   };
-
-  const handleStatusChange = async (
-    id,
-    newStatus
-  ) => {
-
-    if (!canEdit) return;
-
-    setJobs((prev) =>
-      prev.map((j) =>
-        j.id === id
-          ? { ...j, status: newStatus }
-          : j
-      )
-    );
-
+  const handleStatusChange = async (id, newStatus) => {
+    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status: newStatus } : j)));
     try {
-   const current = jobs.find((j) => j.id === id);
-
-await updateJob(id, {
-  ...current,
-  status: newStatus,
-});
+      await updateJob(id, { status: newStatus });
     } catch (err) {
-      console.error("updateJob error:", err);
+      console.warn("Status update failed:", err?.response?.data || err);
+      alert(getApiErrorMessage(err));
       await refresh();
     }
   };
@@ -141,9 +115,7 @@ await updateJob(id, {
     { key: "salary",     label: "Salary / Rate", width: 140, type: "text",     defaultVisible: true, searchable: true },
     {
       key: "status", label: "Status", width: 120, type: "status",
-      statusOptions: STATUS_OPTIONS, onStatusChange: canEdit
-    ? handleStatusChange
-    : undefined,
+      statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
       defaultVisible: true, sortable: true, filterable: true,
     },
     { key: "contact",    label: "Contact",       width: 150, type: "text", searchable: true },
@@ -157,75 +129,32 @@ await updateJob(id, {
   ];
 
   if (showForm) {
-      return (
-          <JobForm
-              onSubmit={handleAdd}
-              onCancel={() => setShowForm(false)}
-          />
-      );
+    return <JobForm setShowForm={setShowForm} onSave={handleAdd} />;
   }
-
-  if (!canView) {
-      return (
-          <div className="p-10 text-red-500">
-              Access Denied
-          </div>
-      );
-  }
-
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      {/* ════════ COMPACT HEADER BAR ════════ */}
-      <div className="border-b border-[#E8E6E0] bg-white">
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <div className="flex items-center gap-4">
-            <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
-              My Job Openings
-              <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
-                {jobs.length}
-              </span>
-            </button>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Customize table
-            </button>
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Import Jobs
-            </button>
-
-            {canCreate && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-              >
-                <span className="text-[14px] leading-none">+</span>
-                Add Job
-              </button>
-            )}
-
-          </div>
-        </div>
-      </div>
-
-      {/* ════════ TABLE (EDGE-TO-EDGE) ════════ */}
       <div className="w-full">
         <DataTable
           columns={columns}
           data={jobs}
           storageKey="jobs_table"
-          onRowClick={(row) => {
-              if (!canView) return;
-              navigate(`${roleBase}/jobs/${row.id}`);
-          }}
-          onDelete={canDelete ? handleDelete : null}
-          onBulkDelete={canDelete ? handleBulkDelete : null}
+          onRowClick={(row) => navigate(`${roleBase}/jobs/${row.id}`)}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search title, client, skills…"
           emptyState={{
             title: "No job openings yet",
             hint: "Click + Add Job to create your first opening",
           }}
+          actions={
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm transition-all hover:bg-[#1741B6]"
+            >
+              <span className="text-[14px] leading-none">+</span> Add Job
+            </button>
+          }
         />
       </div>
 

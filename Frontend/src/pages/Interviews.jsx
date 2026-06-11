@@ -359,55 +359,18 @@ const Interviews = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
-      {/* HEADER */}
-      <div className="border-b border-[#E8E6E0] bg-white">
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <div className="flex items-center gap-4">
-            <button className="inline-flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0]">
-              My Interviews
-
-              <span className="rounded-full bg-[#F1EFE8] px-1.5 py-0.5 text-[10px] text-[#4A4845]">
-                {interviews.length}
-              </span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Customize table
-            </button>
-
-            <button className="text-[11px] font-medium text-[#6B6860] hover:text-[#1C4ED8]">
-              Calendar View
-            </button>
-
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
-            >
-              <span className="text-[14px] leading-none">+</span>
-
-              Schedule Interview
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* TABLE */}
       <div className="w-full">
         <DataTable
           columns={columns}
           data={interviews}
           storageKey="interviews_table"
-          onRowClick={(row) =>
-            navigate(`${roleBase}/interviews/${row.id}`)
-          }
+          onRowClick={(row) => navigate(`${roleBase}/interviews/${row.id}`)}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, interviewer…"
           emptyState={{
             title: "No interviews scheduled",
-            hint: "Click + Schedule Interview to get started",
+            hint: "Interviews are scheduled from the Submission detail page",
           }}
         />
       </div>
