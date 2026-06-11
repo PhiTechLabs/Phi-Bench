@@ -17,7 +17,7 @@ export default function Setup() {
 
     const loggedUser = getCurrentUser();
 
-    console.log(loggedUser);
+    // console.log(loggedUser);
 
     return (
 

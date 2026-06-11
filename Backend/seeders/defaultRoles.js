@@ -105,7 +105,7 @@ const seedRoles = async () => {
             );
         }
 
-        console.log("Default roles seeded successfully");
+        // // console.log("Default roles seeded successfully");
 
         process.exit();
     } catch (error) {

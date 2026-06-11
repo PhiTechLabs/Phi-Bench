@@ -18,7 +18,7 @@ export const protect = async (req, res, next) => {
             process.env.JWT_SECRET
         );
 
-        console.log("JWT DECODED:", decoded);
+        // console.log("JWT DECODED:", decoded);
 
         // Fetch user + role
         const user = await User.findById(decoded.id)
@@ -47,15 +47,15 @@ export const protect = async (req, res, next) => {
                 user.roleId?.modulePermissions || {},
         };
 
-        console.log(
-            "AUTH ROLE:",
-            JSON.stringify(user.roleId, null, 2)
-        );
+        // console.log(
+        //     "AUTH ROLE:",
+        //     JSON.stringify(user.roleId, null, 2)
+        // );
 
-        console.log(
-            "REQ.USER:",
-            JSON.stringify(req.user, null, 2)
-        );
+        // console.log(
+        //     "REQ.USER:",
+        //     JSON.stringify(req.user, null, 2)
+        // );
 
         next();
 

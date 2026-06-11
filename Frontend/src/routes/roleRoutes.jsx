@@ -21,10 +21,10 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
-console.log("USERS_VIEW", PERMISSIONS.USERS_VIEW);
-console.log("ROLES_VIEW", PERMISSIONS.ROLES_VIEW);
-console.log("PERMISSIONS_VIEW", PERMISSIONS.PERMISSIONS_VIEW);
-console.log("CLIENT_CREATE", PERMISSIONS.CLIENT_CREATE);
+// console.log("USERS_VIEW", PERMISSIONS.USERS_VIEW);
+// console.log("ROLES_VIEW", PERMISSIONS.ROLES_VIEW);
+// console.log("PERMISSIONS_VIEW", PERMISSIONS.PERMISSIONS_VIEW);
+// console.log("CLIENT_CREATE", PERMISSIONS.CLIENT_CREATE);
 
 export const roleRoutes = [
 

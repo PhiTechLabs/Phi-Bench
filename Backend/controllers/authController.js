@@ -65,12 +65,6 @@ export const loginUser = async (req, res) => {
 
         user.refreshToken = refreshToken;
 
-        console.log("LOGIN USER:");
-console.log(user);
-
-console.log("EMAIL:");
-console.log(user.email);
-
         await user.save();
 
         // ─── ACCESS TOKEN COOKIE ─────────────────────────
@@ -98,13 +92,13 @@ console.log(user.email);
                     "username email"
                 );
 
-                console.log(
-                JSON.stringify(
-                    populatedUser.roleId,
-                    null,
-                    2
-                )
-            );
+            //     console.log(
+            //     JSON.stringify(
+            //         populatedUser.roleId,
+            //         null,
+            //         2
+            //     )
+            // );
 
         return res.status(200).json({
 
@@ -459,10 +453,10 @@ export const getAllUsers = async (
                 "username email"
             );
 
-            console.log(
-                "FIRST USER BRANCH:",
-                users[0]?.branchId
-            );
+            // console.log(
+            //     "FIRST USER BRANCH:",
+            //     users[0]?.branchId
+            // );
         return res.status(200).json({
 
             count: users.length,

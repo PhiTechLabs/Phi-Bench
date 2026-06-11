@@ -111,7 +111,7 @@ const Navbar = () => {
   
 ];
 
-console.log("USER", user);
+// console.log("USER", user);
 
   const primaryMenu = allPrimaryMenu.filter(item => {
     if (!item.permission) return true;

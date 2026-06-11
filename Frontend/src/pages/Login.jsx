@@ -35,8 +35,8 @@ export default function Login() {
             });
 
             const { user } = res.data;
-            console.log(res.data);
-            console.log(user);
+            // console.log(res.data);
+            // console.log(user);
 
             localStorage.setItem("user", JSON.stringify(user));
             navigate("/home");

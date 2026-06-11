@@ -193,13 +193,13 @@ export const updateCandidate = async (id, payload) => {
 
     } catch (err) {
 
-  console.log("FULL ERROR", err);
-  console.log("RESPONSE", err.response);
-  console.log("DATA", err.response?.data);
+//   console.log("FULL ERROR", err);
+//   console.log("RESPONSE", err.response);
+//   console.log("DATA", err.response?.data);
 
-  console.error("updateCandidate error:", err);
+//   console.error("updateCandidate error:", err);
 
-        console.error("updateCandidate error:", err);
+//         console.error("updateCandidate error:", err);
 
         const serverMessage =
             err?.response?.data?.errors?.[0]?.message ||
