@@ -99,7 +99,7 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     ],
     "Internal Hold": [
         "For Validation",
-        "Internal",
+        "Submitted To Client",
     ],
     "Internal Reject": [
         "For Validation",
@@ -141,20 +141,16 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     // ── L1 ──
     "L1 Schedule Pending": [
         "L1 Scheduled",
+        "L1 Backout",
         "Hold by Client",
-        "L2 Schedule Pending",
-        "L3 Schedule Pending",
-        "L4 Schedule Pending",
     ],
-    "L1 Scheduled": [
-        "L1 Feedback Pending",
-        "L1 Rescheduled",
-    ],
+    "L1 Scheduled": [],
     "L1 Feedback Pending": [
         "L1 Rejected",
         "L1 Backout",
         "L2 Schedule Pending",
         "Final Select",
+        "Hold by Client",
     ],
     "L1 Rescheduled": [
         "L1 Schedule Pending",
@@ -165,23 +161,21 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     ],
     "L1 Backout": [
         "L1 Schedule Pending",
+        "Hold by Client",
     ],
     // ── L2 ──
     "L2 Schedule Pending": [
         "L2 Scheduled",
+        "L2 Backout",
         "Hold by Client",
-        "L3 Schedule Pending",
-        "L4 Schedule Pending",
     ],
-    "L2 Scheduled": [
-        "L2 Feedback Pending",
-        "L2 Rescheduled",
-    ],
+    "L2 Scheduled": [],
     "L2 Feedback Pending": [
         "L2 Rejected",
         "L2 Backout",
         "L3 Schedule Pending",
         "Final Select",
+        "Hold by Client",
     ],
     "L2 Rescheduled": [
         "L2 Schedule Pending",
@@ -192,22 +186,21 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     ],
     "L2 Backout": [
         "L2 Schedule Pending",
+        "Hold by Client",
     ],
     // ── L3 ──
     "L3 Schedule Pending": [
         "L3 Scheduled",
+        "L3 Backout",
         "Hold by Client",
-        "L4 Schedule Pending",
     ],
-    "L3 Scheduled": [
-        "L3 Feedback Pending",
-        "L3 Rescheduled",
-    ],
+    "L3 Scheduled": [],
     "L3 Feedback Pending": [
         "L3 Rejected",
         "L3 Backout",
         "L4 Schedule Pending",
         "Final Select",
+        "Hold by Client",
     ],
     "L3 Rescheduled": [
         "L3 Schedule Pending",
@@ -218,20 +211,20 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     ],
     "L3 Backout": [
         "L3 Schedule Pending",
+        "Hold by Client",
     ],
     // ── L4 ──
     "L4 Schedule Pending": [
         "L4 Scheduled",
+        "L4 Backout",
         "Hold by Client",
     ],
-    "L4 Scheduled": [
-        "L4 Feedback Pending",
-        "L4 Rescheduled",
-    ],
+    "L4 Scheduled": [],
     "L4 Feedback Pending": [
         "L4 Rejected",
         "L4 Backout",
         "Final Select",
+        "Hold by Client",
     ],
     "L4 Rescheduled": [
         "L4 Schedule Pending",
@@ -242,6 +235,7 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     ],
     "L4 Backout": [
         "L4 Schedule Pending",
+        "Hold by Client",
     ],
     // ── Final Stage ──
     "Final Select": [
@@ -284,8 +278,6 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     "Replacement Term Ended": [],
     "Project Completed":      [],
     "Project Ended":          [],
-    "Internal Reject":        ["For Validation"],
-    "Internal Hold":          ["For Validation", "Submitted To Client"],
 };
 
 // ─── STATUS CATEGORY (for coloring) ──────────────────────────────────────────

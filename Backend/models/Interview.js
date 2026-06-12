@@ -25,13 +25,8 @@ export const INTERVIEW_OUTCOMES = [
 
 // ─── INTERVIEW TYPES ──────────────────────────────────────────────────────────
 export const INTERVIEW_TYPES = [
-    "Phone Screen",
-    "Video Call",
-    "In Person",
-    "Technical",
-    "HR Round",
-    "Panel",
-    "Final Round",
+    "Virtual",
+    "Face to Face",
 ];
 
 // ─── INTERVIEW ROUNDS ─────────────────────────────────────────────────────────
@@ -121,7 +116,7 @@ const interviewSchema = new mongoose.Schema({
     interviewType: {
         type: String,
         enum: INTERVIEW_TYPES,
-        default: "Phone Screen",
+        default: "Virtual",
     },
 
     // Scheduling

@@ -13,7 +13,15 @@ const D = {
     check: "M20 6L9 17l-5-5",
     arrow: "M5 12h14M12 5l7 7-7 7",
     lock:  "M12 17v-2m-6 6h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
+    cal:   "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
 };
+
+const INTERVIEW_LOCKED_STATUSES = [
+    "L1 Scheduled",
+    "L2 Scheduled",
+    "L3 Scheduled",
+    "L4 Scheduled",
+];
 
 const Pill = ({ status }) => {
     const s = getStatusStyle(status);
@@ -28,6 +36,7 @@ const Pill = ({ status }) => {
 
 export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
     const allowed = getAllowedTransitions(submission.status);
+    const isInterviewLocked = INTERVIEW_LOCKED_STATUSES.includes(submission.status);
     const [selected, setSelected] = useState("");
     const [note,     setNote]     = useState("");
     const [saving,   setSaving]   = useState(false);
@@ -108,13 +117,35 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
 
                     {allowed.length === 0 ? (
                         <div className="flex flex-col items-center gap-3 py-8 text-center">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-                                <Ico d={D.lock} size={22} />
-                            </div>
-                            <div>
-                                <p className="text-[13.5px] font-bold text-slate-700">Terminal Status</p>
-                                <p className="text-[12px] text-slate-400 mt-0.5">No further transitions available.</p>
-                            </div>
+                            {isInterviewLocked ? (
+                                <>
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-amber-500"
+                                        style={{ background: "#FFFBEB", border: "1.5px solid #FDE68A" }}>
+                                        <Ico d={D.cal} size={26} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[13.5px] font-bold text-slate-700">Interview Pending</p>
+                                        <p className="text-[12px] text-slate-500 mt-1 max-w-[230px] leading-relaxed">
+                                            No further status change allowed until the interview is conducted and feedback is submitted.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[11.5px] font-medium text-amber-700 max-w-[260px]"
+                                        style={{ background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+                                        <Ico d={D.lock} size={13} />
+                                        Schedule the interview first, then submit feedback to unlock.
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                                        <Ico d={D.lock} size={22} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[13.5px] font-bold text-slate-700">Terminal Status</p>
+                                        <p className="text-[12px] text-slate-400 mt-0.5">No further transitions available.</p>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 gap-1.5 max-h-[240px] overflow-y-auto pr-0.5"
