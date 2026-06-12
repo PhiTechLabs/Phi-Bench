@@ -18,6 +18,7 @@ import Roles from "../pages/settings/Roles";
 import Permissions from "../pages/settings/Permission";
 
 import ProtectedRoute from "../components/ProtectedRoute";
+import Teams from "../pages/settings/Teams"
 
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 
@@ -183,6 +184,16 @@ export const roleRoutes = [
         element: (
             <ProtectedRoute permission={PERMISSIONS.USERS_VIEW}>
                 <Users />
+            </ProtectedRoute>
+        ),
+    },
+
+    // TEAMS
+    {
+        path: "settings/teams",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.TEAMS_VIEW}>
+                <Teams />
             </ProtectedRoute>
         ),
     },

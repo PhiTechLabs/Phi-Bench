@@ -26,7 +26,7 @@
         label: "Users & Control",
         items: [
         { id: "users",         label: "Users",            route: "users" },
-        { id: "security",      label: "Security Control", route: "security" },
+        { id: "teams",      label: "Security Control", route: "teams" },
         { id: "roles",         label: "Roles",            route: "roles" },
         { id: "permissions",   label: "Permissions",      route: "permissions" },
         ],

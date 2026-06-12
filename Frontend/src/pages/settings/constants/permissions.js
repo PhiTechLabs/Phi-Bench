@@ -139,4 +139,23 @@ export const PERMISSIONS = {
         module: "vendors",
         action: ACTIONS.VIEW,
     },
+    TEAMS_VIEW: {
+        module: "teams",
+        action: ACTIONS.VIEW,
+    },
+
+    TEAMS_ADD: {
+        module: "teams",
+        action: ACTIONS.ADD,
+    },
+
+    TEAMS_EDIT: {
+        module: "teams",
+        action: ACTIONS.EDIT,
+    },
+
+    TEAMS_DELETE: {
+        module: "teams",
+        action: ACTIONS.DELETE,
+    },
 };
