@@ -230,14 +230,15 @@ export default function RoleModal({
     return (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
 
-            <div className="bg-white rounded-2xl w-full max-w-5xl shadow-xl max-h-[95vh] overflow-hidden flex flex-col">
+        <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl max-h-[70vh] overflow-hidden flex flex-col">   
 
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                 {/* HEADER */}
-                <div className="flex items-center justify-between p-5 border-b">
+                <div className="flex items-center rounded-t-xl justify-between px-6 py-5 border-b bg-linear-to-r from-blue-50 to-indigo-50">
 
                     <div>
 
-                        <h2 className="text-2xl font-semibold text-gray-800">
+                        <h2 className="text-xl font-bold text-gray-800">
 
                             {isEdit
                                 ? "Edit Role"
@@ -264,7 +265,7 @@ export default function RoleModal({
                 </div>
 
                 {/* BODY */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
                     {error && (
 
@@ -274,12 +275,12 @@ export default function RoleModal({
                     )}
 
                     {/* BASIC INFO */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                         {/* ROLE NAME */}
                         <div>
 
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-md font-medium text-gray-700 mb-1">
                                 Role Name
                             </label>
 
@@ -290,7 +291,7 @@ export default function RoleModal({
                                 onChange={handleChange}
                                 disabled={role?.isSystemRole}
                                 placeholder="Enter role name"
-                                className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                                className="w-full border rounded-lg px-2 py-1 outline-none text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                             />
 
                         </div>
@@ -298,7 +299,7 @@ export default function RoleModal({
                         {/* HIERARCHY */}
                         <div>
 
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-md font-medium text-gray-700 mb-1">
                                 Hierarchy Level
                             </label>
 
@@ -308,7 +309,7 @@ export default function RoleModal({
                                 value={form.hierarchyLevel}
                                 onChange={handleChange}
                                 disabled={role?.isSystemRole}
-                                className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                                className="w-full border rounded-lg px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                             />
 
                         </div>
@@ -318,7 +319,7 @@ export default function RoleModal({
                     {/* DESCRIPTION */}
                     <div>
 
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-md font-medium text-gray-700 mb-2">
                             Description
                         </label>
 
@@ -328,7 +329,7 @@ export default function RoleModal({
                             onChange={handleChange}
                             rows={3}
                             placeholder="Enter description"
-                            className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full text-sm rounded-xl border h-18 border-gray-200 px-2 py-2 bg-gray-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
                         />
 
                     </div>
@@ -336,7 +337,7 @@ export default function RoleModal({
                     {/* DATA SCOPE */}
                     <div>
 
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-md font-medium text-gray-700 mb-1">
                             Data Scope
                         </label>
 
@@ -344,7 +345,7 @@ export default function RoleModal({
                             name="dataScope"
                             value={form.dataScope}
                             onChange={handleChange}
-                            className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-[40%]  rounded-xl border text-sm border-gray-200 px-3 py-2 bg-gray-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
                         >
 
                             <option value="SELF">
@@ -367,155 +368,15 @@ export default function RoleModal({
 
                     </div>
 
-                    {/* PERMISSIONS */}
-                    <div>
-
-                        <div className="flex items-center justify-between mb-5">
-
-                            <div>
-
-                                <h3 className="text-lg font-semibold text-gray-800">
-                                    Permissions
-                                </h3>
-
-                                <p className="text-sm text-gray-500">
-                                    Configure access controls for this role
-                                </p>
-
-                            </div>
-
-                            <div className="text-sm text-gray-500">
-                                {form.permissions.length} selected
-                            </div>
-
-                        </div>
-
-                        {permissions.length === 0 ? (
-
-                            <div className="border rounded-xl p-5 text-sm text-gray-500">
-                                No permissions found
-                            </div>
-
-                        ) : (
-
-                            <div className="space-y-5">
-
-                                {Object.entries(groupedPermissions).map(
-                                    ([group, perms]) => {
-
-                                        const selectedCount =
-                                            perms.filter((permission) =>
-                                                form.permissions.includes(permission)
-                                            ).length;
-
-                                        return (
-
-                                            <div
-                                                key={group}
-                                                className="border rounded-2xl p-5"
-                                            >
-
-                                                {/* GROUP HEADER */}
-                                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
-
-                                                    <div>
-
-                                                        <h4 className="text-lg font-semibold text-gray-800">
-                                                            {group}
-                                                        </h4>
-
-                                                        <p className="text-sm text-gray-500">
-                                                            {selectedCount} / {perms.length} selected
-                                                        </p>
-
-                                                    </div>
-
-                                                    <div className="flex gap-2">
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                toggleGroupPermissions(
-                                                                    perms,
-                                                                    true
-                                                                )
-                                                            }
-                                                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
-                                                        >
-                                                            Select All
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                toggleGroupPermissions(
-                                                                    perms,
-                                                                    false
-                                                                )
-                                                            }
-                                                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
-                                                        >
-                                                            Clear
-                                                        </button>
-
-                                                    </div>
-
-                                                </div>
-
-                                                {/* PERMISSION GRID */}
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-
-                                                    {perms.map((permission) => {
-
-                                                        const checked =
-                                                            form.permissions.includes(permission);
-
-                                                        return (
-
-                                                            <label
-                                                                key={permission}
-                                                                className={`flex items-center gap-3 text-sm cursor-pointer border rounded-xl px-4 py-3 transition ${checked
-                                                                    ? "border-blue-500 bg-blue-50"
-                                                                    : "hover:bg-gray-50"
-                                                                    }`}
-                                                            >
-
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={checked}
-                                                                    onChange={() =>
-                                                                        togglePermission(permission)
-                                                                    }
-                                                                />
-
-                                                                <span className="text-gray-700">
-                                                                    {permission}
-                                                                </span>
-
-                                                            </label>
-                                                        );
-                                                    })}
-
-                                                </div>
-
-                                            </div>
-                                        );
-                                    }
-                                )}
-
-                            </div>
-                        )}
-
-                    </div>
 
                 </div>
 
                 {/* FOOTER */}
-                <div className="flex justify-end gap-3 p-5 border-t bg-white">
+                <div className="flex justify-end gap-3 px-6 py-3 border-t bg-gray-50">
 
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -523,7 +384,7 @@ export default function RoleModal({
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg disabled:opacity-50"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                     >
 
                         {loading
@@ -534,6 +395,7 @@ export default function RoleModal({
 
                     </button>
 
+                </div>
                 </div>
 
             </div>
