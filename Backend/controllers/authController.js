@@ -87,6 +87,7 @@ export const loginUser = async (req, res) => {
             await User.findById(user._id)
                 .populate("roleId")
                 .populate("branchId")
+                .populate("teamId")
                 .populate(
                     "managerId",
                     "username email"
@@ -107,6 +108,14 @@ export const loginUser = async (req, res) => {
                 username: populatedUser.username,
                 email: populatedUser.email,
                 role: populatedUser.roleId?.name,
+
+                team: populatedUser.teamId
+                    ? {
+                        id: populatedUser.teamId._id,
+                        name: populatedUser.teamId.name,
+                    }
+                    : null,
+
                 branch: populatedUser.branchId
                     ? {
                         id: populatedUser.branchId._id,
@@ -447,6 +456,7 @@ export const getAllUsers = async (
             .select("-password")
             .sort({ createdAt: -1 })
             .populate("roleId")
+            .populate("teamId", "name")
             .populate("branchId")
             .populate(
                 "managerId",

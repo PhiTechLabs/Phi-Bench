@@ -15,12 +15,12 @@ const DEFAULT_COLS = [
     { key: "username",   label: "Username",   width: 200, minWidth: 100 },
     { key: "email",      label: "Email",      width: 220, minWidth: 100 },
     { key: "role",       label: "Role",       width: 150, minWidth: 80  },
+    {key:  "team",       label: "Team",       width: 160, minWidth: 100 },
     { key: "reportsTo",  label: "Reports To", width: 200, minWidth: 100 },
     { key: "status",     label: "Status",     width: 100, minWidth: 70  },
     { key: "created",    label: "Created",    width: 130, minWidth: 90  },
     { key: "actions",    label: "Actions",    width: 90,  minWidth: 70  },
-];
-
+]
 // ─── RESIZABLE HEADER CELL ────────────────────────────────────────────────────
 const ResizableTh = ({ col, onResize, children }) => {
     const startX  = useRef(null);
@@ -260,6 +260,11 @@ export default function Users() {
                                     {/* Role */}
                                     <ClipTd width={col("role").width}>
                                         <RoleBadge role={u.roleId?.name} />
+                                    </ClipTd>
+
+                                    {/* Team */}
+                                    <ClipTd width={col("team").width}>
+                                        {u.teamId?.name || "—"}
                                     </ClipTd>
 
                                     {/* Reports To */}

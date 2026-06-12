@@ -51,6 +51,10 @@ import mongoose from "mongoose";
     type: String,
     default: null,
     },
+    teamId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Team",
+    },
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
