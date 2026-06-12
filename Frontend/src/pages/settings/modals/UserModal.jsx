@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../../../api/axiosInstance";
 import { FaEye, FaEyeSlash, FaUser, FaLock, FaShieldAlt, FaPlus, FaCheck } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
+import { FaTrashAlt } from "react-icons/fa";
 
 export default function UserModal({ mode, user, onClose, onSuccess }) {
 
@@ -34,12 +35,16 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
     // ─── Branch state ───────────────────────────────────────
     const [branches, setBranches] = useState([]);
     const [loadingBranches, setLoadingBranches] = useState(true);
+    const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
+    const [deletingBranch, setDeletingBranch] = useState("");
 
     const [selectedBranch, setSelectedBranch] =
         useState(user?.branchId?._id || "");
 
     const [showBranchForm, setShowBranchForm] =
         useState(false);
+
+        const [showBranchManager, setShowBranchManager] = useState(false);
 
     const [newBranch, setNewBranch] =
         useState({
@@ -313,6 +318,45 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
         }
     };
 
+    // ─── Delete branch ───────────────────────────────────
+    const deleteBranch = async (branchId) => {
+
+        const confirmed = window.confirm(
+            "Delete this branch?"
+        );
+
+        if (!confirmed) return;
+
+        try {
+
+            await axiosInstance.delete(
+                `/branches/${branchId}`
+            );
+
+            setBranches(prev =>
+                prev.filter(
+                    branch => branch._id !== branchId
+                )
+            );
+
+            if (selectedBranch === branchId) {
+                setSelectedBranch("");
+            }
+
+            onSuccess?.(
+                "Branch deleted successfully",
+                "success"
+            );
+
+        } catch (err) {
+
+            setError(
+                err.response?.data?.message ||
+                "Failed to delete branch"
+            );
+        }
+    };
+
     // ─── Submit ────────────────────────────────────────────────
     const handleSubmit = async () => {
 
@@ -497,9 +541,9 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                 className={`
                     bg-white rounded-3xl shadow-2xl w-full
                     transition-all duration-300
-                    max-h-[75vh]
+                    max-h-[70vh]
                     flex flex-col
-                    ${showBranchForm ? "max-w-xl" : "md:max-w-sm" }
+                    ${showBranchForm || showBranchManager ? "max-w-2xl" : "md:max-w-sm" }
                 `}
             >
 
@@ -527,7 +571,13 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                 <div className="flex flex-1 overflow-y-auto">
 
                     {/* LEFT SIDE - USER FORM */}
-                    <div className="flex-1 px-6 py-5 space-y-4 max-w-xl">
+                    <div className="
+                        flex-1
+                        px-6
+                        py-5
+                        space-y-4
+                        overflow-y-auto
+                    ">
 
                     {/* Error */}
                     {error && (
@@ -582,7 +632,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                             <button
                                 type="button"
                                 onClick={() => setShowPw(!showPw)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                             >
                                 {showPw ? <FaEyeSlash /> : <FaEye />}
                             </button>
@@ -657,7 +707,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                             {/* Confirmed checkmark */}
                             {selectedRole && (
-                                <FaCheck className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-xs pointer-events-none" />
+                                <FaCheck className="absolute right-10 top-1/2 -translate-y-1/2 text-green-500 text-xs pointer-events-none" />
                             )}
 
                             {/* ── DROPDOWN ── */}
@@ -666,7 +716,7 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                                     {/* Existing roles list */}
                                     {filteredRoles.length > 0 && (
-                                        <ul className="max-h-44 overflow-y-auto py-3">
+                                        <ul className="max-h-44 overflow-hidden py-3">
                                             {filteredRoles.map((r) => (
                                                 <li
                                                     key={r._id}
@@ -753,44 +803,157 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                             Branch
                         </label>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 relative">
 
-                            <select
-                                value={selectedBranch}
-                                onChange={(e) =>
-                                    setSelectedBranch(
-                                        e.target.value
-                                    )
-                                }
-                                disabled={loadingBranches}
-                                className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                            >
-                                <option value="">
-                                    Select Branch
-                                </option>
+                            <div className="relative flex-1">
 
-                                {branches.map((branch) => (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setBranchDropdownOpen(
+                                            !branchDropdownOpen
+                                        )
+                                    }
+                                    className="
+                                        w-full
+                                        px-3
+                                        py-2.5
+                                        border
+                                        border-gray-200
+                                        rounded-xl
+                                        text-left
+                                        bg-white
+                                        text-sm
+                                        hover:border-blue-300
+                                    "
+                                >
+                                    {
+                                        branches.find(
+                                            b => b._id === selectedBranch
+                                        )?.name || "Select Branch"
+                                    }
+                                </button>
 
-                                    <option
-                                        key={branch._id}
-                                        value={branch._id}
+                                {branchDropdownOpen && (
+
+                                    <div
+                                        className="
+                                            absolute
+                                            z-20
+                                            w-full
+                                            mt-1
+                                            bg-white
+                                            border
+                                            border-gray-200
+                                            rounded-xl
+                                            shadow-lg
+                                            overflow-hidden
+                                        "
                                     >
-                                        {branch.name}
-                                    </option>
 
-                                ))}
-                            </select>
+                                        <ul className="max-h-56 overflow-y-auto">
+
+                                            {branches.map((branch) => (
+
+                                                <li
+                                                    key={branch._id}
+                                                    className="
+                                                        flex
+                                                        items-center
+                                                        justify-between
+                                                        px-3
+                                                        py-2.5
+                                                        hover:bg-gray-50
+                                                    "
+                                                >
+
+                                                    {/* Select branch */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+
+                                                            setSelectedBranch(
+                                                                branch._id
+                                                            );
+
+                                                            setBranchDropdownOpen(
+                                                                false
+                                                            );
+                                                        }}
+                                                        className="
+                                                            flex-1
+                                                            text-left
+                                                            text-sm
+                                                            text-gray-700
+                                                        "
+                                                    >
+                                                        {branch.name}
+                                                    </button>
+
+                                                    {/* Delete icon */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+
+                                                            e.stopPropagation();
+
+                                                            deleteBranch(
+                                                                branch._id
+                                                            );
+                                                        }}
+                                                        disabled={
+                                                            deletingBranch ===
+                                                            branch._id
+                                                        }
+                                                        className="
+                                                            ml-2
+                                                            p-1.5
+                                                            rounded
+                                                            text-gray-400
+                                                            hover:text-red-600
+                                                            hover:bg-red-50
+                                                            transition
+                                                        "
+                                                    >
+                                                        <FaTrashAlt
+                                                            size={13}
+                                                        />
+                                                    </button>
+
+                                                </li>
+
+                                            ))}
+
+                                        </ul>
+
+                                    </div>
+
+                                )}
+
+                            </div>
 
                             <button
                                 type="button"
-                                onClick={() => setShowBranchForm(true)}
+                                onClick={() => {
+
+                                    if (showBranchForm) {
+
+                                        setShowBranchForm(false);
+
+                                    } else {
+
+                                        setShowBranchManager(false);
+                                        setShowBranchForm(true);
+
+                                    }
+                                }}
                                 className="
-                                    w-11
-                                    h-11
+                                    w-10
+                                    h-10
                                     flex
                                     items-center
                                     justify-center
-                                    rounded-xl
+                                    rounded-lg
                                     bg-blue-700
                                     hover:bg-blue-800
                                     text-white
@@ -799,6 +962,37 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                 "
                             >
                                 <FaPlus />
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+
+                                    if (showBranchManager) {
+
+                                        setShowBranchManager(false);
+
+                                    } else {
+
+                                        setShowBranchForm(false);
+                                        setShowBranchManager(true);
+
+                                    }
+                                }}
+                                className="
+                                    w-10
+                                    h-10
+                                    flex
+                                    items-center
+                                    justify-center
+                                    rounded-lg
+                                    border
+                                    border-gray-200
+                                    hover:bg-gray-50
+                                    transition
+                                "
+                            >
+                                🗂️
                             </button>
 
                         </div>
@@ -857,8 +1051,9 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                     {showBranchForm && (
 
                     <div className=" 
-                        w-62.5
+                        w-68
                         border-l
+                        shrink-0
                         border-gray-200
                         bg-linear-to-b
                         from-gray-50
@@ -910,10 +1105,10 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     }
                                     placeholder="Noida Branch"
                                     className="
-                                        w-full
+                                        w-[90%]
                                         px-3
-                                        py-2
-                                        rounded-xl
+                                        py-1
+                                        rounded-lg
                                         border
                                         border-gray-200
                                         focus:ring-2
@@ -942,10 +1137,10 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                     }
                                     placeholder="NOD001"
                                     className="
-                                        w-full
+                                        w-[90%]
                                         px-3
-                                        py-2
-                                        rounded-xl
+                                        py-1
+                                        rounded-lg
                                         border
                                         border-gray-200
                                         focus:ring-2
@@ -961,11 +1156,11 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
                                 type="button"
                                 onClick={createBranch}
                                 className="
-                                    w-[65%] ml-5
+                                    w-[60%] ml-6
                                     bg-blue-700
                                     hover:bg-blue-800
                                     text-white
-                                    py-2.5 
+                                    py-2
                                     rounded-lg
                                     font-medium
                                     transition
@@ -981,42 +1176,126 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                     )}
 
+                    {showBranchManager && (
+
+                        <div
+                            className="
+                                w-68
+                                border-l
+                                shrink-0
+                                border-gray-200
+                                bg-white
+                                p-5
+                            "
+                        >
+
+                            <div className="flex justify-between items-center mb-4">
+
+                                <h3 className="font-semibold text-gray-800">
+                                    Manage Branches
+                                </h3>
+
+                                <button
+                                    onClick={() =>
+                                        setShowBranchManager(false)
+                                    }
+                                >
+                                    <RxCross2 />
+                                </button>
+
+                            </div>
+
+                            <div className="space-y-2 max-h-80 overflow-y-auto">
+
+                                {branches.map(branch => (
+
+                                    <div
+                                        key={branch._id}
+                                        className="
+                                            flex
+                                            items-center
+                                            justify-between
+                                            p-3
+                                            rounded-lg
+                                            border
+                                            border-gray-100
+                                            hover:border-gray-200
+                                        "
+                                    >
+
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {branch.name}
+                                            </p>
+
+                                            <p className="text-xs text-gray-400">
+                                                {branch.code}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            onClick={() =>
+                                                deleteBranch(branch._id)
+                                            }
+                                            className="
+                                                p-2
+                                                rounded-lg
+                                                text-gray-400
+                                                hover:text-red-600
+                                                hover:bg-red-50
+                                                transition
+                                            "
+                                        >
+                                            <FaTrashAlt/>
+                                        </button>
+
+                                    </div>
+
+                                ))}
+
+                            </div>
+
+                        </div>
+
+                        )}
+
                 </div>
 
                     {/* ── FOOTER ── */}
-                    <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
+                    <div className="flex justify-between gap-3 px-6 py-4 border-t border-gray-100">
                         <button
                             onClick={onClose}
                             className="
-    px-6
-    py-2.5
-    rounded-xl
-    border
-    border-gray-200
-    text-gray-600
-    text-sm
-    font-medium
-    hover:bg-gray-50
-    transition
-"                        >
+                                px-6
+                                py-2.5
+                                rounded-xl
+                                border
+                                border-gray-200
+                                text-gray-600
+                                text-sm
+                                font-medium
+                                hover:bg-gray-50
+                                transition
+                            ">
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={loading}
                             className="
-    px-6
-    py-2.5
-    rounded-xl
-    bg-blue-700
-    hover:bg-blue-800
-    text-white
-    text-sm
-    font-medium
-    transition
-    disabled:opacity-60
-    disabled:cursor-not-allowed
-">
+                                px-6
+                                py-2.5
+                                rounded-xl
+                                bg-blue-700
+                                hover:bg-blue-800
+                                text-white
+                                text-sm
+                                font-medium
+                                transition
+                                disabled:opacity-60
+                                disabled:cursor-not-allowed
+                            ">
+
                             {loading
                                 ? isEdit ? "Saving..." : "Creating..."
                                 : isEdit ? "Save Changes" : "Create User"
