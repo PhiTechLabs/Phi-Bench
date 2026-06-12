@@ -86,6 +86,22 @@ export const createInterviewService = async (payload, userId) => {
         throw err;
     }
 
+    // Block if an active interview already exists for this candidate + job
+    const activeInterview = await Interview.findOne({
+        candidate: candidateId,
+        job:       jobId,
+        status:    { $in: ["Scheduled", "Rescheduled"] },
+        outcome:   null,
+    });
+
+    if (activeInterview) {
+        const err = new Error(
+            `An ${activeInterview.interviewRound} interview is already scheduled for this candidate. Submit feedback for the existing interview before scheduling a new one.`
+        );
+        err.statusCode = 400;
+        throw err;
+    }
+
     const round = interviewRound || "L1";
 
     const interview = await Interview.create({
@@ -96,7 +112,7 @@ export const createInterviewService = async (payload, userId) => {
         jobTitle:       job.title,
         clientName:     job.client,
         interviewRound: round,
-        interviewType:  interviewType || "Phone Screen",
+        interviewType:  interviewType || "Virtual",
         scheduledDate:  new Date(scheduledDate),
         scheduledTime:  scheduledTime || "",
         duration:       duration || 60,
@@ -220,13 +236,14 @@ export const updateInterviewService = async (id, payload) => {
 };
 
 // ─── ADD FEEDBACK ─────────────────────────────────────────────────────────────
-export const addFeedbackService = async (id, { feedback, rating, status }) => {
+export const addFeedbackService = async (id, { feedback, rating, status, outcome, notes }, userId) => {
     const interview = await Interview.findByIdAndUpdate(
         id,
         {
             feedback: feedback || "",
             rating:   rating   || null,
             status:   status   || "Completed",
+            outcome:  outcome  || null,
         },
         { new: true, runValidators: true }
     );
@@ -235,6 +252,16 @@ export const addFeedbackService = async (id, { feedback, rating, status }) => {
         const err = new Error("Interview not found");
         err.statusCode = 404;
         throw err;
+    }
+
+    if (outcome && interview.submission) {
+        await advanceSubmissionStatus(
+            interview.submission,
+            interview.interviewRound,
+            outcome,
+            userId,
+            notes || ""
+        );
     }
 
     return interview;
