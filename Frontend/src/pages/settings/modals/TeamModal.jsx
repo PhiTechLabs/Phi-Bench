@@ -167,19 +167,10 @@ export default function TeamModal({
 
                 if (isEdit) {
 
-                    await axiosInstance.put(
-                        `/teams/${team._id}`,
+                    await updateTeam(
+                        team._id,
                         form
                     );
-
-                } else {
-
-                    if (isEdit) {
-
-                        await updateTeam(
-                            team._id,
-                            form
-                        );
 
                     } else {
 
@@ -188,8 +179,6 @@ export default function TeamModal({
                         );
 
                     }
-
-                }
 
                 onSuccess?.(
                     isEdit
@@ -225,7 +214,7 @@ export default function TeamModal({
                 fixed
                 inset-0
                 bg-black/50
-                z-[999]
+                z-999
                 flex
                 items-center
                 justify-center

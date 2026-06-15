@@ -175,7 +175,7 @@ import React, { useEffect, useState } from "react";
 
             {/* Avatar + Name */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[16px] font-bold shadow">
+                <div className="h-11 w-11 shrink-0 rounded-full bg-linear-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[16px] font-bold shadow">
                 {candidate.initials || "?"}
                 </div>
                 <div className="min-w-0">
