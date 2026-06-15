@@ -9,74 +9,15 @@ import BackButton from "../../reusable/BackButton";
 import usePermissions from "../../hooks/usePermission";
 import { getCurrentUser } from "../../utils/auth";
 
-// ─── COLUMN DEFINITIONS ───────────────────────────────────────────────────────
-const DEFAULT_COLS = [
-    { key: "no",         label: "#",          width: 52,  minWidth: 40  },
-    { key: "username",   label: "Username",   width: 200, minWidth: 100 },
-    { key: "email",      label: "Email",      width: 220, minWidth: 100 },
-    { key: "role",       label: "Role",       width: 150, minWidth: 80  },
-    {key:  "team",       label: "Team",       width: 160, minWidth: 100 },
-    { key: "reportsTo",  label: "Reports To", width: 200, minWidth: 100 },
-    { key: "status",     label: "Status",     width: 100, minWidth: 70  },
-    { key: "created",    label: "Created",    width: 130, minWidth: 90  },
-    { key: "actions",    label: "Actions",    width: 90,  minWidth: 70  },
-]
-// ─── RESIZABLE HEADER CELL ────────────────────────────────────────────────────
-const ResizableTh = ({ col, onResize, children }) => {
-    const startX  = useRef(null);
-    const startW  = useRef(null);
-
-    const onMouseDown = (e) => {
-        e.preventDefault();
-        startX.current = e.clientX;
-        startW.current = col.width;
-
-        const onMove = (mv) => {
-            const delta = mv.clientX - startX.current;
-            const next  = Math.max(col.minWidth, startW.current + delta);
-            onResize(col.key, next);
-        };
-        const onUp = () => {
-            document.removeEventListener("mousemove", onMove);
-            document.removeEventListener("mouseup",   onUp);
-        };
-        document.addEventListener("mousemove", onMove);
-        document.addEventListener("mouseup",   onUp);
-    };
-
-    return (
-        <th
-            style={{ width: col.width, minWidth: col.minWidth, maxWidth: col.width, position: "relative" }}
-            className="px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase tracking-wide bg-gray-50 select-none overflow-hidden"
-        >
-            <div style={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                {children}
-            </div>
-            {/* resize handle */}
-            <div
-                onMouseDown={onMouseDown}
-                style={{
-                    position:   "absolute",
-                    right:       0,
-                    top:         0,
-                    height:      "100%",
-                    width:       5,
-                    cursor:      "col-resize",
-                    userSelect:  "none",
-                    zIndex:      10,
-                }}
-                className="hover:bg-blue-400 transition-colors"
-            />
-        </th>
-    );
-};
 
 // ─── CLIPPED CELL ────────────────────────────────────────────────────────────
-const ClipTd = ({ width, className = "", children }) => (
-    <td
-        style={{ width, minWidth: width, maxWidth: width, overflow: "hidden" }}
-        className={`px-3 py-3.5 text-sm align-middle ${className}`}
-    >
+    const ClipTd = ({
+        className = "",
+        children,
+    }) => (
+        <td
+            className={`px-3 py-3.5 text-sm align-middle overflow-hidden ${className}`}
+        >
         <div style={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
             {children}
         </div>
@@ -99,7 +40,7 @@ export default function Users() {
     const [modal,        setModal]        = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [toast,        setToast]        = useState(null);
-    const [cols,         setCols]         = useState(DEFAULT_COLS);
+    // const [cols,         setCols]         = useState(DEFAULT_COLS);
 
     const showToast = (msg, type = "success") => setToast({ msg, type });
 
@@ -117,9 +58,6 @@ export default function Users() {
 
     useEffect(() => { fetchUsers(); }, []);
 
-    const handleResize = useCallback((key, width) => {
-        setCols((prev) => prev.map((c) => c.key === key ? { ...c, width } : c));
-    }, []);
 
     const handleDelete = async () => {
         try {
@@ -135,16 +73,21 @@ export default function Users() {
 
     const handleModalSuccess = (msg, type) => { showToast(msg, type); fetchUsers(); };
 
-    const filteredUsers = users.filter((u) => {
+    const filteredUsers = users
+    .filter((u) => {
         const q = search.toLowerCase();
         return (
-            (u.username      || "").toLowerCase().includes(q) ||
-            (u.email         || "").toLowerCase().includes(q) ||
-            (u.roleId?.name  || "").toLowerCase().includes(q)
+            (u.username || "").toLowerCase().includes(q) ||
+            (u.email || "").toLowerCase().includes(q) ||
+            (u.roleId?.name || "").toLowerCase().includes(q) ||
+            (u.teamId?.name || "").toLowerCase().includes(q) ||
+            (u.branchId?.name || "").toLowerCase().includes(q)
         );
-    });
+    })
+    .sort((a, b) =>
+    (a.username || "").localeCompare(b.username || "")
+)
 
-    const col = (key) => cols.find((c) => c.key === key);
 
     if (!canView) return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
@@ -153,8 +96,6 @@ export default function Users() {
             <p className="text-sm text-gray-400">You do not have permission to view users.</p>
         </div>
     );
-
-    const totalWidth = cols.reduce((s, c) => s + c.width, 0);
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -171,13 +112,7 @@ export default function Users() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    {/* reset column widths */}
-                    <button
-                        onClick={() => setCols(DEFAULT_COLS)}
-                        className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50 transition"
-                    >
-                        Reset columns
-                    </button>
+                    
                     {canCreate && (
                         <button
                             onClick={() => setModal({ mode: "create" })}
@@ -204,7 +139,7 @@ export default function Users() {
             </div>
 
             {/* ── TABLE ── */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-xl">
                 {loadingUsers ? (
                     <div className="flex items-center justify-center py-16 text-gray-400 text-sm">Loading users…</div>
                 ) : filteredUsers.length === 0 ? (
@@ -213,17 +148,50 @@ export default function Users() {
                         <p className="text-sm">{search ? "No users match your search" : "No users found"}</p>
                     </div>
                 ) : (
-                    <table
-                        className="border-collapse"
-                        style={{ width: totalWidth, minWidth: totalWidth, tableLayout: "fixed" }}
-                    >
-                        <thead>
-                            <tr>
-                                {cols.map((c) => (
-                                    <ResizableTh key={c.key} col={c} onResize={handleResize}>
-                                        {c.key === "actions" && !(canEdit || canDelete) ? null : c.label}
-                                    </ResizableTh>
-                                ))}
+                    <table className="min-w-[1200px] lg:min-w-full table-fixed border-collapse">
+                        <thead className="sticky top-0 bg-white z-10">
+                            <tr className="group hover:bg-gray-50">
+                                <th className="w-[3%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    #
+                                </th>
+
+                                <th className="w-[15%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Username
+                                </th>
+
+                                <th className="w-[20%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Email
+                                </th>
+
+                                <th className="w-[10%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Role
+                                </th>
+
+                                <th className="w-[10%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Team
+                                </th>
+
+                                <th className="w-[10%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Branch
+                                </th>
+
+                                <th className="w-[15%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Reports To
+                                </th>
+
+                                <th className="w-[6%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Status
+                                </th>
+
+                                <th className="w-[7%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                    Created
+                                </th>
+
+                                {(canEdit || canDelete) && (
+                                    <th className="w-[3%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">
+                                        Actions
+                                    </th>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -231,12 +199,12 @@ export default function Users() {
                                 <tr key={u._id} className="hover:bg-gray-50 transition">
 
                                     {/* # */}
-                                    <ClipTd width={col("no").width} className="text-gray-400">
+                                    <ClipTd>
                                         {i + 1}
                                     </ClipTd>
 
                                     {/* Username */}
-                                    <ClipTd width={col("username").width}>
+                                    <ClipTd>
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
                                                 {u.username?.charAt(0)?.toUpperCase()}
@@ -253,22 +221,41 @@ export default function Users() {
                                     </ClipTd>
 
                                     {/* Email */}
-                                    <ClipTd width={col("email").width} className="text-gray-500">
-                                        {u.email || "—"}
+                                    <ClipTd className="text-gray-500">
+                                        <span className="break-all">
+                                            {u.email || "—"}
+                                        </span>
                                     </ClipTd>
 
                                     {/* Role */}
-                                    <ClipTd width={col("role").width}>
+                                    <ClipTd>
                                         <RoleBadge role={u.roleId?.name} />
                                     </ClipTd>
 
                                     {/* Team */}
-                                    <ClipTd width={col("team").width}>
-                                        {u.teamId?.name || "—"}
+                                    <ClipTd>
+                                        {u.teamId ? (
+                                            <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                                {u.teamId.name}
+                                            </span>
+                                        ) : (
+                                            "—"
+                                        )}
+                                    </ClipTd>
+
+                                    {/* Branch */}
+                                    <ClipTd>
+                                        {u.branchId ? (
+                                            <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                                {u.branchId.name}
+                                            </span>
+                                        ) : (
+                                            "—"
+                                        )}
                                     </ClipTd>
 
                                     {/* Reports To */}
-                                    <ClipTd width={col("reportsTo").width}>
+                                    <ClipTd>
                                         {u.managerId ? (
                                             <div className="flex items-center gap-2 min-w-0">
                                                 <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
@@ -289,7 +276,7 @@ export default function Users() {
                                     </ClipTd>
 
                                     {/* Status */}
-                                    <ClipTd width={col("status").width}>
+                                    <ClipTd>
                                         <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
                                             u.isActive ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"
                                         }`}>
@@ -299,7 +286,7 @@ export default function Users() {
                                     </ClipTd>
 
                                     {/* Created */}
-                                    <ClipTd width={col("created").width} className="text-gray-400">
+                                    <ClipTd>
                                         {new Date(u.createdAt).toLocaleDateString("en-IN", {
                                             day: "numeric", month: "short", year: "numeric",
                                         })}
@@ -307,7 +294,7 @@ export default function Users() {
 
                                     {/* Actions */}
                                     {(canEdit || canDelete) && (
-                                        <ClipTd width={col("actions").width}>
+                                        <ClipTd>
                                             <div className="flex items-center gap-1">
                                                 {canEdit && (
                                                     <button
