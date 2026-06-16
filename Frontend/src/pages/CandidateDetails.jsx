@@ -402,7 +402,7 @@ import React, { useEffect, useState } from "react";
             </div>
 
             {/* ── RIGHT SIDEBAR ── */}
-            <div className="w-[260px] shrink-0 border-l border-[#E2E8F0] bg-white flex flex-col">
+            <div className="w-65 shrink-0 border-l border-[#E2E8F0] bg-white flex flex-col">
 
             {/* Quick Actions Section */}
             <div className="border-b border-[#F1F5F9] p-4">
@@ -616,7 +616,7 @@ import React, { useEffect, useState } from "react";
     const SidebarKV = ({ label, value }) => (
     <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] text-[#94A3B8]">{label}</span>
-        <span className="text-[11px] font-semibold text-[#1E293B] text-right truncate max-w-[140px]">{value || "—"}</span>
+        <span className="text-[11px] font-semibold text-[#1E293B] text-right truncate max-w-35">{value || "—"}</span>
     </div>
     );
 
