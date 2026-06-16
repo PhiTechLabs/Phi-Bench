@@ -92,7 +92,7 @@ const Interviews = () => {
   const refresh = useCallback(async () => {
     try {
       const data = await listInterviews();
-
+      console.log("INTERVIEW DATA:", data);
       const normalized = data.map((item) => ({
         ...item,
         id: item.id || item._id,
@@ -364,7 +364,7 @@ const Interviews = () => {
           columns={columns}
           data={interviews}
           storageKey="interviews_table"
-          onRowClick={(row) => navigate(`${roleBase}/interviews/${row.id}`)}
+          onRowClick={(row) => navigate(`${roleBase}/submissions/${row.submission}`)}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, interviewer…"
