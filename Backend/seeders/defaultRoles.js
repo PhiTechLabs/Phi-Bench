@@ -8,7 +8,7 @@ const roles = [
     {
         name: "super_admin",
         hierarchyLevel: 1,
-        dataScope: "ORGANIZATION",
+        // dataScope: "ORGANIZATION",
         isSystemRole: true,
 
         modulePermissions: {

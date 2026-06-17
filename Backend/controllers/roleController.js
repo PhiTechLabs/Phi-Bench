@@ -104,7 +104,6 @@ export const createRole = async (req, res) => {
             name,
             description,
             hierarchyLevel,
-            dataScope,
             modulePermissions,
         } = req.body;
 
@@ -168,7 +167,6 @@ export const createRole = async (req, res) => {
             description: description || "",
             hierarchyLevel: Number(hierarchyLevel),
             modulePermissions: modulePermissions || {},
-            dataScope: dataScope || "SELF",
             createdBy: req.user.id,
             isSystemRole: false,
         });
@@ -202,7 +200,6 @@ export const updateRole = async (req, res) => {
             name,
             description,
             hierarchyLevel,
-            dataScope,
         } = req.body;
 
         const role = await Role.findById(id);
@@ -297,7 +294,6 @@ export const updateRole = async (req, res) => {
         }
 
         if (dataScope) {
-            role.dataScope = dataScope;
         }
 
         await role.save();

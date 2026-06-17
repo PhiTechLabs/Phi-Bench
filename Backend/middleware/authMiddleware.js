@@ -39,23 +39,15 @@ export const protect = async (req, res, next) => {
 
         // Create req.user BEFORE logging it
         req.user = {
+            _id: user._id,
             id: user._id,
             username: user.username,
             role: user.roleId,
             managerId: user.managerId,
+            teamId: user.teamId,
             modulePermissions:
                 user.roleId?.modulePermissions || {},
         };
-
-        // console.log(
-        //     "AUTH ROLE:",
-        //     JSON.stringify(user.roleId, null, 2)
-        // );
-
-        // console.log(
-        //     "REQ.USER:",
-        //     JSON.stringify(req.user, null, 2)
-        // );
 
         next();
 

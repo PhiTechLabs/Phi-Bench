@@ -43,4 +43,4 @@ const teamSchema = new mongoose.Schema(
     }
 );
 
-export default mongoose.model("Team", teamSchema);
+export default mongoose.models.Team ||  mongoose.model("Team", teamSchema);

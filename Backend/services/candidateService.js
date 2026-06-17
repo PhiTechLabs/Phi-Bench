@@ -1,5 +1,8 @@
 import Candidate from "../models/Candidate.js";
 import User from "../models/User.js";
+import {
+    getAccessibleUserIds,
+} from "../utils/permissionScope.js";
 
 // ─── HELPER: build a clean payload (no stray frontend-only fields) ───────────
 const sanitizeArrays = (payload) => {
@@ -36,42 +39,37 @@ export const createCandidateService = async (payload, userId) => {
 };
 
 // ─── LIST ────────────────────────────────────────────────────────────────────
-export const listCandidatesService = async (userId) => {
-
-    // get logged in user with role
+    export const listCandidatesService = async (userId) => {
     const user = await User.findById(userId)
         .populate("roleId");
 
-    if (!user || !user.roleId) {
+    const viewPermission =
+        user.roleId?.modulePermissions?.candidate?.view;
 
-        throw new Error("User or role not found");
+    if (!viewPermission || viewPermission === "none") {
+        return [];
     }
 
-    const permissions =
-        user.roleId?.permissions || [];
-
-    const dataScope =
-        user.roleId?.dataScope || "SELF";
-
-    // super admin / organization access
-    if (user.roleId.dataScope === "ORGANIZATION") {
-
-        return Candidate.find()
-            .sort({ createdAt: -1 });
-
+    if (viewPermission === "all") {
+        return Candidate.find().sort({
+        createdAt: -1,
+        });
     }
 
-    // self access only
-    if (dataScope === "SELF") {
+    const accessibleUsers =
+        await getAccessibleUserIds(
+        user,
+        viewPermission
+        );
 
-        return await Candidate.find({
-            createdBy: userId,
-        }).sort({ createdAt: -1 });
-    }
-
-    // fallback
-    return [];
-};
+    return Candidate.find({
+        createdBy: {
+        $in: accessibleUsers,
+        },
+    }).sort({
+        createdAt: -1,
+    });
+    };
 
 // ─── GET BY ID ───────────────────────────────────────────────────────────────
 export const getCandidateByIdService = async (id, userId) => {  // userId added for potential future access control

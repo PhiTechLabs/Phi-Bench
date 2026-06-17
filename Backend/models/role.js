@@ -112,19 +112,6 @@ const roleSchema = new mongoose.Schema(
                 default: () => ({}),
             },
         },
-
-        dataScope: {
-            type: String,
-            enum: [
-                "SELF",
-                "TEAM",
-                "BRANCH",
-                "ORGANIZATION",
-                "CUSTOM",
-            ],
-            default: "SELF",
-        },
-
         isSystemRole: {
             type: Boolean,
             default: false,

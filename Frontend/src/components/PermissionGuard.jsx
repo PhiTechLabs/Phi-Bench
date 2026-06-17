@@ -2,34 +2,30 @@ import { getCurrentUser } from "../utils/auth";
 import { hasPermission } from "../utils/hasPermission";
 
 const PermissionGuard = ({
+    permission,
     module,
     action,
     children,
     fallback = null,
-}) => {
-
+    }) => {
     const user = getCurrentUser();
 
-    if (!user) {
-        return fallback;
-    }
+    if (!user) return fallback;
 
-    if (!module || !action) {
-        return children;
-    }
+    const mod = permission?.module || module;
+    const act = permission?.action || action;
 
-    const allowed =
-        hasPermission(
-            user,
-            module,
-            action
-        );
+    if (!mod || !act) return children;
 
-    if (!allowed) {
-        return fallback;
-    }
+    const allowed = hasPermission(
+        user,
+        mod,
+        act
+    );
 
-    return children;
-};
+    return allowed ? children : fallback;
+    };
 
 export default PermissionGuard;
+
+

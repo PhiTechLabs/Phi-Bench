@@ -41,9 +41,25 @@ const Client = () => {
   const roleBase = useRoleBase();
 
   const user = getCurrentUser();
-  const canView = hasPermission(user, PERMISSIONS.CLIENT_VIEW);
-  const canEdit = hasPermission(user, PERMISSIONS.CLIENT_EDIT);
-  const canDelete = hasPermission(user, PERMISSIONS.CLIENT_DELETE);
+
+  const canView = hasPermission(
+  user,
+  PERMISSIONS.CLIENT_VIEW.module,
+  PERMISSIONS.CLIENT_VIEW.action
+);
+
+const canEdit = hasPermission(
+  user,
+  PERMISSIONS.CLIENT_EDIT.module,
+  PERMISSIONS.CLIENT_EDIT.action
+);
+
+const canDelete = hasPermission(
+  user,
+  PERMISSIONS.CLIENT_DELETE.module,
+  PERMISSIONS.CLIENT_DELETE.action
+);
+
 
   if (!canView) {
     return <div className="p-10 text-red-500">Access Denied</div>;

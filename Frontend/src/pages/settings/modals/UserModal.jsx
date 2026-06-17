@@ -238,7 +238,6 @@ export default function UserModal({ mode, user, onClose, onSuccess }) {
 
                     permissions: [],
 
-                    dataScope: "SELF",
                 }
             );
 
