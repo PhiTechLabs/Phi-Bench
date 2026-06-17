@@ -86,6 +86,16 @@ export const PERMISSIONS = {
         action: ACTIONS.ADD,
     },
 
+    CLIENT_EDIT: {
+        module: MODULES.CLIENT,
+        action: ACTIONS.EDIT,
+    },
+
+    CLIENT_DELETE: {
+        module: MODULES.CLIENT,
+        action: ACTIONS.DELETE,
+    },
+
     REPORT_VIEW: {
         module: MODULES.REPORT,
         action: ACTIONS.VIEW,

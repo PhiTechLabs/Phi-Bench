@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { listJobs }         from "../api/jobsApi";
-import { listCandidates }   from "../api/candidatesApi";
-import { getAllClients }     from "../api/clientApi";
-import { listInterviews }   from "../api/interviewsApi";
 import { listSubmissions }  from "../api/submissionsApi";
 import { getStatusStyle, INTERVIEW_STATUS_STYLES } from "../utils/submissionStatuses";
+import PermissionGuard from "../components/PermissionGuard";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const POLL_MS = 60_000;
@@ -14,7 +11,6 @@ import { listCandidates } from "../api/candidatesApi";
 import { getAllClients }  from "../api/clientApi";
 import {
   listInterviews,
-  listUpcomingInterviews,
 } from "../api/interviewsApi";
 import usePermissions from "../hooks/usePermission";
 
@@ -79,8 +75,8 @@ const isToday = (d) => {
   const now = new Date();
   const dt  = new Date(d);
   return dt.getDate() === now.getDate() &&
-         dt.getMonth() === now.getMonth() &&
-         dt.getFullYear() === now.getFullYear();
+        dt.getMonth() === now.getMonth() &&
+        dt.getFullYear() === now.getFullYear();
 };
 
 const isThisWeek = (d) => {
@@ -168,6 +164,8 @@ const Home = () => {
     return "Good evening";
   };
 
+  const [refreshing, setRefreshing] = useState(false);
+
   // ── state ──
   const [jobs,        setJobs]        = useState([]);
   const [candidates,  setCandidates]  = useState([]);
@@ -178,30 +176,52 @@ const Home = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const mounted = useRef(true);
 
-  // ── fetch ──
-  const fetchAll = useCallback(async () => {
-    const [j, c, cl, iv, sub] = await Promise.all([
-      listJobs()        .catch(() => []),
-      listCandidates()  .catch(() => []),
-      getAllClients()    .catch(() => ({ clients: [] })),
-      listInterviews()  .catch(() => []),
-      listSubmissions() .catch(() => []),
-    ]);
-    if (!mounted.current) return;
-    setJobs(Array.isArray(j) ? j : []);
-    setCandidates(Array.isArray(c) ? c : []);
-    const clientArr = Array.isArray(cl) ? cl : (cl?.clients || cl?.data || []);
-    setClients(clientArr);
-    setInterviews(Array.isArray(iv) ? iv : []);
-    setSubmissions(Array.isArray(sub) ? sub : []);
-    setLastUpdated(new Date());
-    setLoading(false);
-  
-  }, []);
-  /* ── single fetch routine, reused by initial load and polling ── */
-  const isMountedRef = useRef(true);
-
   const { can } = usePermissions();
+
+  const fetchAll = useCallback(async () => {
+  const [
+    jobsData,
+    candidatesData,
+    clientsData,
+    interviewsData,
+    submissionsData,
+  ] = await Promise.all([
+    can("job", "view")
+      ? listJobs().catch(() => [])
+      : Promise.resolve([]),
+
+    can("candidate", "view")
+      ? listCandidates().catch(() => [])
+      : Promise.resolve([]),
+
+    can("clients", "view")
+      ? getAllClients().catch(() => ({ clients: [] }))
+      : Promise.resolve({ clients: [] }),
+
+    can("interview", "view")
+      ? listInterviews().catch(() => [])
+      : Promise.resolve([]),
+
+    can("submissions", "view")
+      ? listSubmissions().catch(() => [])
+      : Promise.resolve([]),
+  ]);
+
+  if (!mounted.current) return;
+
+  setJobs(jobsData);
+  setCandidates(candidatesData);
+  setClients(
+    Array.isArray(clientsData)
+      ? clientsData
+      : clientsData?.clients || clientsData?.data || []
+  );
+  setInterviews(interviewsData);
+  setSubmissions(submissionsData);
+
+  setLastUpdated(new Date());
+  setLoading(false);
+}, []);
 
   useEffect(() => {
     mounted.current = true;
@@ -359,15 +379,36 @@ const Home = () => {
               )}
             </p>
           </div>
-          <button onClick={fetchAll}
+          <button onClick={fetchAll} disabled={refreshing}
             className="flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#FAFAF8] transition shadow-sm">
-            <Ico d={I.refresh} size={13} />
+            <Ico d={I.refresh} size={13}  />
             Refresh
           </button>
         </div>
 
+        {
+          !can("job", "view") &&
+          !can("candidate", "view") &&
+          !can("clients", "view") &&
+          !can("interview", "view") &&
+          !can("submissions", "view") &&
+          !can("bench", "view") && (
+            <div className="rounded-xl border border-[#E8E6E0] bg-white p-8 text-center">
+              <h2 className="text-lg font-semibold text-[#1C1B18]">
+                Welcome
+              </h2>
+              <p className="mt-2 text-sm text-[#6B6860]">
+                You currently have access to the dashboard only.
+              </p>
+            </div>
+          )
+        }
+
         {/* ══════════ ALERT BANNER — critical bench / action needed ══════════ */}
-        {(criticalBench > 0 || actionNeeded.length > 0) && (
+        {(
+            (can("bench", "view") && criticalBench > 0) ||
+            (can("submissions", "view") && actionNeeded.length > 0)
+          ) && (
           <div className="rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-3 flex flex-wrap items-center gap-4">
             <Ico d={I.alert} size={18} className="text-[#DC2626] shrink-0" />
             <div className="flex-1 min-w-0">
@@ -386,44 +427,102 @@ const Home = () => {
 
         {/* ══════════ KPI ROW ══════════ */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          {[
+
+          {
+                      [
             {
-              icon: I.brief,   label: "Open Jobs",    value: openJobs,
+              icon: I.brief,
+              label: "Open Jobs",
+              value: openJobs,
+              permission: {
+                module: "job",
+                action: "view",
+              },
               sub: `${onHoldJobs} on hold · ${filledJobs} filled`,
               delta: deltaPct(jobsThisWeek, jobsLastWeek),
-              color: "#2563EB",  route: "/jobs",
+              color: "#2563EB",
+              route: "/jobs",
             },
+
             {
-              icon: I.users,   label: "Candidates",   value: totalCandidates,
+              icon: I.users,
+              label: "Candidates",
+              value: totalCandidates,
+              permission: {
+                module: "candidate",
+                action: "view",
+              },
               sub: `${candThisWeek} added this week`,
               delta: deltaPct(candThisWeek, candLastWeek),
-              color: "#7C3AED",  route: "/candidates",
+              color: "#7C3AED",
+              route: "/candidates",
             },
+
             {
-              icon: I.bench,   label: "On Bench",     value: benchCandidates.length,
+              icon: I.bench,
+              label: "On Bench",
+              value: benchCandidates.length,
+              permission: {
+                module: "bench",
+                action: "view",
+              },
               sub: `${benchPct}% of total pool`,
               delta: null,
-              color: "#D97706",  route: "/bench",
+              color: "#D97706",
+              route: "/bench",
             },
+
             {
-              icon: I.submit,  label: "Submissions",  value: totalSubmissions,
+              icon: I.submit,
+              label: "Submissions",
+              value: totalSubmissions,
+              permission: {
+                module: "submissions",
+                action: "view",
+              },
               sub: `${subsThisWeek} this week`,
               delta: deltaPct(subsThisWeek, subsLastWeek),
-              color: "#EA580C",  route: "/submissions",
+              color: "#EA580C",
+              route: "/submissions",
             },
+
             {
-              icon: I.calendar,label: "Interviews",   value: interviews.filter((iv) => iv.status === "Scheduled").length,
+              icon: I.calendar,
+              label: "Interviews",
+              value: interviews.filter(
+                (iv) => iv.status === "Scheduled"
+              ).length,
+              permission: {
+                module: "interview",
+                action: "view",
+              },
               sub: `${todayInterviews.length} today`,
               delta: null,
-              color: "#0891B2",  route: "/interviews",
+              color: "#0891B2",
+              route: "/interviews",
             },
+
             {
-              icon: I.handshake, label: "Clients",   value: totalClients,
+              icon: I.handshake,
+              label: "Clients",
+              value: totalClients,
+              permission: {
+                module: "clients",
+                action: "view",
+              },
               sub: `${clientsThisWeek} added this week`,
               delta: deltaPct(clientsThisWeek, clientsLastWeek),
-              color: "#059669",  route: "/client-list",
+              color: "#059669",
+              route: "/client-list",
             },
-          ].map((kpi) => (
+          ]
+          .filter(kpi =>
+              can(
+                kpi.permission.module,
+                kpi.permission.action
+              )
+            )
+          .map((kpi) => (
             <div key={kpi.label}
               onClick={() => navigate(kpi.route)}
               className="cursor-pointer rounded-xl border border-[#E8E6E0] bg-white p-4 hover:border-[#1C4ED8]/40 hover:shadow-sm transition group">
@@ -449,7 +548,12 @@ const Home = () => {
         </div>
 
         {/* ══════════ SUBMISSION PIPELINE ══════════ */}
-        <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+
+        <PermissionGuard
+          module="submissions"
+          action="view"
+        >
+          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
           <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
             <div>
               <h2 className="text-[13.5px] font-bold text-[#1C1B18]">Submission Pipeline</h2>
@@ -492,63 +596,79 @@ const Home = () => {
             ))}
           </div>
         </div>
+        </PermissionGuard>
+
+        
 
         {/* ══════════ ROW: Today's Interviews + Action Needed ══════════ */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
           {/* TODAY'S INTERVIEWS */}
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
-            <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#2563EB]">
-                  <Ico d={I.calendar} size={14} />
-                </div>
-                <div>
-                  <h2 className="text-[13px] font-bold text-[#1C1B18]">Today's Interviews</h2>
-                  <p className="text-[10.5px] text-[#9B9890]">
-                    {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
-                  </p>
-                </div>
-              </div>
-              {todayInterviews.length > 0 && (
-                <span className="rounded-full bg-[#2563EB] px-2 py-0.5 text-[10.5px] font-bold text-white">
-                  {todayInterviews.length}
-                </span>
-              )}
-            </div>
-            <div className="divide-y divide-[#F5F4F0] max-h-75 overflow-y-auto">
-              {todayInterviews.length === 0 ? (
-                <EmptyBlock msg="No interviews scheduled for today" />
-              ) : (
-                todayInterviews.map((iv) => {
-                  const ivStyle = INTERVIEW_STATUS_STYLES[iv.status] || {};
-                  return (
-                    <div key={iv.id || iv._id}
-                      onClick={() => navigate("/interviews")}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
-                      <Avatar name={iv.candidateName} size={34} />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[12.5px] font-semibold text-[#1C1B18] truncate">{iv.candidateName || "—"}</p>
-                        <p className="text-[11px] text-[#6B6860] truncate">
-                          {iv.jobTitle} · {iv.interviewRound || "Interview"} · {iv.interviewType || "—"}
-                        </p>
+
+          <PermissionGuard
+            module="interview"
+            action="view"
+          >
+            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+                      <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#2563EB]">
+                            <Ico d={I.calendar} size={14} />
+                          </div>
+                          <div>
+                            <h2 className="text-[13px] font-bold text-[#1C1B18]">Today's Interviews</h2>
+                            <p className="text-[10.5px] text-[#9B9890]">
+                              {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
+                            </p>
+                          </div>
+                        </div>
+                        {todayInterviews.length > 0 && (
+                          <span className="rounded-full bg-[#2563EB] px-2 py-0.5 text-[10.5px] font-bold text-white">
+                            {todayInterviews.length}
+                          </span>
+                        )}
                       </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-[11.5px] font-bold text-[#1C1B18]">{iv.scheduledTime || "—"}</p>
-                        <span className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9.5px] font-semibold border"
-                          style={{ background: ivStyle.bg, color: ivStyle.text, borderColor: ivStyle.dot + "44" }}>
-                          {iv.status}
-                        </span>
+                      <div className="divide-y divide-[#F5F4F0] max-h-75 overflow-y-auto">
+                        {todayInterviews.length === 0 ? (
+                          <EmptyBlock msg="No interviews scheduled for today" />
+                        ) : (
+                          todayInterviews.map((iv) => {
+                            const ivStyle = INTERVIEW_STATUS_STYLES[iv.status] || {};
+                            return (
+                              <div key={iv.id || iv._id}
+                                onClick={() => navigate("/interviews")}
+                                className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
+                                <Avatar name={iv.candidateName} size={34} />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-[12.5px] font-semibold text-[#1C1B18] truncate">{iv.candidateName || "—"}</p>
+                                  <p className="text-[11px] text-[#6B6860] truncate">
+                                    {iv.jobTitle} · {iv.interviewRound || "Interview"} · {iv.interviewType || "—"}
+                                  </p>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                  <p className="text-[11.5px] font-bold text-[#1C1B18]">{iv.scheduledTime || "—"}</p>
+                                  <span className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9.5px] font-semibold border"
+                                    style={{ background: ivStyle.bg, color: ivStyle.text, borderColor: ivStyle.dot + "44" }}>
+                                    {iv.status}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
+          </PermissionGuard>
+
+          
 
           {/* SUBMISSIONS NEEDING ACTION */}
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+
+          <PermissionGuard
+            module="submissions"
+            action="view"
+          >
+            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF9C3] text-[#CA8A04]">
@@ -575,7 +695,7 @@ const Home = () => {
                 actionNeeded.map((sub) => {
                   const s = getStatusStyle(sub.status);
                   return (
-                    <div key={sub.id}
+                    <div key={sub.id || sub._id}
                       onClick={() => navigate("/submissions")}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                       <Avatar name={sub.candidateName} size={34} />
@@ -594,13 +714,21 @@ const Home = () => {
               )}
             </div>
           </div>
+          </PermissionGuard>
+
+          
         </div>
 
         {/* ══════════ ROW: Bench Aging + Upcoming Interviews ══════════ */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
           {/* BENCH AGING */}
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+
+          <PermissionGuard
+            module="bench"
+            action="view"
+          >
+            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FFF7ED] text-[#D97706]">
@@ -674,57 +802,73 @@ const Home = () => {
               </div>
             )}
           </div>
+          </PermissionGuard>
+
+          
 
           {/* UPCOMING INTERVIEWS THIS WEEK */}
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
-            <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F5F3FF] text-[#7C3AED]">
-                  <Ico d={I.clock} size={14} />
-                </div>
-                <div>
-                  <h2 className="text-[13px] font-bold text-[#1C1B18]">Upcoming This Week</h2>
-                  <p className="text-[10.5px] text-[#9B9890]">Scheduled interviews next 7 days</p>
-                </div>
-              </div>
-              <button onClick={() => navigate("/interviews")}
-                className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</button>
-            </div>
-            <div className="divide-y divide-[#F5F4F0] max-h-82.5 overflow-y-auto">
-              {upcomingInterviews.length === 0 ? (
-                <EmptyBlock msg="No interviews scheduled this week" />
-              ) : (
-                upcomingInterviews.map((iv) => (
-                  <div key={iv.id || iv._id}
-                    onClick={() => navigate("/interviews")}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
-                    <Avatar name={iv.candidateName} size={32} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[12.5px] font-semibold text-[#1C1B18] truncate">{iv.candidateName || "—"}</p>
-                      <p className="text-[11px] text-[#6B6860] truncate">
-                        {iv.jobTitle} · {iv.interviewRound} · {iv.interviewType}
-                      </p>
+
+          <PermissionGuard
+            module="interview"
+            action="view"
+          >
+            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+                      <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F5F3FF] text-[#7C3AED]">
+                            <Ico d={I.clock} size={14} />
+                          </div>
+                          <div>
+                            <h2 className="text-[13px] font-bold text-[#1C1B18]">Upcoming This Week</h2>
+                            <p className="text-[10.5px] text-[#9B9890]">Scheduled interviews next 7 days</p>
+                          </div>
+                        </div>
+                        <button onClick={() => navigate("/interviews")}
+                          className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</button>
+                      </div>
+                      <div className="divide-y divide-[#F5F4F0] max-h-82.5 overflow-y-auto">
+                        {upcomingInterviews.length === 0 ? (
+                          <EmptyBlock msg="No interviews scheduled this week" />
+                        ) : (
+                          upcomingInterviews.map((iv) => (
+                            <div key={iv.id || iv._id}
+                              onClick={() => navigate("/interviews")}
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
+                              <Avatar name={iv.candidateName} size={32} />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[12.5px] font-semibold text-[#1C1B18] truncate">{iv.candidateName || "—"}</p>
+                                <p className="text-[11px] text-[#6B6860] truncate">
+                                  {iv.jobTitle} · {iv.interviewRound} · {iv.interviewType}
+                                </p>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <p className="text-[11px] font-semibold text-[#7C3AED]">
+                                  {fmtTime(iv.scheduledDate, iv.scheduledTime)}
+                                </p>
+                                <span className="inline-block rounded-md bg-[#EDE9FE] border border-[#C4B5FD] px-1.5 py-0.5 text-[9.5px] font-bold text-[#5B21B6] mt-0.5">
+                                  {iv.interviewRound}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-[11px] font-semibold text-[#7C3AED]">
-                        {fmtTime(iv.scheduledDate, iv.scheduledTime)}
-                      </p>
-                      <span className="inline-block rounded-md bg-[#EDE9FE] border border-[#C4B5FD] px-1.5 py-0.5 text-[9.5px] font-bold text-[#5B21B6] mt-0.5">
-                        {iv.interviewRound}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          </PermissionGuard>
+
+          
         </div>
 
         {/* ══════════ ROW: Urgent Jobs + Top Clients ══════════ */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
           {/* URGENT OPEN JOBS */}
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+
+          <PermissionGuard
+            module="job"
+            action="view"
+          >
+            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF2F2] text-[#DC2626]">
@@ -747,7 +891,7 @@ const Home = () => {
                   const color = j.daysOpen >= 30 ? "#DC2626" : j.daysOpen >= 14 ? "#D97706" : "#2563EB";
                   return (
                     <div key={j.id}
-                      onClick={() => navigate(`/jobs/${j.id}`)}
+                      onClick={() => navigate(`/jobs/${j.id || j._id}`)}
                       className="cursor-pointer group">
                       <div className="mb-1 flex items-center justify-between gap-2">
                         <div className="min-w-0 flex-1">
@@ -771,8 +915,16 @@ const Home = () => {
               )}
             </div>
           </div>
+          </PermissionGuard>
+
+          
 
           {/* TOP CLIENTS BY OPEN REQUIREMENTS */}
+
+          <PermissionGuard
+          module="clients"
+          action="view"
+        >
           <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -815,63 +967,74 @@ const Home = () => {
               )}
             </div>
           </div>
+        </PermissionGuard>
+
+          
         </div>
 
         {/* ══════════ RECENT ACTIVITY FEED ══════════ */}
-        <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
-          <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F5F4F0] text-[#6B6860]">
-                <Ico d={I.activity} size={14} />
-              </div>
-              <div>
-                <h2 className="text-[13px] font-bold text-[#1C1B18]">Recent Activity</h2>
-                <p className="text-[10.5px] text-[#9B9890]">Latest submission status changes</p>
-              </div>
-            </div>
-          </div>
-          {recentActivity.length === 0 ? (
-            <EmptyBlock msg="No recent activity" />
-          ) : (
-            <div className="divide-y divide-[#F5F4F0]">
-              {recentActivity.map((act, i) => {
-                const s = getStatusStyle(act.status);
-                return (
-                  <div key={act.id + i}
-                    onClick={() => navigate("/submissions")}
-                    className="flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
-                    {/* timeline dot */}
-                    <div className="flex flex-col items-center shrink-0">
-                      <div className="h-2.5 w-2.5 rounded-full border-2 border-white shadow"
-                        style={{ background: s.dot }} />
-                      {i < recentActivity.length - 1 && (
-                        <div className="w-px flex-1 bg-[#F0EDE8] mt-1" style={{ height: 20 }} />
-                      )}
-                    </div>
-                    <Avatar name={act.candidateName} size={30} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[12px] font-semibold text-[#1C1B18] truncate">
-                        {act.candidateName || "—"}
-                        <span className="font-normal text-[#9B9890]"> · {act.jobTitle}</span>
-                      </p>
-                      {act.note && act.note !== "Submission created" && (
-                        <p className="text-[10.5px] text-[#9B9890] truncate italic">"{act.note}"</p>
-                      )}
-                    </div>
-                    <div className="shrink-0 flex flex-col items-end gap-1">
-                      <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9.5px] font-semibold"
-                        style={{ background: s.bg, color: s.text, borderColor: s.border || s.dot + "44" }}>
-                        <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: s.dot }} />
-                        {act.status}
-                      </span>
-                      <span className="text-[10px] text-[#9B9890]">{fmtDate(act.changedAt)}</span>
+
+        <PermissionGuard
+          module="submissions"
+          action="view"
+        >
+          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+                  <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F5F4F0] text-[#6B6860]">
+                        <Ico d={I.activity} size={14} />
+                      </div>
+                      <div>
+                        <h2 className="text-[13px] font-bold text-[#1C1B18]">Recent Activity</h2>
+                        <p className="text-[10.5px] text-[#9B9890]">Latest submission status changes</p>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  {recentActivity.length === 0 ? (
+                    <EmptyBlock msg="No recent activity" />
+                  ) : (
+                    <div className="divide-y divide-[#F5F4F0]">
+                      {recentActivity.map((act, i) => {
+                        const s = getStatusStyle(act.status);
+                        return (
+                          <div key={act.id + i}
+                            onClick={() => navigate("/submissions")}
+                            className="flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
+                            {/* timeline dot */}
+                            <div className="flex flex-col items-center shrink-0">
+                              <div className="h-2.5 w-2.5 rounded-full border-2 border-white shadow"
+                                style={{ background: s.dot }} />
+                              {i < recentActivity.length - 1 && (
+                                <div className="w-px flex-1 bg-[#F0EDE8] mt-1" style={{ height: 20 }} />
+                              )}
+                            </div>
+                            <Avatar name={act.candidateName} size={30} />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[12px] font-semibold text-[#1C1B18] truncate">
+                                {act.candidateName || "—"}
+                                <span className="font-normal text-[#9B9890]"> · {act.jobTitle}</span>
+                              </p>
+                              {act.note && act.note !== "Submission created" && (
+                                <p className="text-[10.5px] text-[#9B9890] truncate italic">"{act.note}"</p>
+                              )}
+                            </div>
+                            <div className="shrink-0 flex flex-col items-end gap-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9.5px] font-semibold"
+                                style={{ background: s.bg, color: s.text, borderColor: s.border || s.dot + "44" }}>
+                                <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: s.dot }} />
+                                {act.status}
+                              </span>
+                              <span className="text-[10px] text-[#9B9890]">{fmtDate(act.changedAt)}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+        </PermissionGuard>
+
+        
 
       </div>
     </div>

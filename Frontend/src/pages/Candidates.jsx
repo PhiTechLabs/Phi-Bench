@@ -68,24 +68,54 @@ const Candidates = () => {
   const user = getCurrentUser();
 
   const canView = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_VIEW
-  );
+  user,
+  PERMISSIONS.CANDIDATE_VIEW.module,
+  PERMISSIONS.CANDIDATE_VIEW.action
+);
 
-  const canCreate = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_CREATE
-  );
+const canCreate = hasPermission(
+  user,
+  PERMISSIONS.CANDIDATE_ADD.module,
+  PERMISSIONS.CANDIDATE_ADD.action
+);
 
-  const canEdit = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_EDIT
-  );
+const canEdit = hasPermission(
+  user,
+  PERMISSIONS.CANDIDATE_EDIT.module,
+  PERMISSIONS.CANDIDATE_EDIT.action
+);
 
-  const canDelete = hasPermission(
-    user,
-    PERMISSIONS.CANDIDATE_DELETE
-  );
+const canDelete = hasPermission(
+  user,
+  PERMISSIONS.CANDIDATE_DELETE.module,
+  PERMISSIONS.CANDIDATE_DELETE.action
+);
+
+
+// const user = getCurrentUser();
+
+console.log("USER", user);
+
+console.log(
+  "Candidate View",
+  hasPermission(user, "candidate", "view")
+);
+
+console.log(
+  "Candidate Add",
+  hasPermission(user, "candidate", "add")
+);
+
+console.log(
+  "Candidate Edit",
+  hasPermission(user, "candidate", "edit")
+);
+
+console.log(
+  "Candidate Delete",
+  hasPermission(user, "candidate", "delete")
+);
+
 
   /* ──────────────────── ACCESS DENIED ──────────────────── */
 

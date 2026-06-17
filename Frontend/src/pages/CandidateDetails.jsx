@@ -168,10 +168,7 @@ import React, { useEffect, useState } from "react";
             <div className="flex items-center gap-4 px-6 py-3 border-b border-[#F1F5F9]">
 
             {/* Back */}
-            <button onClick={() => navigate(`${roleBase}/candidates`)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F8FAFC] transition shrink-0">
-                <BackButton />
-            </button>
+            <BackButton />
 
             {/* Avatar + Name */}
             <div className="flex items-center gap-3 flex-1 min-w-0">

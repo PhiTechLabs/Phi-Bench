@@ -1,16 +1,21 @@
-export const hasPermission = (
+    export const hasPermission = (
     user,
     module,
     action
-) => {
-
+    ) => {
     if (!user) return false;
 
-    const role =
-        user.role ||
-        user.roleId;
+    // support PERMISSIONS.CLIENT_VIEW style objects
+    if (
+        typeof module === "object" &&
+        module !== null
+    ) {
+        action = module.action;
+        module = module.module;
+    }
 
-    // Super Admin
+    const role = user.role || user.roleId;
+
     if (
         role?.name === "super_admin" ||
         user.role === "super_admin"
@@ -33,4 +38,4 @@ export const hasPermission = (
         permission &&
         permission !== "none"
     );
-};
+    };

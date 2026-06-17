@@ -152,7 +152,7 @@ const InlineStatusPanel = ({ submission, onStatusUpdated }) => {
     };
 
     return (
-        <div className="w-[260px] shrink-0 flex flex-col border-l border-[#E2E8F0] bg-white self-stretch">
+        <div className="w-65 shrink-0 flex flex-col border-l border-[#E2E8F0] bg-white self-stretch">
 
             {/* current status */}
             <div className="border-b border-[#E2E8F0]"
@@ -423,7 +423,7 @@ const SubmissionDetail = () => {
                     </button>
 
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[15px] font-bold shadow">
+                        <div className="h-11 w-11 shrink-0 rounded-full bg-linear-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[15px] font-bold shadow">
                             {initials(submission.candidateName)}
                         </div>
                         <div className="min-w-0">
@@ -473,7 +473,7 @@ const SubmissionDetail = () => {
                             }`}>
                             {tab.label}
                             {tab.badge > 0 && (
-                                <span className={`rounded-full text-[10px] font-bold px-1.5 py-0.5 min-w-[18px] text-center ${
+                                <span className={`rounded-full text-[10px] font-bold px-1.5 py-0.5 min-w-4.5 text-center ${
                                     activeTab === tab.id ? "bg-[#2563EB] text-white" : "bg-[#E2E8F0] text-[#64748B]"
                                 }`}>
                                     {tab.badge}
@@ -506,16 +506,16 @@ const SubmissionDetail = () => {
                                 <div className="px-6 py-5">
                                     <div className="relative flex items-start">
                                         {/* grey track */}
-                                        <div className="absolute top-[18px] left-0 right-0 h-[2px] bg-[#E2E8F0] z-0" />
+                                        <div className="absolute top-4.5 left-0 right-0 h-0.5 bg-[#E2E8F0] z-0" />
                                         {/* green completed fill */}
-                                        <div className="absolute top-[18px] left-0 h-[2px] z-0 transition-all duration-500"
+                                        <div className="absolute top-4.5 left-0 h-0.5 z-0 transition-all duration-500"
                                             style={{
                                                 background: "linear-gradient(90deg,#059669,#10B981)",
                                                 width: stageIndex === 0 ? "0%" : `${(stageIndex / (PIPELINE_STAGES.length - 1)) * 100}%`,
                                             }} />
                                         {/* active partial fill */}
                                         {stageIndex < PIPELINE_STAGES.length - 1 && (
-                                            <div className="absolute top-[18px] h-[2px] z-0 transition-all duration-500"
+                                            <div className="absolute top-4.5 h-0.5 z-0 transition-all duration-500"
                                                 style={{
                                                     background: statusStyle.dot,
                                                     left:  `${(stageIndex / (PIPELINE_STAGES.length - 1)) * 100}%`,
@@ -757,7 +757,7 @@ const SubmissionDetail = () => {
                             ) : (
                                 <div className="relative -mx-5 -mb-5">
                                     {/* vertical line — positioned relative to the dot center */}
-                                    <div className="absolute left-[46px] top-0 bottom-0 w-px bg-gradient-to-b from-[#E2E8F0] via-[#E2E8F0] to-transparent z-0" />
+                                    <div className="absolute left-11.5 top-0 bottom-0 w-px bg-linear-to-b from-[#E2E8F0] via-[#E2E8F0] to-transparent z-0" />
                                     {[...submission.statusHistory].reverse().map((h, i, arr) => {
                                         const st       = getStatusStyle(h.status);
                                         const isLatest = i === 0;
@@ -851,7 +851,7 @@ const SubmissionDetail = () => {
                 </div>
 
                 {/* ── STICKY STATUS PANEL ── */}
-                <div className="sticky top-[109px] h-[calc(100vh-109px)] overflow-y-auto shrink-0">
+                <div className="sticky top-27.25 h-[calc(100vh-109px)] overflow-y-auto shrink-0">
                     <InlineStatusPanel
                         submission={submission}
                         onStatusUpdated={handleStatusUpdate}

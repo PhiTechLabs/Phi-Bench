@@ -130,9 +130,6 @@ export const loginUser = async (req, res) => {
 
                 hierarchyLevel:
                     populatedUser.roleId?.hierarchyLevel,
-
-                dataScope:
-                    populatedUser.roleId?.dataScope,
             }
         });
 
@@ -358,7 +355,6 @@ export const registerUser = async (
                     currentUserRole
                         .hierarchyLevel + 1,
 
-                dataScope: "SELF",
 
                 isSystemRole: false,
 
@@ -606,7 +602,6 @@ export const updateUser = async (
                         currentUserRole
                             .hierarchyLevel + 1,
 
-                    dataScope: "SELF",
 
                     isSystemRole: false,
 
