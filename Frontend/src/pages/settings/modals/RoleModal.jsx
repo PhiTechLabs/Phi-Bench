@@ -332,7 +332,7 @@ export default function RoleModal({
                     </div>
 
                     {/* DATA SCOPE */}
-                    <div>
+                    {/* <div>
 
                         <label className="block text-md font-medium text-gray-700 mb-1">
                             Data Scope
@@ -361,7 +361,7 @@ export default function RoleModal({
 
                         </select>
 
-                    </div>
+                    </div> */}
 
 
                 </div>
