@@ -207,7 +207,7 @@ const Navbar = () => {
             </button>
 
             {dropdownOpen && (
-  <div className="absolute top-full mt-2 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-[80] border border-gray-100">
+              <div className="absolute top-full mt-2 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-80 border border-gray-100">
                 {filteredSecondaryMenu.map((item) => (
                   <button
                     key={item.name}
