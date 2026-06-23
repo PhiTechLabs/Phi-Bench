@@ -139,11 +139,15 @@ const SubmissionForm = ({ setShowForm, onSave, initial = {} }) => {
               <div>
                 <label className={labelCls}>Client</label>
                 <input
-                  className={inputCls}
-                  placeholder="Client company"
+                  className={`${inputCls} cursor-not-allowed bg-[#F5F4F0] text-[#6B6860]`}
+                  placeholder="Select a job to auto-fill the client"
                   value={form.client}
-                  onChange={(e) => update("client", e.target.value)}
+                  readOnly
+                  tabIndex={-1}
                 />
+                <p className="mt-1 text-[11px] text-[#9B9890]">
+                  Auto-filled from the selected job — not editable here.
+                </p>
               </div>
 
               <div>

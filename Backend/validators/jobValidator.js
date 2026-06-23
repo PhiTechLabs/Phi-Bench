@@ -6,9 +6,9 @@ export const createJobRules = [
         .trim().notEmpty().withMessage("Position title is required")
         .isLength({ max: 200 }).withMessage("Title too long"),
 
-    body("client")
-        .trim().notEmpty().withMessage("Client name is required")
-        .isLength({ max: 200 }).withMessage("Client name too long"),
+    body("clientId")
+        .trim().notEmpty().withMessage("Client is required")
+        .isMongoId().withMessage("Invalid client selected"),
 
     body("description")
         .trim().notEmpty().withMessage("Job description is required")
