@@ -1,8 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { getAllClients } from "../api/clientApi";
 
 const JobForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
+
+  // ─── CLIENT LIST (for the searchable client picker) ──────────────────────
+  const [clients, setClients]           = useState([]);
+  const [clientsLoading, setClientsLoading] = useState(true);
+  const [clientsError, setClientsError] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getAllClients();
+        const list = Array.isArray(data) ? data : (data?.clients || []);
+        setClients(
+          list.map((c) => ({ id: c._id || c.id, clientName: c.clientName }))
+        );
+      } catch (err) {
+        console.warn("Failed to load clients:", err?.response?.data || err);
+        setClientsError(true);
+      } finally {
+        setClientsLoading(false);
+      }
+    })();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -12,10 +35,20 @@ const JobForm = ({ setShowForm, onSave }) => {
     }
   };
 
+  // Called when the user picks a client from the dropdown — stores both the
+  // real Client _id (clientId, sent to the backend as the source of truth)
+  // and the display name (client, shown in the input + used in tables).
+  const handleClientSelect = (client) => {
+    setFormData((f) => ({ ...f, clientId: client.id, client: client.clientName }));
+    if (errors.clientId) {
+      setErrors((e) => ({ ...e, clientId: undefined }));
+    }
+  };
+
   const validate = () => {
     const next = {};
     if (!formData.title?.trim())       next.title = "Position title is required";
-    if (!formData.client?.trim())      next.client = "Client name is required";
+    if (!formData.clientId)            next.clientId = "Please select an existing client";
     if (!formData.description?.trim()) next.description = "Job description is required";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -86,7 +119,17 @@ const JobForm = ({ setShowForm, onSave }) => {
           <Section title="Job Info" subtitle="Core details about the position and assignment">
             <Row>
               <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required error={errors.title} />
-              <Field label="Client Name" name="client" placeholder="Client company name" onChange={handleChange} required error={errors.client} />
+              <ClientSelect
+                label="Client"
+                clients={clients}
+                loading={clientsLoading}
+                loadError={clientsError}
+                value={formData.clientId}
+                displayValue={formData.client}
+                onSelect={handleClientSelect}
+                required
+                error={errors.clientId}
+              />
             </Row>
             <Row>
               <Field label="Contact Name" name="contact" placeholder="Hiring manager" onChange={handleChange} />
@@ -232,6 +275,114 @@ const SelectField = ({ label, options = [], required, full, error, ...props }) =
     </div>
   </div>
 );
+
+// ─── CLIENT SELECT ────────────────────────────────────────────────────────────
+// Searchable, select-only combobox for picking an existing client. Unlike a
+// plain text Field, this never lets the user type a value that isn't in the
+// `clients` list — onSelect only fires when an actual client row is clicked.
+const ClientSelect = ({
+  label,
+  clients = [],
+  loading,
+  loadError,
+  value,            // currently selected client id (formData.clientId)
+  displayValue,     // currently selected client name (formData.client)
+  onSelect,
+  required,
+  error,
+}) => {
+  const [open, setOpen]   = useState(false);
+  const [query, setQuery] = useState("");
+  const boxRef = useRef(null);
+
+  // Close the dropdown on outside click.
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (boxRef.current && !boxRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // What the input box shows: the search query while open, the selected
+  // client's name while closed.
+  const inputValue = open ? query : (displayValue || "");
+
+  const filtered = clients.filter((c) =>
+    (c.clientName || "").toLowerCase().includes(query.trim().toLowerCase())
+  );
+
+  const handleFocus = () => {
+    setQuery("");
+    setOpen(true);
+  };
+
+  const handlePick = (client) => {
+    onSelect(client);
+    setQuery("");
+    setOpen(false);
+  };
+
+  return (
+    <div className="flex items-start gap-4" ref={boxRef}>
+      <FieldLabel label={label} required={required} />
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={handleFocus}
+          placeholder={
+            loading ? "Loading clients…" : "Search existing clients…"
+          }
+          disabled={loading || loadError}
+          autoComplete="off"
+          className={`${inputClass(!!error)} ${loading || loadError ? "cursor-not-allowed opacity-60" : ""}`}
+        />
+
+        {open && !loading && !loadError && (
+          <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-20 max-h-56 overflow-y-auto rounded-[10px] border border-[#E0DDD6] bg-white py-1 shadow-lg">
+            {filtered.length === 0 ? (
+              <div className="px-3.5 py-2.5 text-[13px] text-[#9B9890]">
+                {clients.length === 0
+                  ? "No clients yet — add one in the Clients page first."
+                  : "No clients match your search."}
+              </div>
+            ) : (
+              filtered.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()} // keep focus, avoid blur race
+                  onClick={() => handlePick(c)}
+                  className={`flex w-full items-center px-3.5 py-2 text-left text-[13.5px] transition-colors hover:bg-[#F5F4F0] ${
+                    c.id === value ? "bg-[#EFF6FF] text-[#1C4ED8] font-medium" : "text-[#1C1B18]"
+                  }`}
+                >
+                  {c.clientName}
+                </button>
+              ))
+            )}
+          </div>
+        )}
+
+        {loadError && (
+          <span className="mt-1 text-[11.5px] text-[#DC2626]">
+            Couldn't load clients. Refresh and try again.
+          </span>
+        )}
+        {!loadError && !loading && clients.length === 0 && (
+          <span className="mt-1 text-[11.5px] text-[#9B9890]">
+            No clients exist yet — create one on the Clients page before posting a job.
+          </span>
+        )}
+        {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+      </div>
+    </div>
+  );
+};
 
 const TextAreaField = ({ label, required, error, ...props }) => (
   <div className="flex items-start gap-4">

@@ -4,7 +4,19 @@ import mongoose from "mongoose";
 const jobSchema = new mongoose.Schema({
     // Job Info
     title:          { type: String, required: true, trim: true },
+
+    // Reference to the actual Client document — this is the source of truth.
+    // A job can only be created against a client that already exists.
+    clientId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Client",
+        required: true,
+    },
+    // Denormalized client name, kept in sync with Client.clientName at write
+    // time. Exists so list/table views don't need to populate clientId just
+    // to show the name. Never trust this field as the source of truth.
     client:         { type: String, required: true, trim: true },
+
     contact:        { type: String, trim: true, default: "" },
     manager:        { type: String, trim: true, default: "" },
     recruiter:      { type: String, trim: true, default: "" },
@@ -35,5 +47,8 @@ const jobSchema = new mongoose.Schema({
         required: true,
     },
 }, { timestamps: true });
+
+// ─── INDEXES ──────────────────────────────────────────────────────────────────
+jobSchema.index({ clientId: 1 });
 
 export default mongoose.model("Job", jobSchema);
