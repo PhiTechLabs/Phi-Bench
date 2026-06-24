@@ -29,7 +29,7 @@ const experienceSchema = new mongoose.Schema({
 const attachmentSlotSchema = new mongoose.Schema({
     name:       { type: String, required: true },
     url:        { type: String, required: true },
-    publicId:   { type: String },
+    key:   { type: String },
     uploadedAt: { type: Date, default: Date.now },
 }, { _id: false });
 

@@ -1,5 +1,6 @@
 import React from "react";
 import Btn from "../ui/Btn";
+import BackButton from "../../reusable/BackButton";
 
 // ─── GENERIC FORM HEADER ──────────────────────────────────────────────────────
 // Sticky top bar used across all entity creation pages
@@ -24,9 +25,12 @@ const FormHeader = ({
         className="sticky top-0 z-10 px-8 py-3 flex items-center justify-between border-b"
         style={{ backgroundColor: "#ffffff", borderColor: "#e5e1db" }}
     >
+        <div className="flex items-center gap-4">
+        <BackButton/>
         <h1 className="text-sm font-semibold text-gray-700 tracking-tight">
             {title}
         </h1>
+        </div>
         <div className="flex items-center gap-2">
             <Btn onClick={onCancel} variant="ghost" disabled={submitting}>
                 Cancel

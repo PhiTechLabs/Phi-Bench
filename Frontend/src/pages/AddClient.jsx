@@ -71,6 +71,7 @@ const AddClient = () => {
                 onCancel={handleCancel}
                 onSave={handleSubmit}
                 submitting={submitting}
+                
             />
 
             <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-6 py-8 space-y-6">

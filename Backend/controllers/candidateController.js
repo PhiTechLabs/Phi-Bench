@@ -9,7 +9,18 @@ import {
 } from "../services/candidateService.js";
 
 export const createCandidate = asyncHandler(async (req, res) => {
-    const candidate = await createCandidateService(req.body, req.user.id);
+
+
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
+
+    const candidate =
+    await createCandidateService(
+        req.body,
+        req.files,
+        req.user.id
+    );
+
     res.status(201).json({
         message: "Candidate created successfully",
         candidate,
