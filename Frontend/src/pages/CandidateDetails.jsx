@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
     import { getStatusStyle, INTERVIEW_STATUS_STYLES, INTERVIEW_OUTCOME_STYLES } from "../utils/submissionStatuses";
     import { SubmissionsTable, InterviewsTable } from "../components/shared/PipelineTables";
     import BackButton from "../reusable/BackButton";
+    import { getResumeUrl } from "../api/candidatesApi";
 
     // ─── ICONS ───────────────────────────────────────────────────────────────────
 
@@ -361,29 +362,68 @@ import React, { useEffect, useState } from "react";
                 </div>
 
                 {/* Attachments */}
-                {candidate.attachments && Object.values(candidate.attachments).some(Boolean) && (
-                    <CeipalCard title="Attachments">
-                    <div className="space-y-2">
-                        {Object.entries(candidate.attachments).map(([key, file]) => {
-                        if (!file) return null;
-                        return (
-                            <div key={key}
-                            className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2.5">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-[#E2E8F0] text-[#3B82F6]">
-                                <Icon d={icons.document} size={15} />
-                            </div>
-                            <div>
-                                <p className="text-[12px] font-semibold text-[#1E293B]">
-                                {key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase())}
-                                </p>
-                                <p className="text-[11px] text-[#94A3B8]">{file.name || "File"}</p>
-                            </div>
-                            </div>
-                        );
-                        })}
-                    </div>
-                    </CeipalCard>
-                )}
+                {Object.entries(candidate.attachments).map(([key, file]) => {
+                    if (!file) return null;
+
+                    return (
+                        <a
+                        key={key}
+                        href="#"
+                            onClick={async (e) => {
+
+                                e.preventDefault();
+
+                                try {
+
+                                    const signedUrl =
+                                        await getResumeUrl(
+                                            candidate.id
+                                        );
+
+                                    window.open(
+                                        signedUrl,
+                                        "_blank"
+                                    );
+
+                                } catch (err) {
+
+                                    console.error(err);
+
+                                    alert(
+                                        "Unable to open resume"
+                                    );
+                                }
+                            }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2.5 hover:bg-[#EFF6FF] transition cursor-pointer"
+                        >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-[#E2E8F0] text-[#3B82F6]">
+                            <Icon d={icons.document} size={15} />
+                        </div>
+
+                        <div className="flex-1">
+                            <p className="text-[12px] font-semibold text-[#1E293B]">
+                            {key
+                                .replace(/([A-Z])/g, " $1")
+                                .replace(/^./, s => s.toUpperCase())}
+                            </p>
+
+                            <p className="text-[11px] text-[#94A3B8] truncate">
+                            {file.name || "File"}
+                            </p>
+                        </div>
+
+                        <span className="text-[#3B82F6] text-xs font-medium">
+                            View
+                        </span>
+                        </a>
+
+                        // <a
+                            
+                        // ></a>
+                    );
+                    })}
                 </>
             )}
 
