@@ -9,6 +9,7 @@ import {
     updateCandidate,
     deleteCandidate,
     toggleBench,
+    viewResume,
 } from "../controllers/candidateController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -104,6 +105,16 @@ router.post(
     validate,
     createCandidate
     );
+
+router.get(
+    "/:id/resume",
+    protect,
+    requirePermission(
+        "candidate",
+        "view"
+    ),
+    viewResume
+);
 
 router.get(
     "/:id",

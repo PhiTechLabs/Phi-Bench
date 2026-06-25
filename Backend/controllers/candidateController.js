@@ -6,6 +6,7 @@ import {
     updateCandidateService,
     deleteCandidateService,
     toggleBenchService,
+    getCandidateResumeService,
 } from "../services/candidateService.js";
 
 export const createCandidate = asyncHandler(async (req, res) => {
@@ -56,4 +57,15 @@ export const deleteCandidate = asyncHandler(async (req, res) => {
 export const toggleBench = asyncHandler(async (req, res) => {
     const candidate = await toggleBenchService(req.params.id);
     res.json({ message: "Bench status toggled", candidate });
+});
+
+export const viewResume =
+    asyncHandler(async (req, res) => {
+
+        const url =
+            await getCandidateResumeService(
+                req.params.id
+            );
+
+        res.json({ url });
 });

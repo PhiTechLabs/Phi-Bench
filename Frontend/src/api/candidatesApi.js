@@ -230,6 +230,19 @@ export const createCandidate = async (candidateData) => {
     }
 };
 
+
+export const getResumeUrl = async (
+    candidateId
+) => {
+
+    const response =
+        await axiosInstance.get(
+            `/candidates/${candidateId}/resume`
+        );
+
+    return response.data.url;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // UPDATE CANDIDATE
 // ─────────────────────────────────────────────────────────────────────────────

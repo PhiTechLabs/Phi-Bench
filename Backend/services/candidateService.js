@@ -5,7 +5,8 @@
     } from "../utils/permissionScope.js";
 
     import {
-    uploadToS3,
+        uploadToS3,
+        getSignedFileUrl,
     } from "./s3Service.js";
 
     // ─── HELPER: build a clean payload (no stray frontend-only fields) ───────────
@@ -286,3 +287,43 @@
 
     return candidate;
     };
+
+    export const getCandidateResumeService = async (
+    candidateId
+) => {
+
+    const candidate =
+        await Candidate.findById(candidateId);
+
+    if (!candidate) {
+
+        const err = new Error(
+            "Candidate not found"
+        );
+
+        err.statusCode = 404;
+
+        throw err;
+    }
+
+    const resume =
+        candidate.attachments?.resume;
+
+    if (!resume?.key) {
+
+        const err = new Error(
+            "Resume not found"
+        );
+
+        err.statusCode = 404;
+
+        throw err;
+    }
+
+    const signedUrl =
+        await getSignedFileUrl(
+            resume.key
+        );
+
+    return signedUrl;
+};
