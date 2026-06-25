@@ -1,14 +1,14 @@
-import express from "express";
+// import express from "express";
 
-import upload from "../middleware/uploadMiddleware.js";
-import { testUpload } from "../controllers/testUploadController.js";
+// import upload from "../middleware/uploadMiddleware.js";
+// import { testUpload } from "../controllers/testUploadController.js";
 
-const router = express.Router();
+// const router = express.Router();
 
-router.post(
-    "/",
-    upload.single("file"),
-    testUpload
-);
+// router.post(
+//     "/",
+//     upload.single("file"),
+//     testUpload
+// );
 
-export default router;
+// export default router;

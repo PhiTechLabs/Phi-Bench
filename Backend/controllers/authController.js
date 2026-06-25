@@ -459,10 +459,6 @@ export const getAllUsers = async (
                 "username email"
             );
 
-            // console.log(
-            //     "FIRST USER BRANCH:",
-            //     users[0]?.branchId
-            // );
         return res.status(200).json({
 
             count: users.length,

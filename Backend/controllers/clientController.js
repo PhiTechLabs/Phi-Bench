@@ -5,11 +5,18 @@ import {
     getClientByIdService,
     updateClientService,
     deleteClientService,
+    getClientDocumentUrlService
 } from "../services/clientService.js";
 
 // ─── CREATE CLIENT ────────────────────────────────────────────────────────────
 export const createClient = asyncHandler(async (req, res) => {
-    const client = await createClientService(req.body, req.user.id);
+
+    const client =
+        await createClientService(
+            req.body,
+            req.files,
+            req.user.id
+        );
     res.status(201).json({
         message: "Client created successfully",
         client,
@@ -39,3 +46,15 @@ export const deleteClient = asyncHandler(async (req, res) => {
     await deleteClientService(req.params.id);
     res.json({ message: "Client deleted successfully" });
 }); 
+
+export const getClientDocumentUrl =
+    asyncHandler(async (req, res) => {
+
+        const url =
+            await getClientDocumentUrlService(
+                req.params.clientId,
+                req.params.documentId
+            );
+
+        res.json({ url });
+    });

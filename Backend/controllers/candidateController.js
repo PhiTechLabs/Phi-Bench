@@ -12,9 +12,6 @@ import {
 export const createCandidate = asyncHandler(async (req, res) => {
 
 
-    console.log("BODY:", req.body);
-    console.log("FILES:", req.files);
-
     const candidate =
     await createCandidateService(
         req.body,

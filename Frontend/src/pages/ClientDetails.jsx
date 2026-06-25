@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getClientById, deleteClient, updateClient } from "../api/clientApi";
+import {
+    getClientById,
+    deleteClient,
+    updateClient,
+    getClientDocumentUrl,
+} from "../api/clientApi";
 import { listJobs } from "../api/jobsApi";
 import { getAvatarProps } from "../utils/avatar";
 import useRoleBase from "../hooks/useRoleBase";
+
 
 // ─── ICON ─────────────────────────────────────────────────────────────────────
 const Icon = ({ d, size = 16, className = "" }) => (
@@ -386,7 +392,10 @@ const ClientDetails = () => {
 
                     {/* ── DOCUMENTS TAB ── */}
                     {activeTab === "documents" && (
-                        <DocumentsTab documents={client.documents || []} />
+                        <DocumentsTab
+                            documents={client.documents || []}
+                            clientId={client._id}
+                        />
                     )}
                 </div>
 
@@ -674,41 +683,74 @@ const ContactsTab = ({ pocs }) => {
 };
 
 // ─── DOCUMENTS TAB ────────────────────────────────────────────────────────────
-const DocumentsTab = ({ documents }) => {
-    if (!documents.length) return (
-        <EmptyState icon={icons.doc} title="No documents"
-            message="No documents have been uploaded for this client yet." />
-    );
+const DocumentsTab = ({ documents, clientId }) => {
+
+    const handleOpenDocument = async (documentId) => {
+        try {
+            const res = await getClientDocumentUrl(
+                clientId,
+                documentId
+            );
+
+            window.open(res.url, "_blank");
+        } catch (err) {
+            console.error(err);
+            alert("Unable to open document");
+        }
+    };
+
+    if (!documents?.length) {
+        return (
+            <EmptyState
+                icon={icons.doc}
+                title="No documents found"
+                message="No documents have been uploaded for this client."
+            />
+        );
+    }
 
     return (
-        <div className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
-            <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] px-5 py-3">
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-[#94A3B8]">
-                    Documents ({documents.length})
-                </span>
-            </div>
-            <div className="divide-y divide-[#F1F5F9]">
-                {documents.map((doc, index) => (
-                    <a key={doc._id || index}
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-4 px-5 py-4 hover:bg-[#F8FAFC] transition">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#2563EB] shrink-0">
-                            <Icon d={icons.doc} size={18} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-semibold text-[#1E293B] truncate">{doc.name}</p>
-                            {doc.uploadedAt && (
-                                <p className="text-[11px] text-[#94A3B8] mt-0.5">
-                                    Uploaded {fmtDate(doc.uploadedAt)}
+        <div className="space-y-3">
+            {documents.map((doc, index) => (
+                <div
+                    key={doc._id || index}
+                    className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm p-4 hover:shadow-md transition"
+                >
+                    <div className="flex items-center justify-between gap-4">
+
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-10 w-10 rounded-lg bg-[#EFF6FF] flex items-center justify-center">
+                                <Icon
+                                    d={icons.doc}
+                                    size={18}
+                                    className="text-[#2563EB]"
+                                />
+                            </div>
+
+                            <div className="min-w-0">
+                                <p className="text-[13px] font-semibold text-[#1E293B] truncate">
+                                    {doc.name || `Document ${index + 1}`}
                                 </p>
-                            )}
+
+                                <p className="text-[11px] text-[#94A3B8]">
+                                    Uploaded{" "}
+                                    {doc.uploadedAt
+                                        ? fmtDate(doc.uploadedAt)
+                                        : "—"}
+                                </p>
+                            </div>
                         </div>
-                        <Icon d={icons.external} size={15} className="text-[#94A3B8] shrink-0" />
-                    </a>
-                ))}
-            </div>
+
+                        <button
+                            onClick={() => handleOpenDocument(doc._id)}
+                            className="flex items-center gap-2 rounded-lg bg-[#2563EB] px-3 py-2 text-[12px] font-medium text-white hover:bg-[#1D4ED8]"
+                        >
+                            <Icon d={icons.external} size={12} />
+                            Open
+                        </button>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 };

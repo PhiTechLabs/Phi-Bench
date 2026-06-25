@@ -3,8 +3,6 @@ import Employee from "../models/Employee.js";
 //  Add Employee
 export const addEmployee = async (req, res) => {
     try {
-        // console.log("Incoming Data:", req.body); // DEBUG
-
         const employee = await Employee.create(req.body);
 
         res.status(201).json({

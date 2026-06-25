@@ -16,11 +16,9 @@ import submissionRoutes from "./routes/submissionRoutes.js";
 import interviewRoutes  from "./routes/interviewRoutes.js";
 import branchRoutes from "./routes/branchRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js"
-import testUploadRoutes from "./routes/testUploadRoutes.js";
 
 dotenv.config();
 connectDB();
-console.log("ENV TEST:", process.env.JWT_SECRET);
 const app = express();
 
 app.use(cors({
@@ -42,11 +40,6 @@ app.use("/api/teams", teamRoutes);
 app.get("/", (req, res) => {
     res.send("API Running");
 });
-app.use(
-    "/api/test-upload",
-    testUploadRoutes
-);
-
 app.use(notFound);
 app.use(errorHandler);
 
