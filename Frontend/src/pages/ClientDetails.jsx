@@ -218,7 +218,7 @@ const ClientDetails = () => {
                                 )}
                                 {client.website && (
                                     <a href={client.website} target="_blank" rel="noopener noreferrer"
-                                        className="text-[#2563EB] hover:underline truncate max-w-[200px]">
+                                        className="text-[#2563EB] hover:underline truncate max-w-50">
                                         {client.website.replace(/^https?:\/\//, "")}
                                     </a>
                                 )}
@@ -323,7 +323,7 @@ const ClientDetails = () => {
                             {client.pocs && client.pocs.length > 0 && (
                                 <CeipalCard title="Primary Contact">
                                     <div className="flex items-start gap-4">
-                                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[14px] font-bold shrink-0">
+                                        <div className="h-12 w-12 rounded-full bg-linear-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[14px] font-bold shrink-0">
                                             {(client.pocs[0].firstName?.[0] || "") + (client.pocs[0].lastName?.[0] || "")}
                                         </div>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 flex-1">
@@ -400,7 +400,7 @@ const ClientDetails = () => {
                 </div>
 
                 {/* ── Right Sidebar ── */}
-                <div className="w-[240px] shrink-0 border-l border-[#E2E8F0] bg-white flex flex-col">
+                <div className="w-60 shrink-0 border-l border-[#E2E8F0] bg-white flex flex-col">
 
                     {/* Client Status */}
                     <div className="border-b border-[#F1F5F9] p-4">
@@ -653,7 +653,7 @@ const ContactsTab = ({ pocs }) => {
                     <div className="p-5">
                         <div className="flex items-start gap-4 mb-5">
                             {/* Avatar */}
-                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[14px] font-bold shrink-0">
+                            <div className="h-12 w-12 rounded-full bg-linear-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[14px] font-bold shrink-0">
                                 {(poc.firstName?.[0] || "") + (poc.lastName?.[0] || "")}
                             </div>
                             <div>
@@ -804,7 +804,7 @@ const KVField = ({ icon, label, value, link }) => {
 const SidebarKV = ({ label, value }) => (
     <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] text-[#94A3B8] shrink-0">{label}</span>
-        <span className="text-[11px] font-semibold text-[#1E293B] text-right truncate max-w-[130px]">
+        <span className="text-[11px] font-semibold text-[#1E293B] text-right truncate max-w-32.5">
             {value || "—"}
         </span>
     </div>
