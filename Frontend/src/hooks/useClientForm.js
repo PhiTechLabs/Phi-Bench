@@ -106,15 +106,19 @@ const useClientForm = () => {
     // ─── BUILD CLEAN PAYLOAD FOR BACKEND ─────────────────────────────────────
     // Strips frontend-only `id` fields. Returns ready-to-send object.
     const buildPayload = () => {
-        const stripIds = (arr) => arr.map(({ id, ...rest }) => rest);
-        return {
-            ...formData,
-            locations: stripIds(locations),
-            pocs: stripIds(pocs),
-            // documents intentionally omitted — backend defaults to []
-            // (they'll be uploaded separately when we add Cloudinary)
-        };
+    const stripIds = (arr) =>
+        arr.map(({ id, ...rest }) => rest);
+
+    return {
+        ...formData,
+        locations: stripIds(locations),
+        pocs: stripIds(pocs),
+
+        documents: documents.map(
+            (doc) => doc.file
+        ),
     };
+};
 
     // ─── EXPOSE EVERYTHING ───────────────────────────────────────────────────
     return {

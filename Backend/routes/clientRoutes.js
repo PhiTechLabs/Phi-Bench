@@ -1,4 +1,5 @@
 import express from "express";
+import upload from "../middleware/uploadMiddleware.js";
 
 import {
     createClient,
@@ -6,6 +7,7 @@ import {
     getClientById,
     updateClient,
     deleteClient,
+    getClientDocumentUrl
 } from "../controllers/clientController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -24,6 +26,40 @@ router.post(
     "/",
     protect,
     requirePermission("clients", "add"),
+
+    upload.fields([
+        {
+            name: "documents",
+            maxCount: 20,
+        },
+    ]),
+
+    // Parse multipart JSON fields
+    (req, res, next) => {
+
+        try {
+
+            if (req.body.locations) {
+                req.body.locations =
+                    JSON.parse(req.body.locations);
+            }
+
+            if (req.body.pocs) {
+                req.body.pocs =
+                    JSON.parse(req.body.pocs);
+            }
+
+        } catch (err) {
+
+            return res.status(400).json({
+                message:
+                    "Invalid locations/pocs JSON",
+            });
+        }
+
+        next();
+    },
+
     createClientRules,
     validate,
     createClient
@@ -34,6 +70,13 @@ router.get(
     protect,
     requirePermission("clients", "view"),
     getAllClients
+);
+
+router.get(
+    "/:clientId/documents/:documentId",
+    protect,
+    requirePermission("clients", "view"),
+    getClientDocumentUrl
 );
 
 router.get(

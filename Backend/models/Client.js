@@ -22,9 +22,9 @@ const pocSchema = new mongoose.Schema({
 
 // ─── DOCUMENT SUBDOCUMENT (reserved for Phase 2 — Cloudinary) ────────────────
 const documentSchema = new mongoose.Schema({
-    name:       { type: String, required: true },
-    url:        { type: String, required: true },
-    publicId:   { type: String },
+    name: { type: String, required: true },
+    url: { type: String, required: true },
+    key: { type: String },
     uploadedAt: { type: Date, default: Date.now },
 }, { _id: true });
 

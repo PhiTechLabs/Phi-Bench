@@ -93,10 +93,6 @@ export const getPermissions = async (req, res) => {
 // CREATE ROLE
 // ───────────────────────────────────────────────────────────
 export const createRole = async (req, res) => {
-//     console.log(
-//     "ROLE CREATE BODY",
-//     JSON.stringify(req.body, null, 2)
-// );
 
     try {
 

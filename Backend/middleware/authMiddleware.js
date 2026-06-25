@@ -18,8 +18,6 @@ export const protect = async (req, res, next) => {
             process.env.JWT_SECRET
         );
 
-        // console.log("JWT DECODED:", decoded);
-
         // Fetch user + role
         const user = await User.findById(decoded.id)
             .populate("roleId")
