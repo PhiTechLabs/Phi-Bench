@@ -129,36 +129,102 @@ export const getCandidate = async (id) => {
 // CREATE CANDIDATE
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const createCandidate = async (formData) => {
+export const createCandidate = async (candidateData) => {
 
     try {
 
-        const payload = sanitizeForBackend(formData);
+        const form = new FormData();
 
-        const response = await axiosInstance.post(
-            "/candidates",
-            payload
+        // -------------------------
+        // Regular Fields
+        // -------------------------
+
+        Object.keys(candidateData).forEach((key) => {
+
+            if (
+                key !== "education" &&
+                key !== "experience" &&
+                key !== "attachments"
+            ) {
+
+                form.append(
+                    key,
+                    candidateData[key]
+                );
+            }
+        });
+
+        // -------------------------
+        // Arrays
+        // -------------------------
+
+        form.append(
+            "education",
+            JSON.stringify(
+                candidateData.education || []
+            )
         );
 
-        const data = response?.data;
+        form.append(
+            "experience",
+            JSON.stringify(
+                candidateData.experience || []
+            )
+        );
+
+        // -------------------------
+        // Files
+        // -------------------------
+
+        if (
+            candidateData.attachments?.resume
+        ) {
+            form.append(
+                "resume",
+                candidateData.attachments.resume
+            );
+        }
+
+        if (
+            candidateData.attachments?.formattedResume
+        ) {
+            form.append(
+                "formattedResume",
+                candidateData.attachments.formattedResume
+            );
+        }
+
+        if (
+            candidateData.attachments?.other
+        ) {
+            form.append(
+                "other",
+                candidateData.attachments.other
+            );
+        }
+
+        const response =
+            await axiosInstance.post(
+                "/candidates",
+                form,
+                {
+                    headers: {
+                        "Content-Type":
+                            "multipart/form-data",
+                    },
+                }
+            );
 
         return normalize(
-            data?.candidate ||
-            data?.data ||
-            data
+            response.data.candidate
         );
 
     } catch (err) {
 
-        console.error("createCandidate error:", err);
-
-        const serverMessage =
-            err?.response?.data?.errors?.[0]?.message ||
-            err?.response?.data?.message ||
-            err?.message ||
-            "Failed to create candidate";
-
-        alert(serverMessage);
+        console.error(
+            "createCandidate error:",
+            err
+        );
 
         throw err;
     }
