@@ -101,10 +101,10 @@ const JobForm = ({ setShowForm, onSave }) => {
       </div>
 
       {/* MAIN LAYOUT */}
-      <div className="mx-auto max-w-7xl px-8 py-8 pb-12">
+      <div className="mx-auto max-w-5xl px-6 py-6 pb-10">
         {/* Inline error summary */}
         {Object.keys(errors).length > 0 && (
-          <div className="mb-5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#B91C1C]">
+          <div className="mb-4 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-2.5 text-[12.5px] text-[#B91C1C]">
             <div className="font-semibold">Please fix the following before saving:</div>
             <ul className="mt-1 list-disc pl-5">
               {Object.values(errors).filter(Boolean).map((msg, i) => (
@@ -114,7 +114,7 @@ const JobForm = ({ setShowForm, onSave }) => {
           </div>
         )}
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           {/* SECTION 1: JOB INFO */}
           <Section title="Job Info" subtitle="Core details about the position and assignment">
             <Row>
@@ -210,58 +210,63 @@ export default JobForm;
 /* ──────────────────── INTERNAL COMPONENTS ──────────────────── */
 
 const Section = ({ title, subtitle, children }) => (
-  <div className="overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white">
-    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-8 pt-5 pb-4.5">
-      <div className="text-[16px] font-semibold text-[#1C1B18]">{title}</div>
-      {subtitle && <p className="mt-1 text-[13px] text-[#9B9890]">{subtitle}</p>}
+  <div className="overflow-hidden rounded-xl border border-[#E8E6E0] bg-white">
+    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-5 pt-4 pb-3">
+      <div className="text-[13px] font-semibold text-[#1C1B18]">{title}</div>
+      {subtitle && <p className="mt-0.5 text-[11.5px] text-[#9B9890]">{subtitle}</p>}
     </div>
-    <div className="flex flex-col gap-4.5 px-8 py-5">{children}</div>
+    <div className="flex flex-col gap-3.5 px-5 py-4">{children}</div>
   </div>
 );
 
 const Row = ({ children }) => (
-  <div className="grid grid-cols-2 items-center gap-x-18">{children}</div>
+  <div className="grid grid-cols-2 items-center gap-x-5 gap-y-3">{children}</div>
 );
 
 const baseInputClass =
-  "min-w-0 flex-1 rounded-[10px] border bg-[#FAFAF8] px-3.5 py-2.5 text-[14px] text-[#1C1B18] outline-none transition-all focus:bg-white focus:ring-[3px]";
+  "min-w-0 flex-1 rounded-lg border bg-white px-3 py-1.5 text-[13px] text-gray-800 placeholder-gray-400 outline-none transition-all duration-150 focus:ring-2";
 
 const inputClass = (hasError) =>
   `${baseInputClass} ${
     hasError
       ? "border-[#FCA5A5] focus:border-[#DC2626] focus:ring-[#DC2626]/15"
-      : "border-[#E0DDD6] focus:border-[#93AEFF] focus:ring-[#6382FF]/20"
+      : "focus:border-blue-500 focus:ring-blue-500"
   }`;
+const inputBorderStyle = { borderColor: "#d1cdc7" };
 
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
-    className={`w-37.5 shrink-0 text-[13px] font-medium tracking-[0.01em] text-[#4A4845] ${
-      alignTop ? "pt-3" : ""
+    className={`shrink-0 text-[12.5px] text-gray-500 text-right leading-tight ${
+      alignTop ? "pt-2" : ""
     }`}
+    style={{ minWidth: "96px" }}
   >
-    {label} {required && <span className="text-[#DC2626]">*</span>}
+    {label} {required && <span className="text-red-500 ml-0.5">*</span>}
   </label>
 );
 
 const Field = ({ label, required, full, error, ...props }) => (
-  <div className={`flex items-start gap-4 ${full ? "col-span-2" : ""}`}>
+  <div className={`flex items-start gap-2.5 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
     <div className="flex min-w-0 flex-1 flex-col">
-      <input {...props} className={inputClass(!!error)} />
-      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+      <input {...props} className={inputClass(!!error)} style={inputBorderStyle} />
+      {error && <span className="mt-1 text-[11px] text-[#DC2626]">{error}</span>}
     </div>
   </div>
 );
 
 const SelectField = ({ label, options = [], required, full, error, ...props }) => (
-  <div className={`flex items-start gap-4 ${full ? "col-span-2" : ""}`}>
+  <div className={`flex items-start gap-2.5 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
     <div className="flex min-w-0 flex-1 flex-col">
       <select
         {...props}
-        className={`${inputClass(!!error)} cursor-pointer appearance-none bg-size-[12px_12px] bg-position-[right_14px_center] bg-no-repeat pr-9`}
+        className={`${inputClass(!!error)} cursor-pointer appearance-none pr-9`}
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+          ...inputBorderStyle,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "right 10px center",
         }}
       >
         <option value="">Select status...</option>
@@ -271,7 +276,7 @@ const SelectField = ({ label, options = [], required, full, error, ...props }) =
           </option>
         ))}
       </select>
-      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+      {error && <span className="mt-1 text-[11px] text-[#DC2626]">{error}</span>}
     </div>
   </div>
 );
@@ -326,7 +331,7 @@ const ClientSelect = ({
   };
 
   return (
-    <div className="flex items-start gap-4" ref={boxRef}>
+    <div className="flex items-start gap-2.5" ref={boxRef}>
       <FieldLabel label={label} required={required} />
       <div className="relative flex min-w-0 flex-1 flex-col">
         <input
@@ -339,13 +344,14 @@ const ClientSelect = ({
           }
           disabled={loading || loadError}
           autoComplete="off"
+          style={inputBorderStyle}
           className={`${inputClass(!!error)} ${loading || loadError ? "cursor-not-allowed opacity-60" : ""}`}
         />
 
         {open && !loading && !loadError && (
-          <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-20 max-h-56 overflow-y-auto rounded-[10px] border border-[#E0DDD6] bg-white py-1 shadow-lg">
+          <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-20 max-h-56 overflow-y-auto rounded-lg border border-[#d1cdc7] bg-white py-1 shadow-lg">
             {filtered.length === 0 ? (
-              <div className="px-3.5 py-2.5 text-[13px] text-[#9B9890]">
+              <div className="px-3 py-2 text-[12.5px] text-gray-400">
                 {clients.length === 0
                   ? "No clients yet — add one in the Clients page first."
                   : "No clients match your search."}
@@ -357,8 +363,8 @@ const ClientSelect = ({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()} // keep focus, avoid blur race
                   onClick={() => handlePick(c)}
-                  className={`flex w-full items-center px-3.5 py-2 text-left text-[13.5px] transition-colors hover:bg-[#F5F4F0] ${
-                    c.id === value ? "bg-[#EFF6FF] text-[#1C4ED8] font-medium" : "text-[#1C1B18]"
+                  className={`flex w-full items-center px-3 py-1.5 text-left text-[13px] transition-colors hover:bg-gray-50 ${
+                    c.id === value ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-800"
                   }`}
                 >
                   {c.clientName}
@@ -369,34 +375,35 @@ const ClientSelect = ({
         )}
 
         {loadError && (
-          <span className="mt-1 text-[11.5px] text-[#DC2626]">
+          <span className="mt-1 text-[11px] text-[#DC2626]">
             Couldn't load clients. Refresh and try again.
           </span>
         )}
         {!loadError && !loading && clients.length === 0 && (
-          <span className="mt-1 text-[11.5px] text-[#9B9890]">
+          <span className="mt-1 text-[11px] text-gray-400">
             No clients exist yet — create one on the Clients page before posting a job.
           </span>
         )}
-        {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+        {error && <span className="mt-1 text-[11px] text-[#DC2626]">{error}</span>}
       </div>
     </div>
   );
 };
 
 const TextAreaField = ({ label, required, error, ...props }) => (
-  <div className="flex items-start gap-4">
+  <div className="flex items-start gap-2.5">
     <FieldLabel label={label} required={required} alignTop />
     <div className="flex min-w-0 flex-1 flex-col">
       <textarea
         {...props}
-        className={`min-h-65 resize-y rounded-xl border bg-[#FAFAF8] px-4 py-3.5 text-[14px] leading-[1.7] text-[#1C1B18] outline-none transition-all focus:bg-white focus:ring-[3px] ${
+        style={inputBorderStyle}
+        className={`min-h-40 resize-y rounded-lg border bg-white px-3 py-2 text-[13px] leading-[1.6] text-gray-800 placeholder-gray-400 outline-none transition-all duration-150 focus:ring-2 ${
           error
             ? "border-[#FCA5A5] focus:border-[#DC2626] focus:ring-[#DC2626]/15"
-            : "border-[#E0DDD6] focus:border-[#93AEFF] focus:ring-[#6382FF]/20"
+            : "focus:border-blue-500 focus:ring-blue-500"
         }`}
       />
-      {error && <span className="mt-1 text-[11.5px] text-[#DC2626]">{error}</span>}
+      {error && <span className="mt-1 text-[11px] text-[#DC2626]">{error}</span>}
     </div>
   </div>
 );

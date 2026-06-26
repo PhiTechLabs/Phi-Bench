@@ -237,8 +237,8 @@ const CandidateForm = ({ setShowForm, onSave }) => {
       </div>
 
       {/* MAIN */}
-      <div className="mx-auto max-w-7xl px-8 py-8 pb-12">
-        <div className="flex flex-col gap-5">
+      <div className="mx-auto max-w-5xl px-6 py-6 pb-10">
+        <div className="flex flex-col gap-4">
 
           {/* BASIC INFO */}
           <Section
@@ -371,17 +371,17 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 onChange={handleChange}
               />
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2.5">
                 <FieldLabel label="Bench Status" />
 
                 <div className="min-w-0 flex-1">
-                  <label className="inline-flex items-center gap-2 text-[13px] text-[#4A4845]">
+                  <label className="inline-flex items-center gap-2 text-[12.5px] text-gray-600">
                     <input
                       type="checkbox"
                       name="onBench"
                       checked={formData.onBench}
                       onChange={handleChange}
-                      className="h-4.5 w-4.5 cursor-pointer accent-[#1C4ED8]"
+                      className="h-4 w-4 cursor-pointer accent-blue-600"
                     />
                     On Bench
                   </label>
@@ -655,52 +655,54 @@ export default CandidateForm;
 /* ──────────────────── INTERNAL COMPONENTS ──────────────────── */
 
 const Section = ({ title, subtitle, children }) => (
-  <div className="overflow-hidden rounded-2xl border border-[#E8E6E0] bg-white">
-    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-8 pt-5 pb-4.5">
-      <div className="text-[16px] font-semibold text-[#1C1B18]">
+  <div className="overflow-hidden rounded-xl border border-[#E8E6E0] bg-white">
+    <div className="border-b border-[#F0EDE8] bg-[#FAFAF8] px-5 pt-4 pb-3">
+      <div className="text-[13px] font-semibold text-[#1C1B18]">
         {title}
       </div>
 
       {subtitle && (
-        <p className="mt-1 text-[13px] text-[#9B9890]">
+        <p className="mt-0.5 text-[11.5px] text-[#9B9890]">
           {subtitle}
         </p>
       )}
     </div>
 
-    <div className="flex flex-col gap-4.5 px-8 py-5">
+    <div className="flex flex-col gap-3.5 px-5 py-4">
       {children}
     </div>
   </div>
 );
 
 const Row = ({ children }) => (
-  <div className="grid grid-cols-2 items-center gap-x-18">
+  <div className="grid grid-cols-2 items-center gap-x-5 gap-y-3">
     {children}
   </div>
 );
 
 const fieldInputClass =
-  "min-w-0 flex-1 rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8] px-3.5 py-2.5 text-[14px] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20";
+  "min-w-0 flex-1 rounded-lg border bg-white px-3 py-1.5 text-[13px] text-gray-800 placeholder-gray-400 outline-none transition-all duration-150 focus:border-blue-500 focus:ring-2 focus:ring-blue-500";
+const fieldInputStyle = { borderColor: "#d1cdc7" };
 
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
-    className={`w-37.5 shrink-0 text-[13px] font-medium tracking-[0.01em] text-[#4A4845] ${
-      alignTop ? "pt-3" : ""
+    className={`shrink-0 text-[12.5px] text-gray-500 text-right leading-tight ${
+      alignTop ? "pt-2" : ""
     }`}
+    style={{ minWidth: "96px" }}
   >
-    {label} {required && <span className="text-[#DC2626]">*</span>}
+    {label} {required && <span className="text-red-500 ml-0.5">*</span>}
   </label>
 );
 
 const Field = ({ label, required, full, ...props }) => (
   <div
-    className={`flex items-center gap-4 ${
+    className={`flex items-center gap-2.5 ${
       full ? "col-span-2" : ""
     }`}
   >
     <FieldLabel label={label} required={required} />
-    <input {...props} className={fieldInputClass} />
+    <input {...props} className={fieldInputClass} style={fieldInputStyle} />
   </div>
 );
 
@@ -711,20 +713,21 @@ const CurrencyField = ({
   ...props
 }) => (
   <div
-    className={`flex items-center gap-4 ${
+    className={`flex items-center gap-2.5 ${
       full ? "col-span-2" : ""
     }`}
   >
     <FieldLabel label={label} required={required} />
 
     <div className="relative min-w-0 flex-1">
-      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[14px] text-[#9B9890]">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-gray-400">
         ₹
       </span>
 
       <input
         {...props}
-        className={`${fieldInputClass} w-full pl-7.5`}
+        style={fieldInputStyle}
+        className={`${fieldInputClass} w-full pl-7`}
       />
     </div>
   </div>
@@ -743,7 +746,7 @@ const SelectField = ({
   if (allowFreeText) {
     return (
       <div
-        className={`flex items-center gap-4 ${
+        className={`flex items-center gap-2.5 ${
           full ? "col-span-2" : ""
         }`}
       >
@@ -753,6 +756,7 @@ const SelectField = ({
           {...props}
           value={value}
           placeholder={placeholder}
+          style={fieldInputStyle}
           className={fieldInputClass}
         />
       </div>
@@ -761,7 +765,7 @@ const SelectField = ({
 
   return (
     <div
-      className={`flex items-center gap-4 ${
+      className={`flex items-center gap-2.5 ${
         full ? "col-span-2" : ""
       }`}
     >
@@ -770,9 +774,12 @@ const SelectField = ({
       <select
         {...props}
         value={value}
-        className={`${fieldInputClass} cursor-pointer appearance-none bg-size-[12px_12px] bg-position-[right_14px_center] bg-no-repeat pr-9`}
+        className={`${fieldInputClass} cursor-pointer appearance-none pr-9`}
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+          ...fieldInputStyle,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "right 10px center",
         }}
       >
         <option value="">{placeholder}</option>
@@ -793,7 +800,7 @@ const TextAreaField = ({
   short,
   ...props
 }) => (
-  <div className="flex items-start gap-4">
+  <div className="flex items-start gap-2.5">
     <FieldLabel
       label={label}
       required={required}
@@ -802,9 +809,10 @@ const TextAreaField = ({
 
     <textarea
       {...props}
+      style={fieldInputStyle}
       className={`${
-        short ? "min-h-22.5" : "min-h-30"
-      } min-w-0 flex-1 resize-y rounded-xl border border-[#E0DDD6] bg-[#FAFAF8] px-3.5 py-3 text-[14px] leading-[1.6] text-[#1C1B18] outline-none transition-all focus:border-[#93AEFF] focus:bg-white focus:ring-[3px] focus:ring-[#6382FF]/20`}
+        short ? "min-h-16" : "min-h-24"
+      } min-w-0 flex-1 resize-y rounded-lg border bg-white px-3 py-2 text-[13px] leading-[1.6] text-gray-800 placeholder-gray-400 outline-none transition-all duration-150 focus:border-blue-500 focus:ring-2 focus:ring-blue-500`}
     />
   </div>
 );
@@ -814,7 +822,7 @@ const CheckboxField = ({
   checked,
   onChange,
 }) => (
-  <div className="flex items-center gap-4">
+  <div className="flex items-center gap-2.5">
     <FieldLabel label={label} />
 
     <div className="min-w-0 flex-1">
@@ -822,11 +830,12 @@ const CheckboxField = ({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-4.5 w-4.5 cursor-pointer accent-[#1C4ED8]"
+        className="h-4 w-4 cursor-pointer accent-blue-600"
       />
     </div>
   </div>
 );
+
 
 const DurationField = ({
   label,
@@ -845,11 +854,14 @@ const DurationField = ({
     <select
       value={val || ""}
       onChange={(e) => onChange(key, e.target.value)}
-      className={`min-w-0 flex-1 cursor-pointer appearance-none rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8] bg-size-[12px_12px] bg-position-[right_10px_center] bg-no-repeat py-2.5 pl-3 pr-7 text-[13px] outline-none ${
-        val ? "text-[#1C1B18]" : "text-[#9B9890]"
+      className={`min-w-0 flex-1 cursor-pointer appearance-none rounded-lg border bg-white py-1.5 pl-3 pr-7 text-[12.5px] outline-none ${
+        val ? "text-gray-800" : "text-gray-400"
       }`}
       style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9890' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+        borderColor: "#d1cdc7",
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "right 10px center",
       }}
     >
       <option value="">{placeholder}</option>
@@ -863,14 +875,14 @@ const DurationField = ({
   );
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2.5">
       <FieldLabel label={label} />
 
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">
         {miniSelect(fromMonth, "Month", MONTHS, "fromMonth")}
         {miniSelect(fromYear, "Year", YEARS, "fromYear")}
 
-        <span className="px-1 text-[13px] text-[#9B9890]">
+        <span className="px-1 text-[12px] text-gray-400">
           To
         </span>
 
@@ -887,29 +899,29 @@ const TimelineItem = ({
   onDelete,
   children,
 }) => (
-  <div className={`flex gap-5 ${isLast ? "pb-2" : "pb-8"}`}>
-    <div className="relative flex w-10 shrink-0 flex-col items-center">
-      <div className="z-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#E0DDD6] bg-white text-[12px] font-semibold text-[#6B6860]">
+  <div className={`flex gap-4 ${isLast ? "pb-1" : "pb-5"}`}>
+    <div className="relative flex w-8 shrink-0 flex-col items-center">
+      <div className="z-2 flex h-7 w-7 items-center justify-center rounded-full border border-[#d1cdc7] bg-white text-[11px] font-semibold text-gray-500">
         {index}
       </div>
 
-      <div className="my-1 w-px flex-1 bg-[#E8E6E0]" />
+      <div className="my-1 w-px flex-1 bg-[#e5e1db]" />
 
       {onDelete ? (
         <button
           type="button"
           onClick={onDelete}
           title="Delete entry"
-          className="z-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#FECACA] bg-white text-[#DC2626] transition-all hover:border-[#DC2626] hover:bg-[#FEF2F2]"
+          className="z-2 flex h-7 w-7 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 transition-all hover:border-red-400 hover:bg-red-50"
         >
           <TrashIcon />
         </button>
       ) : (
-        <div className="h-8 w-8 rounded-full border border-dashed border-[#E0DDD6] bg-white" />
+        <div className="h-7 w-7 rounded-full border border-dashed border-[#d1cdc7] bg-white" />
       )}
     </div>
 
-    <div className="flex min-w-0 flex-1 flex-col gap-3.5 pt-0.5">
+    <div className="flex min-w-0 flex-1 flex-col gap-2.5 pt-0.5">
       {children}
     </div>
   </div>
@@ -917,8 +929,8 @@ const TimelineItem = ({
 
 const TrashIcon = () => (
   <svg
-    width="14"
-    height="14"
+    width="13"
+    height="13"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -934,11 +946,11 @@ const TrashIcon = () => (
 );
 
 const AddRowButton = ({ text, onClick }) => (
-  <div className="mt-1 flex pl-15">
+  <div className="mt-1 flex pl-12">
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#BFD3FF] bg-[#F0F5FF] px-4 py-2 text-[13px] font-medium text-[#1C4ED8] transition-all hover:border-[#93AEFF] hover:bg-[#E4ECFF]"
+      className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[12.5px] font-medium text-blue-700 transition-all hover:border-blue-400 hover:bg-blue-100"
     >
       <span className="text-base leading-none">+</span>
       {text}
@@ -963,21 +975,22 @@ const FileField = ({
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2.5">
       <FieldLabel label={label} required={required} />
 
-      <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-[10px] border border-[#E0DDD6] bg-[#FAFAF8]">
+      <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border bg-white" style={{ borderColor: "#d1cdc7" }}>
         <button
           type="button"
           onClick={handleClick}
-          className="border-r border-[#E0DDD6] bg-white px-4 py-2.5 text-[13px] font-medium text-[#4A4845] transition-colors hover:bg-[#F5F4F0]"
+          className="border-r px-3 py-1.5 text-[12.5px] font-medium text-gray-600 transition-colors hover:bg-gray-50"
+          style={{ borderColor: "#d1cdc7" }}
         >
           Browse
         </button>
 
         <div
-          className={`flex min-w-0 flex-1 items-center overflow-hidden whitespace-nowrap px-3.5 py-2.5 text-[13px] ${
-            file ? "text-[#1C1B18]" : "text-[#9B9890]"
+          className={`flex min-w-0 flex-1 items-center overflow-hidden whitespace-nowrap px-3 py-1.5 text-[12.5px] ${
+            file ? "text-gray-800" : "text-gray-400"
           }`}
           style={{ textOverflow: "ellipsis" }}
         >
