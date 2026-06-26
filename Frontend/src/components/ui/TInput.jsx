@@ -7,7 +7,7 @@ const TInput = ({ required, ...props }) => (
         type="text"
         required={required}
         {...props}
-        className="w-full rounded-xl border px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150"
+        className="w-full rounded-lg border px-3 py-1.5 text-[13px] text-gray-800 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150"
         style={{ borderColor: "#d1cdc7" }}
     />
 );
