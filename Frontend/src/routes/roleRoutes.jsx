@@ -17,6 +17,11 @@ import Users from "../pages/settings/Users";
 import Roles from "../pages/settings/Roles";
 import Permissions from "../pages/settings/Permission";
 
+import Personal from "../pages/settings/component/personalSettings";
+import Company from "../pages/settings/component/companyDetails";
+import Email from "../pages/settings/component/emailPage";
+import Notifications from "../pages/settings/component/notificaionsSettings";
+
 import ProtectedRoute from "../components/ProtectedRoute";
 import Teams from "../pages/settings/Teams"
 
@@ -174,6 +179,46 @@ export const roleRoutes = [
         element: (
             <ProtectedRoute permission={PERMISSIONS.SETTINGS_VIEW}>
                 <Settings />
+            </ProtectedRoute>
+        ),
+    },
+
+        // PERSONAL SETTINGS
+    {
+        path: "settings/personal",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.SETTINGS_VIEW}>
+                <Personal />
+            </ProtectedRoute>
+        ),
+    },
+
+    // COMPANY DETAILS
+    {
+        path: "settings/company",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.SETTINGS_VIEW}>
+                <Company />
+            </ProtectedRoute>
+        ),
+    },
+
+    // EMAIL SETTINGS
+    {
+        path: "settings/email",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.SETTINGS_VIEW}>
+                <Email />
+            </ProtectedRoute>
+        ),
+    },
+
+    // NOTIFICATION SETTINGS
+    {
+        path: "settings/notifications",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.SETTINGS_VIEW}>
+                <Notifications />
             </ProtectedRoute>
         ),
     },
