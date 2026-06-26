@@ -26,121 +26,12 @@
         label: "Users & Control",
         items: [
         { id: "users",         label: "Users",            route: "users" },
-        { id: "teams",      label: "Security Control", route: "teams" },
+        { id: "teams",         label: "Teams",            route: "teams" },
         { id: "roles",         label: "Roles",            route: "roles" },
         { id: "permissions",   label: "Permissions",      route: "permissions" },
         ],
     },
-    // {
-    //     id: "customization",
-    //     label: "Customization",
-    //     items: [
-    //     { id: "modules",   label: "Modules",             route: "modules" },
-    //     { id: "templates", label: "Templates",           route: "templates" },
-    //     { id: "pipeline",  label: "Hiring Pipeline",     route: "pipeline" },
-    //     { id: "homepage",  label: "Customize Home Page", route: "homepage" },
-    //     ],
-    // },
-    // {
-    //     id: "portal",
-    //     label: "Portal Setup",
-    //     items: [
-    //     { id: "portal",        label: "Portal",        route: "portal" },
-    //     { id: "client-portal", label: "Client Portal", route: "client-portal" },
-    //     ],
-    // },
-    // {
-    //     id: "career",
-    //     label: "Career Website",
-    //     items: [
-    //     { id: "career-site", label: "Career Site", route: "career-site" },
-    //     { id: "webforms",    label: "Webforms",    route: "webforms" },
-    //     ],
-    // },
-    // {
-    //     id: "jobboard",
-    //     label: "Job Board Hub",
-    //     items: [
-    //     { id: "job-boards",  label: "Job Boards",  route: "job-boards" },
-    //     { id: "quick-apply", label: "Quick Apply", route: "quick-apply" },
-    //     ],
-    // },
-    // {
-    //     id: "marketplace",
-    //     label: "Marketplace",
-    //     items: [
-    //     { id: "google",    label: "Google",    route: "google" },
-    //     { id: "microsoft", label: "Microsoft", route: "microsoft" },
-    //     { id: "zapier",    label: "Zapier",    route: "zapier" },
-    //     ],
-    // },
-    // {
-    //     id: "data",
-    //     label: "Data Administration",
-    //     items: [
-    //     { id: "migration", label: "Data Migration", route: "migration" },
-    //     { id: "export",    label: "Export",          route: "export" },
-    //     { id: "storage",   label: "Storage",         route: "storage", badge: "Pro" },
-    //     { id: "recycle",   label: "Recycle Bin",     route: "recycle" },
-    //     { id: "activity",  label: "Activity Log",    route: "activity" },
-    //     ],
-    // },
-    // {
-    //     id: "developer",
-    //     label: "Developer Space",
-    //     items: [
-    //     { id: "apis", label: "APIs", route: "apis" },
-    //     ],
-    // },
-    // {
-    //     id: "telephony",
-    //     label: "Telephony",
-    //     items: [
-    //     { id: "messaging", label: "Instant Messaging", route: "messaging", badge: "Pro" },
-    //     { id: "mobile",    label: "Mobile Apps",       route: "mobile" },
-    //     ],
-    // },
-    // {
-    //     id: "compliance",
-    //     label: "Compliance",
-    //     items: [
-    //     { id: "gdpr",       label: "GDPR",           route: "gdpr" },
-    //     { id: "processors", label: "Sub Processors", route: "sub-processors" },
-    //     ],
-    // },
-    // {
-    //     id: "zia",
-    //     label: "Zia AI",
-    //     items: [
-    //     { id: "chatbot",            label: "Chatbot",               route: "chatbot" },
-    //     { id: "ai-assist",          label: "AI Assist",             route: "assist",             badge: "Pro" },
-    //     { id: "profile-summary",    label: "Profile Summary",       route: "profile-summary",    badge: "Pro" },
-    //     { id: "interview-insights", label: "AI Interview Insights", route: "interview-insights", badge: "Pro" },
-    //     ],
-    // },
     ];
-
-    // ============================================================
-    // STATS — auto-computed, always in sync with config above
-    // ============================================================
-
-    // const STATS = [
-    // {
-    //     label: "Categories",
-    //     value: SETTINGS_SECTIONS.length,
-    // },
-    // {
-    //     label: "Total Settings",
-    //     value: SETTINGS_SECTIONS.reduce((sum, s) => sum + s.items.length, 0),
-    // },
-    // {
-    //     label: "Pro Features",
-    //     value: SETTINGS_SECTIONS.reduce(
-    //     (sum, s) => sum + s.items.filter((i) => i.badge === "Pro").length,
-    //     0
-    //     ),
-    // },
-    // ];
 
     // ============================================================
     // MAIN COMPONENT
