@@ -74,7 +74,7 @@ const AddClient = () => {
                 
             />
 
-            <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto px-6 py-6 space-y-4">
                 <ClientInfoSection
                     formData={form.formData}
                     handleChange={form.handleChange}

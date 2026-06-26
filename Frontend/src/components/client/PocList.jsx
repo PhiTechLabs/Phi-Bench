@@ -30,7 +30,7 @@ const PocList = ({
 
     // ─── EXPANDED STATE: render POCs + "Add another POC" button ───────────────
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {pocs.map((poc, idx) => (
                 <PocSection
                     key={poc.id}

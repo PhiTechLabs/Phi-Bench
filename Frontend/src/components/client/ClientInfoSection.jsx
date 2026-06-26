@@ -6,7 +6,6 @@ import TInput from "../ui/TInput";
 import SInput from "../ui/SInput";
 
 // ─── DROPDOWN OPTIONS ─────────────────────────────────────────────────────────
-const ACCOUNT_MANAGERS = ["karan.singh", "amit.kumar", "priya.sharma"];
 const INDUSTRIES = ["Technology", "Healthcare", "Finance", "Retail", "Manufacturing", "Education", "Other"];
 const SOURCES = ["Added by User", "Referral", "Website", "Cold Outreach", "Social Media"];
 
@@ -28,7 +27,7 @@ const ClientInfoSection = ({ formData, handleChange }) => (
                     name="parentClient"
                     value={formData.parentClient}
                     onChange={handleChange}
-                    placeholder="Search parent client"
+                    placeholder="Enter parent client name"
                 />
             </Field>
         </FieldRow>
@@ -57,12 +56,11 @@ const ClientInfoSection = ({ formData, handleChange }) => (
 
         <FieldRow>
             <Field label="Account Manager">
-                <SInput
+                <TInput
                     name="accountManager"
                     value={formData.accountManager}
                     onChange={handleChange}
-                    placeholder="Select manager"
-                    options={ACCOUNT_MANAGERS}
+                    placeholder="Enter account manager name"
                 />
             </Field>
             <Field label="LinkedIn">
@@ -103,8 +101,8 @@ const ClientInfoSection = ({ formData, handleChange }) => (
                     value={formData.about}
                     onChange={handleChange}
                     placeholder="Brief description about the client..."
-                    rows={3}
-                    className="w-full rounded-xl border px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    rows={2}
+                    className="w-full rounded-lg border px-3 py-1.5 text-[13px] text-gray-800 placeholder-gray-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     style={{ borderColor: "#d1cdc7" }}
                 />
             </Field>
