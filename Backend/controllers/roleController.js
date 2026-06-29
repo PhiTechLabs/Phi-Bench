@@ -200,6 +200,13 @@ export const updateRole = async (req, res) => {
 
         const role = await Role.findById(id);
 
+        if (!role) {
+
+            return res.status(404).json({
+                message: "Role not found",
+            });
+        }
+
         if (
             role.name === "super_admin" &&
             req.user.role.name !==
@@ -208,13 +215,6 @@ export const updateRole = async (req, res) => {
             return res.status(403).json({
                 message:
                     "Super Admin role cannot be modified",
-            });
-        }
-
-        if (!role) {
-
-            return res.status(404).json({
-                message: "Role not found",
             });
         }
 
@@ -289,9 +289,6 @@ export const updateRole = async (req, res) => {
                 Number(hierarchyLevel);
         }
 
-        if (dataScope) {
-        }
-
         await role.save();
 
         return res.status(200).json({
@@ -329,6 +326,14 @@ export const updateModulePermissions =
             const role =
                 await Role.findById(id);
 
+            if (!role) {
+
+                return res.status(404).json({
+                    message:
+                        "Role not found",
+                });
+            }
+
                 if (
                     role.name === "super_admin" &&
                     req.user.role.name !==
@@ -339,14 +344,6 @@ export const updateModulePermissions =
                             "Super Admin permissions cannot be modified",
                     });
                 }
-
-            if (!role) {
-
-                return res.status(404).json({
-                    message:
-                        "Role not found",
-                });
-            }
 
             const currentUserRole =
                 req.user.role;
