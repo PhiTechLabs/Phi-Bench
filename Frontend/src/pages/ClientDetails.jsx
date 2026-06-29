@@ -209,6 +209,11 @@ const ClientDetails = () => {
                                 <h1 className="text-[17px] font-bold text-[#1E293B] truncate">
                                     {client.clientName}
                                 </h1>
+                                {client.code && (
+                                    <span className="rounded-md bg-[#EFF6FF] px-2.5 py-1 text-[13px] font-bold text-[#2563EB]">
+                                        {client.code}
+                                    </span>
+                                )}
                                 <Badge label={client.status} map={CLIENT_STATUS} />
                             </div>
                             <div className="flex items-center gap-3 mt-0.5 text-[12px] text-[#64748B]">

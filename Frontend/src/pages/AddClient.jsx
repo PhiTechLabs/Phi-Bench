@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useClientForm from "../hooks/useClientForm";
 import { validateClientForm } from "../utils/clientValidation";
 import { createClient } from "../api/clientApi";
+import { getNextCodePreview } from "../api/codePreviewApi";
 
 import FormHeader from "../components/shared/FormHeader";
 import ClientInfoSection from "../components/client/ClientInfoSection";
@@ -24,6 +25,23 @@ const AddClient = () => {
 
     // ALL form state + handlers come from the hook
     const form = useClientForm();
+
+    // ─── NEXT CODE PREVIEW ─────────────────────────────────────────────────────
+    // Read-only preview of the code this client will be assigned (e.g.
+    // "CL014"). The real code is only actually assigned by the backend at
+    // save time — this is purely informational.
+    const [nextCode, setNextCode] = useState(null);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const code = await getNextCodePreview("client");
+                setNextCode(code);
+            } catch (err) {
+                console.warn("Failed to preview next client code:", err?.response?.data || err);
+            }
+        })();
+    }, []);
     // ─── SUBMIT HANDLER ───────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         if (e?.preventDefault) e.preventDefault();
@@ -68,6 +86,7 @@ const AddClient = () => {
         <div className="min-h-screen font-sans" style={{ backgroundColor: "#f7f5f2" }}>
             <FormHeader
                 title="Create Client"
+                badge={nextCode ? `Next code: ${nextCode}` : null}
                 onCancel={handleCancel}
                 onSave={handleSubmit}
                 submitting={submitting}

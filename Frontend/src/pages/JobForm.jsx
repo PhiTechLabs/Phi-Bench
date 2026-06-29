@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getAllClients } from "../api/clientApi";
+import { getNextCodePreview } from "../api/codePreviewApi";
 
 const JobForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({});
@@ -9,6 +10,23 @@ const JobForm = ({ setShowForm, onSave }) => {
   const [clients, setClients]           = useState([]);
   const [clientsLoading, setClientsLoading] = useState(true);
   const [clientsError, setClientsError] = useState(false);
+
+  // ─── NEXT CODE PREVIEW ─────────────────────────────────────────────────────
+  // Read-only preview of the code this job will be assigned (e.g. "JC014").
+  // The real code is only actually assigned by the backend at save time —
+  // this is purely informational so the user isn't surprised by it later.
+  const [nextCode, setNextCode] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const code = await getNextCodePreview("job");
+        setNextCode(code);
+      } catch (err) {
+        console.warn("Failed to preview next job code:", err?.response?.data || err);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -75,8 +93,15 @@ const JobForm = ({ setShowForm, onSave }) => {
             ←
           </button>
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
-              PhiBench
+            <div className="flex items-center gap-2">
+              <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
+                PhiBench
+              </div>
+              {nextCode && (
+                <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                  Next code: {nextCode}
+                </span>
+              )}
             </div>
             <div className="text-[18px] font-semibold leading-tight text-[#1C1B18]">
               New Job Opening

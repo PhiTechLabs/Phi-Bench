@@ -329,14 +329,14 @@ console.log(
 
   const columns = [
     {
-      key: "sno",
-      label: "S.No",
-      width: 56,
-      type: "sno",
-      fixed: true,
-      removable: false,
+      key: "code",
+      label: "Code",
+      width: 90,
+      type: "text",
+      bold: true,
       defaultVisible: true,
-      searchable: false,
+      sortable: true,
+      searchable: true,
     },
 
     {

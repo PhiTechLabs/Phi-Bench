@@ -1,6 +1,7 @@
 import Client from "../models/Client.js";
 import {uploadToS3} from "../services/s3Service.js"
 import { getSignedFileUrl } from "./s3Service.js";
+import { generateNextCode } from "../utils/generateCode.js";
 // ─── HELPER: strip frontend-only `id` from subdocs ────────────────────────────
 const stripFrontendIds = (arr = []) =>
     arr.map(({ id, ...rest }) => rest);
@@ -32,8 +33,11 @@ export const createClientService = async (
         }
     }
 
+    const code = await generateNextCode("client");
+
     const data = {
         ...payload,
+        code,
         locations: stripFrontendIds(payload.locations),
         pocs: stripFrontendIds(payload.pocs),
         documents,          // <-- documents not document

@@ -1,4 +1,4 @@
-    import Candidate from "../models/Candidate.js";
+import Candidate from "../models/Candidate.js";
     import User from "../models/User.js";
     import {
     getAccessibleUserIds,
@@ -8,6 +8,8 @@
         uploadToS3,
         getSignedFileUrl,
     } from "./s3Service.js";
+
+    import { generateNextCode } from "../utils/generateCode.js";
 
     // ─── HELPER: build a clean payload (no stray frontend-only fields) ───────────
     const sanitizeArrays = (payload) => {
@@ -93,8 +95,11 @@
         };
         }
 
+        const code = await generateNextCode("candidate");
+
         const data = {
         ...sanitizeArrays(payload),
+        code,
         attachments,
         createdBy: userId,
         };
@@ -113,8 +118,18 @@
 
         if (err.code === 11000) {
 
+        // Be precise about which unique field actually collided — don't
+        // blame "email" when it was really the generated code (or vice
+        // versa). err.keyPattern is set by the MongoDB driver for E11000
+        // and tells us exactly which index was violated.
+        const field = err.keyPattern
+            ? Object.keys(err.keyPattern)[0]
+            : "email";
+
         const dupErr = new Error(
-            "A candidate with this email already exists"
+            field === "code"
+            ? "Could not assign a candidate code — please try saving again"
+            : "A candidate with this email already exists"
         );
 
         dupErr.statusCode = 409;

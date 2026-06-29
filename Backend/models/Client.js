@@ -30,6 +30,13 @@ const documentSchema = new mongoose.Schema({
 
 // ─── MAIN CLIENT SCHEMA ───────────────────────────────────────────────────────
 const clientSchema = new mongoose.Schema({
+    // Human-readable reference code (CL001, CL002...), assigned once at
+    // creation time by generateNextCode("client") — never set by the
+    // client (the request body, that is — confusing name collision, but
+    // this means "never set by the calling user"). sparse lets pre-existing
+    // clients without a code coexist.
+    code: { type: String, unique: true, sparse: true },
+
     clientName:     { type: String, required: true, trim: true },
     parentClient:   { type: String, trim: true, default: "" },
     contactNumber:  { type: String, required: true, trim: true },

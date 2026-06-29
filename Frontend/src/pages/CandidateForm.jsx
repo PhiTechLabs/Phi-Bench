@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { getNextCodePreview } from "../api/codePreviewApi";
 
 /* ──────────────────── COUNTRY & STATE DATA ──────────────────── */
 
@@ -139,6 +140,23 @@ const CandidateForm = ({ setShowForm, onSave }) => {
   const [experience, setExperience] = useState([{}]);
   const [attachments, setAttachments] = useState({});
 
+  // ─── NEXT CODE PREVIEW ─────────────────────────────────────────────────────
+  // Read-only preview of the code this candidate will be assigned (e.g.
+  // "CD014"). The real code is only actually assigned by the backend at
+  // save time — this is purely informational.
+  const [nextCode, setNextCode] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const code = await getNextCodePreview("candidate");
+        setNextCode(code);
+      } catch (err) {
+        console.warn("Failed to preview next candidate code:", err?.response?.data || err);
+      }
+    })();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -209,8 +227,15 @@ const CandidateForm = ({ setShowForm, onSave }) => {
           </button>
 
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
-              PhiBench
+            <div className="flex items-center gap-2">
+              <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
+                PhiBench
+              </div>
+              {nextCode && (
+                <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                  Next code: {nextCode}
+                </span>
+              )}
             </div>
 
             <div className="text-[18px] font-semibold leading-tight text-[#1C1B18]">

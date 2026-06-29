@@ -8,6 +8,8 @@ import BackButton from "../../reusable/BackButton";
 //
 // Props:
 //   title         → string shown as the heading (e.g. "Create Client")
+//   badge         → optional small text shown next to the title (e.g. a
+//                   "Next code: CL014" preview). Renders nothing if omitted.
 //   onCancel      → handler for the Cancel button
 //   onSave        → handler for the Save button
 //   submitting    → when true: disables buttons, shows "Saving..." label
@@ -15,6 +17,7 @@ import BackButton from "../../reusable/BackButton";
 //   savingLabel   → optional override for the saving-state label (defaults to "Saving...")
 const FormHeader = ({
     title,
+    badge,
     onCancel,
     onSave,
     submitting = false,
@@ -30,6 +33,11 @@ const FormHeader = ({
         <h1 className="text-sm font-semibold text-gray-700 tracking-tight">
             {title}
         </h1>
+        {badge && (
+            <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                {badge}
+            </span>
+        )}
         </div>
         <div className="flex items-center gap-2">
             <Btn onClick={onCancel} variant="ghost" disabled={submitting}>

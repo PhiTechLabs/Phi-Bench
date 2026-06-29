@@ -41,6 +41,11 @@ export const CANDIDATE_STATUSES = [
 
 // ─── MAIN CANDIDATE SCHEMA ────────────────────────────────────────────────────
 const candidateSchema = new mongoose.Schema({
+    // Human-readable reference code (CD001, CD002...), assigned once at
+    // creation time by generateNextCode("candidate") — never set by the
+    // client. sparse lets pre-existing candidates without a code coexist.
+    code: { type: String, unique: true, sparse: true },
+
     // Basic
     firstName: { type: String, required: true, trim: true },
     lastName:  { type: String, required: true, trim: true },

@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 // ─── MAIN JOB SCHEMA ──────────────────────────────────────────────────────────
 const jobSchema = new mongoose.Schema({
+    // Human-readable reference code (JC001, JC002...), assigned once at
+    // creation time by generateNextCode("job") — never set by the client.
+    // unique + sparse: sparse lets old records without a code (from before
+    // this field existed) coexist without violating the unique constraint;
+    // every newly created job will always have one.
+    code: { type: String, unique: true, sparse: true },
+
     // Job Info
     title:          { type: String, required: true, trim: true },
 
