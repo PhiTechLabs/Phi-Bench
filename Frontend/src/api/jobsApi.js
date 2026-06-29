@@ -8,8 +8,8 @@
  *  Page components don't need to know about HTTP, headers, or
  *  MongoDB's _id format — this layer handles all of that.
  *
- *  NOTE: axiosInstance already has baseURL set to
- *  "http://localhost:5000/api", so URLs here start with "/jobs".
+ *  NOTE: axiosInstance's baseURL comes from API_BASE_URL (see
+ *  axiosInstance.js), so URLs here start with "/jobs".
  * ────────────────────────────────────────────────────────────
  */
 

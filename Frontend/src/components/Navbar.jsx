@@ -27,12 +27,6 @@ import { getCurrentUser } from "../utils/auth";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 import { globalSearch, getSearchResultRoute } from "../api/searchApi";
 
-// withCredentials so the logout call also sends the HttpOnly cookie
-const api = axiosInstance.create({
-  baseURL: "http://localhost:5000/api/auth",
-  withCredentials: true,
-});
-
 // Small icon per entity type, reusing the same icons already used in the
 // nav menu so search results feel visually consistent with the rest of the app.
 const RESULT_ICONS = {
@@ -127,7 +121,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       // Tell backend to clear the HttpOnly cookie
-      await api.post("/logout");
+      await axiosInstance.post("/auth/logout");
     } catch (_) {
       // even if request fails, clear local state
     }

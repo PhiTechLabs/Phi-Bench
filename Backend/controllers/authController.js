@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Role from "../models/role.js";
 import Branch from "../models/Branch.js";
+import { cookieOptions, clearCookieOptions } from "../utils/cookieOptions.js";
 
 import {
     generateAccessToken,
@@ -68,20 +69,10 @@ export const loginUser = async (req, res) => {
         await user.save();
 
         // ─── ACCESS TOKEN COOKIE ─────────────────────────
-        res.cookie("accessToken", accessToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 15 * 60 * 1000,
-        });
+        res.cookie("accessToken", accessToken, cookieOptions(15 * 60 * 1000));
 
         // ─── REFRESH TOKEN COOKIE ────────────────────────
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie("refreshToken", refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
         const populatedUser =
             await User.findById(user._id)
@@ -161,17 +152,9 @@ export const logoutUser = async (req, res) => {
             }
         }
 
-        res.clearCookie("accessToken", {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-        });
+        res.clearCookie("accessToken", clearCookieOptions());
 
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-        });
+        res.clearCookie("refreshToken", clearCookieOptions());
 
         return res.status(200).json({
             message: "Logged out successfully",
@@ -234,12 +217,7 @@ export const refreshAccessToken = async (
         res.cookie(
             "accessToken",
             newAccessToken,
-            {
-                httpOnly: true,
-                secure: false,
-                sameSite: "lax",
-                maxAge: 15 * 60 * 1000,
-            }
+            cookieOptions(15 * 60 * 1000)
         );
 
         return res.status(200).json({
