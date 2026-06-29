@@ -182,6 +182,10 @@ const JobForm = ({ setShowForm, onSave }) => {
               <Field label="Salary / Rate" name="salary" placeholder="e.g. $120k or $65/hr" onChange={handleChange} />
             </Row>
             <Row>
+              <Field label="Bill Rate" name="billRate" placeholder="e.g. $75/hr" onChange={handleChange} />
+              <Field label="Pay Rate" name="payRate" placeholder="e.g. $60/hr" onChange={handleChange} />
+            </Row>
+            <Row>
               <Field label="Required Skills" name="skills" placeholder="e.g. React, Node.js, AWS, Kubernetes..." onChange={handleChange} full />
             </Row>
           </Section>

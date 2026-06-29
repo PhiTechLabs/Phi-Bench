@@ -266,6 +266,8 @@ const JobDetails = () => {
                                     <KVField icon={icons.brief}    label="Experience"  value={job.experience} />
                                     <KVField icon={icons.dollar}   label="Salary/Rate" value={job.salary} />
                                     <KVField icon={icons.building} label="Industry"    value={job.industry} />
+                                    <KVField icon={icons.dollar}   label="Bill Rate"   value={job.billRate} />
+                                    <KVField icon={icons.dollar}   label="Pay Rate"    value={job.payRate} />
                                 </div>
                             </CeipalCard>
 

@@ -113,6 +113,8 @@ const JobOpenings = () => {
     { key: "jobType",    label: "Type",          width: 120, type: "text",     defaultVisible: true, sortable: true, filterable: true },
     { key: "city",       label: "Location",      width: 140, type: "location", defaultVisible: true, sortable: true, filterable: true },
     { key: "salary",     label: "Salary / Rate", width: 140, type: "text",     defaultVisible: true, searchable: true },
+    { key: "billRate",   label: "Bill Rate",     width: 120, type: "text",     searchable: true },
+    { key: "payRate",    label: "Pay Rate",      width: 120, type: "text",     searchable: true },
     {
       key: "status", label: "Status", width: 120, type: "status",
       statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,

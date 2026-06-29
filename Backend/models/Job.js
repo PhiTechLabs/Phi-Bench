@@ -38,6 +38,12 @@ const jobSchema = new mongoose.Schema({
     experience:     { type: String, trim: true, default: "" },
     industry:       { type: String, trim: true, default: "" },
     salary:         { type: String, trim: true, default: "" },
+    // Staffing-specific rates for this opening — billRate is what the
+    // client pays for this position, payRate is what the placed
+    // candidate/contractor is actually paid. Free text like salary, since
+    // rates come in many formats ($65/hr, ₹2500/day, $120k annual).
+    billRate:       { type: String, trim: true, default: "" },
+    payRate:        { type: String, trim: true, default: "" },
     skills:         { type: String, trim: true, default: "" },
 
     // Location & Posting
