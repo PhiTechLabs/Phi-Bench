@@ -1,9 +1,24 @@
 import axios from "axios";
 
+// ─── API BASE URL ─────────────────────────────────────────────────────────────
+// Set in a .env file at the project root (NOT committed to git — see
+// .env.example). Parcel inlines process.env.* values at build time, reading
+// from .env / .env.production / .env.development automatically based on
+// whether you ran `parcel` (dev) or `parcel build` (production).
+//
+// Locally: .env.development with API_BASE_URL=http://localhost:5000/api
+// On Vercel: set API_BASE_URL as a project environment variable, pointing
+// at your real Railway backend URL, e.g.
+// https://phi-bench-backend.up.railway.app/api
+//
+// The localhost fallback below only matters if no .env file exists at all —
+// once you add one, the value there always wins.
+const API_BASE_URL =
+    process.env.API_BASE_URL || "http://localhost:5000/api";
+
 // ─── CENTRAL AXIOS INSTANCE ───────────────────────────────────────────────────
 const axiosInstance = axios.create({
-    // baseURL: "http://localhost:5000/api",
-    baseURL: "http://localhost:5000/api",
+    baseURL: API_BASE_URL,
     withCredentials: true,
     headers: {
         "Content-Type": "application/json",
@@ -38,8 +53,7 @@ axiosInstance.interceptors.response.use(
 
                 // get new access token
                 await axios.post(
-                    // `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
-                    `http://localhost:5000/api/auth/refresh-token`,
+                    `${API_BASE_URL}/auth/refresh-token`,
                     {},
                     {
                         withCredentials: true,

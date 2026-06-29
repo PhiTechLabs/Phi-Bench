@@ -17,3 +17,5 @@ uploads/
 
 # Misc
 .DS_Store
+package-lock.json
+package.json
