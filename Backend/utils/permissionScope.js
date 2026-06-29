@@ -1,5 +1,5 @@
 import User from "../models/User.js";
-import Team from "../models/Team.js";
+import Team from "../models/team.js";
 
 export const getAccessibleUserIds = async (
     user,
