@@ -25,12 +25,27 @@ import {hasPermission} from "../utils/hasPermission";
 
 import { getCurrentUser } from "../utils/auth";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
+import { globalSearch, getSearchResultRoute } from "../api/searchApi";
 
 // withCredentials so the logout call also sends the HttpOnly cookie
 const api = axiosInstance.create({
   baseURL: "http://localhost:5000/api/auth",
   withCredentials: true,
 });
+
+// Small icon per entity type, reusing the same icons already used in the
+// nav menu so search results feel visually consistent with the rest of the app.
+const RESULT_ICONS = {
+  job: <FaBriefcase />,
+  candidate: <FaUsers />,
+  client: <FaHandshake />,
+};
+
+const RESULT_LABELS = {
+  job: "Job",
+  candidate: "Candidate",
+  client: "Client",
+};
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -41,6 +56,18 @@ const Navbar = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
+  // ─── GLOBAL SEARCH STATE ───────────────────────────────────────────────────
+  // This is the navbar's search — it queries the database directly across
+  // jobs, candidates, and clients by code (JC/CD/CL) or name. It is NOT the
+  // same as each DataTable's own search box, which only filters rows
+  // already loaded for that one page.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(false);
+  const searchBoxRef = useRef(null);
+  const debounceRef = useRef(null);
+
   const dropdownRef = useRef(null);
   const user = getCurrentUser();
 
@@ -49,10 +76,53 @@ const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+        setSearchOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Debounced search — waits 300ms after the user stops typing before
+  // hitting the API, so we're not firing a request on every keystroke.
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      setSearchError(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchError(false);
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const results = await globalSearch(trimmed);
+        setSearchResults(results);
+      } catch (err) {
+        console.warn("Global search failed:", err?.response?.data || err);
+        setSearchError(true);
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [searchQuery]);
+
+  const handleResultClick = (result) => {
+    const route = getSearchResultRoute(result);
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    if (route) navigate(route);
+  };
 
   const handleLogout = async () => {
     try {
@@ -225,15 +295,70 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-1 ml-auto">
-          <div className="relative flex items-center">
+          <div className="relative flex items-center" ref={searchBoxRef}>
             {searchOpen && (
-              <input
-                autoFocus
-                type="text"
-                placeholder="Search..."
-                onBlur={() => setSearchOpen(false)}
-                className="absolute right-8 w-48 bg-white text-gray-700 placeholder:text-gray-800 text-sm px-3 py-1.5 rounded-lg outline-none border border-blue-600 transition-all"
-              />
+              <div className="fixed top-16 right-6 md:right-8 w-80 z-[70]">
+                <input
+                  autoFocus
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by code (JC001, CD014, CL003) or name..."
+                  className="w-full bg-white text-gray-700 placeholder:text-gray-400 text-sm px-3 py-2 rounded-lg outline-none border border-blue-600 transition-all shadow-lg mt-2"
+                />
+
+                {searchQuery.trim() && (
+                  <div className="absolute top-full mt-1.5 left-0 right-0 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
+                    {searchLoading && (
+                      <div className="px-4 py-3 text-sm text-gray-400">Searching...</div>
+                    )}
+
+                    {!searchLoading && searchError && (
+                      <div className="px-4 py-3 text-sm text-red-500">
+                        Search failed. Try again.
+                      </div>
+                    )}
+
+                    {!searchLoading && !searchError && searchResults.length === 0 && (
+                      <div className="px-4 py-3 text-sm text-gray-400">
+                        No matches for "{searchQuery.trim()}"
+                      </div>
+                    )}
+
+                    {!searchLoading &&
+                      !searchError &&
+                      searchResults.map((result) => (
+                        <button
+                          key={`${result.entityType}-${result.id}`}
+                          type="button"
+                          onClick={() => handleResultClick(result)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-blue-50 transition border-b border-gray-50 last:border-0"
+                        >
+                          <span className="text-blue-600 shrink-0">
+                            {RESULT_ICONS[result.entityType]}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-800 truncate">
+                                {result.title}
+                              </span>
+                              {result.code && (
+                                <span className="shrink-0 rounded-md bg-blue-50 px-1.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                                  {result.code}
+                                </span>
+                              )}
+                            </div>
+                            {result.subtitle && (
+                              <div className="text-xs text-gray-400 truncate">
+                                {RESULT_LABELS[result.entityType]} · {result.subtitle}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
             )}
             <button
               onClick={() => setSearchOpen((p) => !p)}

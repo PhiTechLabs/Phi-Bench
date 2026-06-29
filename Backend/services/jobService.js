@@ -1,5 +1,6 @@
 import Job from "../models/Job.js";
 import Client from "../models/Client.js";
+import { generateNextCode } from "../utils/generateCode.js";
 
 // ─── HELPER: look up a client by id and return its name ──────────────────────
 // The frontend sends clientId; we never trust a client-supplied "client" name
@@ -27,9 +28,11 @@ const resolveClient = async (clientId) => {
 // ─── CREATE JOB ───────────────────────────────────────────────────────────────
 export const createJobService = async (payload, userId) => {
     const client = await resolveClient(payload.clientId);
+    const code = await generateNextCode("job");
 
     const data = {
         ...payload,
+        code,
         clientId: client._id,
         client:   client.clientName,
         createdBy: userId,

@@ -181,6 +181,11 @@ import React, { useEffect, useState } from "react";
                     <h1 className="text-[17px] font-bold text-[#1E293B] leading-tight truncate">
                     {candidate.name || "Unnamed Candidate"}
                     </h1>
+                    {candidate.code && (
+                    <span className="rounded-md bg-[#EFF6FF] px-2.5 py-1 text-[13px] font-bold text-[#2563EB]">
+                        {candidate.code}
+                    </span>
+                    )}
                     <StatusBadge status={candidate.status} />
                     {candidate.onBench && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-0.5 text-[11px] font-semibold text-[#1D4ED8]">

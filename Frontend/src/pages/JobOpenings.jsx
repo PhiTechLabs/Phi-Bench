@@ -105,7 +105,7 @@ const JobOpenings = () => {
 
   /* ── column registry ── */
   const columns = [
-    { key: "sno",        label: "S.No",          width: 56,  type: "sno",      fixed: true, removable: false, defaultVisible: true, searchable: false },
+    { key: "code",       label: "Code",          width: 90,  type: "text",     bold: true, defaultVisible: true, sortable: true, searchable: true },
     { key: "title",      label: "Position",      width: 200, type: "text",     bold: true, link: true, avatar: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
     { key: "client",     label: "Client",        width: 160, type: "text",     defaultVisible: true, sortable: true, searchable: true, filterable: true },
     { key: "skills",     label: "Skills",        width: 220, type: "chips",    maxChips: 2, defaultVisible: true, searchable: true },

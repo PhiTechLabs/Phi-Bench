@@ -182,6 +182,11 @@ const JobDetails = () => {
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h1 className="text-[17px] font-bold text-[#1E293B] truncate">{job.title}</h1>
+                                {job.code && (
+                                    <span className="rounded-md bg-[#EFF6FF] px-2.5 py-1 text-[13px] font-bold text-[#2563EB]">
+                                        {job.code}
+                                    </span>
+                                )}
                                 <Badge label={job.status} map={JOB_STATUS} />
                                 {daysOpen !== null && (
                                     <span className={`text-[11px] font-semibold ${
