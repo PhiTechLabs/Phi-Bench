@@ -1,6 +1,6 @@
     import React from "react";
     import usePermissions from "../hooks/usePermission";
-    import ComingSoon from "../components/ComingSoon";
+    import ComingSoon from "../components/comingSoon";
     import { BarChart3 } from "lucide-react";
 
     import {
