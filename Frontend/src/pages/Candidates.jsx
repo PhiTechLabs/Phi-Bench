@@ -94,27 +94,27 @@ const canDelete = hasPermission(
 
 // const user = getCurrentUser();
 
-console.log("USER", user);
+// console.log("USER", user);
 
-console.log(
-  "Candidate View",
-  hasPermission(user, "candidate", "view")
-);
+// console.log(
+//   "Candidate View",
+//   hasPermission(user, "candidate", "view")
+// );
 
-console.log(
-  "Candidate Add",
-  hasPermission(user, "candidate", "add")
-);
+// console.log(
+//   "Candidate Add",
+//   hasPermission(user, "candidate", "add")
+// );
 
-console.log(
-  "Candidate Edit",
-  hasPermission(user, "candidate", "edit")
-);
+// console.log(
+//   "Candidate Edit",
+//   hasPermission(user, "candidate", "edit")
+// );
 
-console.log(
-  "Candidate Delete",
-  hasPermission(user, "candidate", "delete")
-);
+// console.log(
+//   "Candidate Delete",
+//   hasPermission(user, "candidate", "delete")
+// );
 
 
   /* ──────────────────── ACCESS DENIED ──────────────────── */
