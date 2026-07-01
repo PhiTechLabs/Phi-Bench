@@ -5,12 +5,14 @@ import useClientForm from "../hooks/useClientForm";
 import { validateClientForm } from "../utils/clientValidation";
 import { createClient } from "../api/clientApi";
 import { getNextCodePreview } from "../api/codePreviewApi";
+import { parseApiError } from "../utils/apiError";
 
 import FormHeader from "../components/shared/FormHeader";
 import ClientInfoSection from "../components/client/ClientInfoSection";
 import LocationList from "../components/client/LocationList";
 import PocList from "../components/client/PocList";
 import AttachmentSection from "../components/shared/AttachmentSection";
+import ErrorModal from "../components/shared/ErrorModal";
 import Btn from "../components/ui/Btn";
 import useRoleBase from "../hooks/useRoleBase";
 
@@ -20,6 +22,7 @@ import useRoleBase from "../hooks/useRoleBase";
 const AddClient = () => {
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
+    const [formError, setFormError] = useState(null);
 
     const roleBase = useRoleBase();
 
@@ -52,8 +55,12 @@ const AddClient = () => {
             pocs: form.pocs,
         });
         if (!valid) {
-            const firstError = Object.values(errors)[0];
-            alert(firstError); // simple for now — can upgrade to toast/inline later
+            const errorMessages = Object.values(errors).filter(Boolean);
+            setFormError({
+                title: "Please fix the following",
+                message: errorMessages[0] || "Some required fields are missing.",
+                errors: errorMessages.map((m) => ({ message: m })),
+            });
             return;
         }
 
@@ -61,19 +68,12 @@ const AddClient = () => {
         try {
             setSubmitting(true);
             const payload = form.buildPayload();
-            const response = await createClient(payload);
+            await createClient(payload);
 
-            alert("Client created successfully!");
             form.resetForm();
-            navigate(`${roleBase}/client-list`); // adjust to wherever your client list lives
+            navigate(`${roleBase}/client-list`);
         } catch (error) {
-            // Backend validation errors come back with { message, errors: [...] }
-            const serverMsg =
-                error.response?.data?.errors?.[0]?.message ||
-                error.response?.data?.message ||
-                error.message ||
-                "Something went wrong";
-            alert(`Error: ${serverMsg}`);
+            setFormError(parseApiError(error, "Failed to create client"));
         } finally {
             setSubmitting(false);
         }
@@ -83,6 +83,7 @@ const AddClient = () => {
 
     // ─── RENDER ───────────────────────────────────────────────────────────────
     return (
+        <>
         <div className="min-h-screen font-sans" style={{ backgroundColor: "#f7f5f2" }}>
             <FormHeader
                 title="Create Client"
@@ -132,6 +133,16 @@ const AddClient = () => {
                 </div>
             </form>
         </div>
+
+        {formError && (
+            <ErrorModal
+                title={formError.title}
+                message={formError.message}
+                errors={formError.errors}
+                onClose={() => setFormError(null)}
+            />
+        )}
+        </>
     );
 };
 

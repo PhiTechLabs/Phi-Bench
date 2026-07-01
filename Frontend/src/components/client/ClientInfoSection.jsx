@@ -43,13 +43,12 @@ const ClientInfoSection = ({ formData, handleChange }) => (
                     required
                 />
             </Field>
-            <Field label="Website" required>
+            <Field label="Website">
                 <TInput
                     name="website"
                     value={formData.website}
                     onChange={handleChange}
                     placeholder="https://example.com"
-                    required
                 />
             </Field>
         </FieldRow>
@@ -74,7 +73,7 @@ const ClientInfoSection = ({ formData, handleChange }) => (
         </FieldRow>
 
         <FieldRow>
-            <Field label="Industry">
+            <Field label="Industry" required>
                 <SInput
                     name="industry"
                     value={formData.industry}

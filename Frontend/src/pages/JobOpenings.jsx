@@ -12,6 +12,8 @@ import useRoleBase from "../hooks/useRoleBase";
 import { getCurrentUser } from "../utils/auth";
 import { hasPermission } from "../utils/hasPermission";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
+import ErrorModal from "../components/shared/ErrorModal";
+import { parseApiError } from "../utils/apiError";
 
 
 
@@ -23,22 +25,13 @@ const STATUS_OPTIONS = [
   { value: "Closed",  color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]" },
 ];
 
-/* ──────────────────── HELPER: extract user-friendly error ──────────────────── */
-const getApiErrorMessage = (err) => {
-  const data = err?.response?.data;
-  if (!data) return err?.message || "Something went wrong";
-  if (Array.isArray(data.errors) && data.errors.length) {
-    return data.errors.map((e) => `${e.field}: ${e.message}`).join("\n");
-  }
-  return data.message || "Something went wrong";
-};
-
 /* ──────────────────── COMPONENT ──────────────────── */
 
 const JobOpenings = () => {
   const [showForm, setShowForm]     = useState(false);
   const [jobs, setJobs]             = useState([]);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [formError, setFormError]   = useState(null);
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
@@ -69,7 +62,7 @@ const JobOpenings = () => {
       setShowForm(false);
     } catch (err) {
       console.warn("Create job failed:", err?.response?.data || err);
-      alert(getApiErrorMessage(err));
+      throw err; // rethrow so JobForm's own catch can show the error modal
     }
   };
   const handleDelete = (row) => setConfirmDel(row);
@@ -80,7 +73,7 @@ const JobOpenings = () => {
       setConfirmDel(null);
     } catch (err) {
       console.warn("Delete job failed:", err?.response?.data || err);
-      alert(getApiErrorMessage(err));
+      setFormError(parseApiError(err, "Failed to delete job"));
     }
   };
   const handleBulkDelete = async (ids) => {
@@ -89,7 +82,7 @@ const JobOpenings = () => {
       await refresh();
     } catch (err) {
       console.warn("Bulk delete failed:", err?.response?.data || err);
-      alert(getApiErrorMessage(err));
+      setFormError(parseApiError(err, "Failed to delete selected jobs"));
     }
   };
   const handleStatusChange = async (id, newStatus) => {
@@ -98,7 +91,7 @@ const JobOpenings = () => {
       await updateJob(id, { status: newStatus });
     } catch (err) {
       console.warn("Status update failed:", err?.response?.data || err);
-      alert(getApiErrorMessage(err));
+      setFormError(parseApiError(err, "Failed to update job status"));
       await refresh();
     }
   };
@@ -193,6 +186,15 @@ const JobOpenings = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {formError && (
+        <ErrorModal
+          title={formError.title}
+          message={formError.message}
+          errors={formError.errors}
+          onClose={() => setFormError(null)}
+        />
       )}
     </div>
   );

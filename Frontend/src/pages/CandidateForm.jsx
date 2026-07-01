@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { getNextCodePreview } from "../api/codePreviewApi";
+import ErrorModal from "../components/shared/ErrorModal";
+import { parseApiError } from "../utils/apiError";
 
 /* ──────────────────── COUNTRY & STATE DATA ──────────────────── */
 
@@ -145,6 +147,8 @@ const CandidateForm = ({ setShowForm, onSave }) => {
   // "CD014"). The real code is only actually assigned by the backend at
   // save time — this is purely informational.
   const [nextCode, setNextCode] = useState(null);
+  const [formError, setFormError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -196,7 +200,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
     setAttachments({ ...attachments, [key]: file });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const payload = {
       ...formData,
       name: [formData.firstName, formData.lastName]
@@ -211,7 +215,14 @@ const CandidateForm = ({ setShowForm, onSave }) => {
       createdAt: new Date().toISOString(),
     };
 
-    onSave(payload);
+    setSubmitting(true);
+    try {
+      await onSave(payload);
+    } catch (err) {
+      setFormError(parseApiError(err, "Failed to create candidate"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -247,16 +258,18 @@ const CandidateForm = ({ setShowForm, onSave }) => {
         <div className="flex gap-2.5">
           <button
             onClick={() => setShowForm(false)}
-            className="rounded-[10px] border border-[#E0DDD6] bg-white px-5 py-2.5 text-[13px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0]"
+            disabled={submitting}
+            className="rounded-[10px] border border-[#E0DDD6] bg-white px-5 py-2.5 text-[13px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0] disabled:opacity-50"
           >
             Cancel
           </button>
 
           <button
             onClick={handleSubmit}
-            className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6]"
+            disabled={submitting}
+            className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] disabled:opacity-50"
           >
-            Save Candidate →
+            {submitting ? "Saving..." : "Save Candidate →"}
           </button>
         </div>
       </div>
@@ -303,6 +316,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 name="phone"
                 placeholder="+91 9876543210"
                 onChange={handleChange}
+                required
               />
             </Row>
           </Section>
@@ -384,6 +398,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 name="jobTitle"
                 placeholder="e.g. Software Engineer"
                 onChange={handleChange}
+                required
               />
             </Row>
 
@@ -657,20 +672,31 @@ const CandidateForm = ({ setShowForm, onSave }) => {
           <div className="flex justify-end gap-2.5 pt-2">
             <button
               onClick={() => setShowForm(false)}
-              className="rounded-[10px] border border-[#E0DDD6] bg-white px-5.5 py-2.5 text-[13px] font-medium text-[#4A4845]"
+              disabled={submitting}
+              className="rounded-[10px] border border-[#E0DDD6] bg-white px-5.5 py-2.5 text-[13px] font-medium text-[#4A4845] disabled:opacity-50"
             >
               Cancel
             </button>
 
             <button
               onClick={handleSubmit}
-              className="rounded-[10px] bg-[#1C4ED8] px-6 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)]"
+              disabled={submitting}
+              className="rounded-[10px] bg-[#1C4ED8] px-6 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] disabled:opacity-50"
             >
-              Save Candidate →
+              {submitting ? "Saving..." : "Save Candidate →"}
             </button>
           </div>
         </div>
       </div>
+
+      {formError && (
+        <ErrorModal
+          title={formError.title}
+          message={formError.message}
+          errors={formError.errors}
+          onClose={() => setFormError(null)}
+        />
+      )}
     </div>
   );
 };
