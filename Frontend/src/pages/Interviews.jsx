@@ -92,7 +92,6 @@ const Interviews = () => {
   const refresh = useCallback(async () => {
     try {
       const data = await listInterviews();
-      // console.log("INTERVIEW DATA:", data);
       const normalized = data.map((item) => ({
         ...item,
         id: item.id || item._id,
