@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getAllClients } from "../api/clientApi";
 import { getNextCodePreview } from "../api/codePreviewApi";
+import ErrorModal from "../components/shared/ErrorModal";
+import { parseApiError } from "../utils/apiError";
 
 const JobForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // ─── CLIENT LIST (for the searchable client picker) ──────────────────────
   const [clients, setClients]           = useState([]);
@@ -72,13 +76,32 @@ const JobForm = ({ setShowForm, onSave }) => {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!validate()) {
-      // Scroll to top so user sees error highlights
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleSubmit = async () => {
+    // Run validation — errors are set into state for field-level highlights
+    // AND shown in the modal so the user gets both inline and centered feedback.
+    const validationErrors = {};
+    if (!formData.title?.trim())       validationErrors.title = "Position title is required";
+    if (!formData.clientId)            validationErrors.clientId = "Please select an existing client";
+    if (!formData.description?.trim()) validationErrors.description = "Job description is required";
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFormError({
+        title: "Please fix the following",
+        message: "",
+        errors: Object.values(validationErrors).map((m) => ({ message: m })),
+      });
       return;
     }
-    onSave(formData);
+
+    setSubmitting(true);
+    try {
+      await onSave(formData);
+    } catch (err) {
+      setFormError(parseApiError(err, "Failed to create job opening"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -112,32 +135,23 @@ const JobForm = ({ setShowForm, onSave }) => {
         <div className="flex gap-2.5">
           <button
             onClick={() => setShowForm(false)}
-            className="rounded-[10px] border border-[#E0DDD6] bg-white px-5 py-2.5 text-[13px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0]"
+            disabled={submitting}
+            className="rounded-[10px] border border-[#E0DDD6] bg-white px-5 py-2.5 text-[13px] font-medium text-[#4A4845] transition-all hover:bg-[#F5F4F0] disabled:opacity-50"
           >
             Discard
           </button>
           <button
             onClick={handleSubmit}
-            className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)]"
+            disabled={submitting}
+            className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)] disabled:opacity-50"
           >
-            Save Job Opening →
+            {submitting ? "Saving..." : "Save Job Opening →"}
           </button>
         </div>
       </div>
 
       {/* MAIN LAYOUT */}
       <div className="mx-auto max-w-5xl px-6 py-6 pb-10">
-        {/* Inline error summary */}
-        {Object.keys(errors).length > 0 && (
-          <div className="mb-4 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-2.5 text-[12.5px] text-[#B91C1C]">
-            <div className="font-semibold">Please fix the following before saving:</div>
-            <ul className="mt-1 list-disc pl-5">
-              {Object.values(errors).filter(Boolean).map((msg, i) => (
-                <li key={i}>{msg}</li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         <div className="flex flex-col gap-4">
           {/* SECTION 1: JOB INFO */}
@@ -182,6 +196,10 @@ const JobForm = ({ setShowForm, onSave }) => {
               <Field label="Salary / Rate" name="salary" placeholder="e.g. $120k or $65/hr" onChange={handleChange} />
             </Row>
             <Row>
+              <Field label="Bill Rate" name="billRate" placeholder="e.g. $75/hr" onChange={handleChange} />
+              <Field label="Pay Rate" name="payRate" placeholder="e.g. $60/hr" onChange={handleChange} />
+            </Row>
+            <Row>
               <Field label="Required Skills" name="skills" placeholder="e.g. React, Node.js, AWS, Kubernetes..." onChange={handleChange} full />
             </Row>
           </Section>
@@ -213,19 +231,30 @@ const JobForm = ({ setShowForm, onSave }) => {
           <div className="flex justify-end gap-2.5 pt-2">
             <button
               onClick={() => setShowForm(false)}
-              className="rounded-[10px] border border-[#E0DDD6] bg-white px-5.5 py-2.5 text-[13px] font-medium text-[#4A4845]"
+              disabled={submitting}
+              className="rounded-[10px] border border-[#E0DDD6] bg-white px-5.5 py-2.5 text-[13px] font-medium text-[#4A4845] disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
-              className="rounded-[10px] bg-[#1C4ED8] px-6 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)]"
+              disabled={submitting}
+              className="rounded-[10px] bg-[#1C4ED8] px-6 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] disabled:opacity-50"
             >
-              Save Job Opening →
+              {submitting ? "Saving..." : "Save Job Opening →"}
             </button>
           </div>
         </div>
       </div>
+
+      {formError && (
+        <ErrorModal
+          title={formError.title}
+          message={formError.message}
+          errors={formError.errors}
+          onClose={() => setFormError(null)}
+        />
+      )}
     </div>
   );
 };

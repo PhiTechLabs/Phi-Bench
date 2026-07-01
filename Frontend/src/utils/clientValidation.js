@@ -14,13 +14,14 @@ export const validateClientForm = ({ formData, pocs }) => {
     if (!formData.contactNumber?.trim()) {
         errors.contactNumber = "Contact number is required";
     }
-    if (!formData.website?.trim()) {
-        errors.website = "Website is required";
-    } else if (!isValidUrl(formData.website)) {
-        errors.website = "Website must be a valid URL";
+    if (!formData.industry?.trim()) {
+        errors.industry = "Industry is required";
     }
 
     // ─── OPTIONAL URL FIELDS ─────────────────────────────────────────────────
+    if (formData.website?.trim() && !isValidUrl(formData.website)) {
+        errors.website = "Website must be a valid URL";
+    }
     if (formData.linkedin?.trim() && !isValidUrl(formData.linkedin)) {
         errors.linkedin = "LinkedIn must be a valid URL";
     }

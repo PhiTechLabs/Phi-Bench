@@ -160,8 +160,7 @@ const canDelete = hasPermission(
     } catch (err) {
 
       console.error(err);
-
-      alert("Failed to create candidate.");
+      throw err; // rethrow so CandidateForm's own catch can show the error modal
     }
   };
 

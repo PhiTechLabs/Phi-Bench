@@ -14,8 +14,16 @@ export const createCandidateRules = [
         .isEmail().withMessage("Invalid email address")
         .normalizeEmail(),
 
-    body("phone").optional({ checkFalsy: true }).trim()
+    // Phone is required — needed for candidate outreach (calling, SMS, WhatsApp)
+    // and is mandatory in Ceipal, Bullhorn, and most staffing-focused ATS.
+    body("phone").trim().notEmpty().withMessage("Phone number is required")
         .isLength({ min: 6, max: 20 }).withMessage("Invalid phone number"),
+
+    // Job title is required — essential for search/matching in ATS databases
+    // (called "Designation" in Ceipal, mandatory because it's the primary
+    // field recruiters search and filter candidates by).
+    body("jobTitle").trim().notEmpty().withMessage("Current job title is required")
+        .isLength({ max: 200 }).withMessage("Job title too long"),
 
     // Profile
     body("linkedin").optional({ checkFalsy: true }).trim()

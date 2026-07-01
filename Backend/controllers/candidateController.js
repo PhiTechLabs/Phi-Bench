@@ -27,7 +27,7 @@ export const createCandidate = asyncHandler(async (req, res) => {
 
 export const listCandidates = asyncHandler(async (req, res) => {
 
-    const candidates = await listCandidatesService(req.user.id);
+    const candidates = await listCandidatesService(req.user);
 
     res.json({
         count: candidates.length,

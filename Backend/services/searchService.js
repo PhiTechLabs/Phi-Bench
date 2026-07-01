@@ -28,12 +28,17 @@ import { CODE_PREFIXES } from "../utils/generateCode.js";
 // which detail route to send the user to.
 const CODE_PATTERN = /^(JC|CD|CL)-?(\d+)$/i;
 
-export const globalSearchService = async (rawQuery, userId, limit = 8) => {
+// Accepts the already-authenticated currentUser (req.user, populated by the
+// protect middleware) — NOT a raw userId. See the matching note in
+// listCandidatesService for why this matters: re-fetching the user here
+// would mean a second User.findById().populate("roleId") on every search
+// request, on top of the one protect already did.
+export const globalSearchService = async (rawQuery, currentUser, limit = 8) => {
     const query = (rawQuery || "").trim().slice(0, 100);
 
     if (!query) return [];
 
-    const accessibleCandidateUserIds = await getAccessibleCandidateScope(userId);
+    const accessibleCandidateUserIds = await getAccessibleCandidateScope(currentUser);
     // null means "no candidate access at all" — every candidate search
     // branch below must respect this.
 
@@ -103,14 +108,13 @@ export const globalSearchService = async (rawQuery, userId, limit = 8) => {
 // Returns "all" (no extra filter needed), an array of accessible user ids
 // (filter to createdBy: $in [...]), or null (no candidate access at all —
 // caller must return [] for any candidate branch).
-const getAccessibleCandidateScope = async (userId) => {
-    const user = await User.findById(userId).populate("roleId");
-    const viewPermission = user?.roleId?.modulePermissions?.candidate?.view;
+const getAccessibleCandidateScope = async (currentUser) => {
+    const viewPermission = currentUser.role?.modulePermissions?.candidate?.view;
 
     if (!viewPermission || viewPermission === "none") return null;
     if (viewPermission === "all") return "all";
 
-    return await getAccessibleUserIds(user, viewPermission);
+    return await getAccessibleUserIds(currentUser, viewPermission);
 };
 
 const applyCandidateScope = (filter, scope) => {
