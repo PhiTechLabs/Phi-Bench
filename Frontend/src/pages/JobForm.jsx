@@ -4,11 +4,32 @@ import { getNextCodePreview } from "../api/codePreviewApi";
 import ErrorModal from "../components/shared/ErrorModal";
 import { parseApiError } from "../utils/apiError";
 
+const JOB_REQUIRED_FIELDS = ["title", "clientId", "description"];
+
 const JobForm = ({ setShowForm, onSave }) => {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Refs for scrolling to the first erroring field on submit
+  const fieldRefs = useRef(
+    Object.fromEntries(JOB_REQUIRED_FIELDS.map((k) => [k, React.createRef()]))
+  );
+
+  // Scroll to the first error field whenever validation fires
+  useEffect(() => {
+    if (Object.keys(errors).length === 0) return;
+    for (const key of JOB_REQUIRED_FIELDS) {
+      if (errors[key] && fieldRefs.current[key]?.current) {
+        fieldRefs.current[key].current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        break;
+      }
+    }
+  }, [errors]);
 
   // ─── CLIENT LIST (for the searchable client picker) ──────────────────────
   const [clients, setClients]           = useState([]);
@@ -77,8 +98,9 @@ const JobForm = ({ setShowForm, onSave }) => {
   };
 
   const handleSubmit = async () => {
-    // Run validation — errors are set into state for field-level highlights
-    // AND shown in the modal so the user gets both inline and centered feedback.
+    // Run validation — sets errors state for inline field-level highlighting.
+    // If validation fails, return early. No modal needed since the red messages
+    // under each field already guide the user.
     const validationErrors = {};
     if (!formData.title?.trim())       validationErrors.title = "Position title is required";
     if (!formData.clientId)            validationErrors.clientId = "Please select an existing client";
@@ -86,11 +108,6 @@ const JobForm = ({ setShowForm, onSave }) => {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
-      setFormError({
-        title: "Please fix the following",
-        message: "",
-        errors: Object.values(validationErrors).map((m) => ({ message: m })),
-      });
       return;
     }
 
@@ -98,6 +115,7 @@ const JobForm = ({ setShowForm, onSave }) => {
     try {
       await onSave(formData);
     } catch (err) {
+      // Only API/backend failures go to the modal — validation is handled inline
       setFormError(parseApiError(err, "Failed to create job opening"));
     } finally {
       setSubmitting(false);
@@ -157,7 +175,7 @@ const JobForm = ({ setShowForm, onSave }) => {
           {/* SECTION 1: JOB INFO */}
           <Section title="Job Info" subtitle="Core details about the position and assignment">
             <Row>
-              <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required error={errors.title} />
+              <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required error={errors.title} wrapperRef={fieldRefs.current.title} />
               <ClientSelect
                 label="Client"
                 clients={clients}
@@ -168,6 +186,7 @@ const JobForm = ({ setShowForm, onSave }) => {
                 onSelect={handleClientSelect}
                 required
                 error={errors.clientId}
+                wrapperRef={fieldRefs.current.clientId}
               />
             </Row>
             <Row>
@@ -224,6 +243,7 @@ const JobForm = ({ setShowForm, onSave }) => {
               error={errors.description}
               placeholder="Write a detailed job description including responsibilities, qualifications, and any other relevant information..."
               onChange={handleChange}
+              wrapperRef={fieldRefs.current.description}
             />
           </Section>
 
@@ -299,25 +319,29 @@ const FieldLabel = ({ label, required, alignTop }) => (
   </label>
 );
 
-const Field = ({ label, required, full, error, ...props }) => (
-  <div className={`flex items-start gap-2.5 ${full ? "col-span-2" : ""}`}>
+const Field = ({ label, required, full, error, wrapperRef, ...props }) => (
+  <div ref={wrapperRef} className={`flex items-start gap-2.5 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
     <div className="flex min-w-0 flex-1 flex-col">
-      <input {...props} className={inputClass(!!error)} style={inputBorderStyle} />
+      <input
+        {...props}
+        className={inputClass(!!error)}
+        style={error ? { backgroundColor: "#FFF5F5" } : inputBorderStyle}
+      />
       {error && <span className="mt-1 text-[11px] text-[#DC2626]">{error}</span>}
     </div>
   </div>
 );
 
-const SelectField = ({ label, options = [], required, full, error, ...props }) => (
-  <div className={`flex items-start gap-2.5 ${full ? "col-span-2" : ""}`}>
+const SelectField = ({ label, options = [], required, full, error, wrapperRef, ...props }) => (
+  <div ref={wrapperRef} className={`flex items-start gap-2.5 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
     <div className="flex min-w-0 flex-1 flex-col">
       <select
         {...props}
         className={`${inputClass(!!error)} cursor-pointer appearance-none pr-9`}
         style={{
-          ...inputBorderStyle,
+          ...(error ? { backgroundColor: "#FFF5F5" } : inputBorderStyle),
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "right 10px center",
@@ -344,11 +368,12 @@ const ClientSelect = ({
   clients = [],
   loading,
   loadError,
-  value,            // currently selected client id (formData.clientId)
-  displayValue,     // currently selected client name (formData.client)
+  value,
+  displayValue,
   onSelect,
   required,
   error,
+  wrapperRef,
 }) => {
   const [open, setOpen]   = useState(false);
   const [query, setQuery] = useState("");
@@ -385,7 +410,7 @@ const ClientSelect = ({
   };
 
   return (
-    <div className="flex items-start gap-2.5" ref={boxRef}>
+    <div className="flex items-start gap-2.5" ref={wrapperRef || boxRef}>
       <FieldLabel label={label} required={required} />
       <div className="relative flex min-w-0 flex-1 flex-col">
         <input
@@ -398,7 +423,7 @@ const ClientSelect = ({
           }
           disabled={loading || loadError}
           autoComplete="off"
-          style={inputBorderStyle}
+          style={error ? { backgroundColor: "#FFF5F5" } : inputBorderStyle}
           className={`${inputClass(!!error)} ${loading || loadError ? "cursor-not-allowed opacity-60" : ""}`}
         />
 
@@ -444,17 +469,17 @@ const ClientSelect = ({
   );
 };
 
-const TextAreaField = ({ label, required, error, ...props }) => (
-  <div className="flex items-start gap-2.5">
+const TextAreaField = ({ label, required, error, wrapperRef, ...props }) => (
+  <div ref={wrapperRef} className="flex items-start gap-2.5">
     <FieldLabel label={label} required={required} alignTop />
     <div className="flex min-w-0 flex-1 flex-col">
       <textarea
         {...props}
-        style={inputBorderStyle}
-        className={`min-h-40 resize-y rounded-lg border bg-white px-3 py-2 text-[13px] leading-[1.6] text-gray-800 placeholder-gray-400 outline-none transition-all duration-150 focus:ring-2 ${
+        style={error ? { backgroundColor: "#FFF5F5" } : inputBorderStyle}
+        className={`min-h-40 resize-y rounded-lg border px-3 py-2 text-[13px] leading-[1.6] text-gray-800 outline-none transition-all duration-150 focus:ring-2 ${
           error
-            ? "border-[#FCA5A5] focus:border-[#DC2626] focus:ring-[#DC2626]/15"
-            : "focus:border-blue-500 focus:ring-blue-500"
+            ? "border-[#FCA5A5] placeholder-red-300 focus:border-[#DC2626] focus:ring-[#DC2626]/15"
+            : "bg-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
         }`}
       />
       {error && <span className="mt-1 text-[11px] text-[#DC2626]">{error}</span>}

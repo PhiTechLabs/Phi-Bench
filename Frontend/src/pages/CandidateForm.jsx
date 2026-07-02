@@ -3,6 +3,9 @@ import { getNextCodePreview } from "../api/codePreviewApi";
 import ErrorModal from "../components/shared/ErrorModal";
 import { parseApiError } from "../utils/apiError";
 
+// Field refs used to scroll to the first validation error
+const REQUIRED_FIELD_KEYS = ["firstName", "lastName", "email", "phone", "jobTitle"];
+
 /* ──────────────────── COUNTRY & STATE DATA ──────────────────── */
 
 const COUNTRIES = [
@@ -149,6 +152,28 @@ const CandidateForm = ({ setShowForm, onSave }) => {
   const [nextCode, setNextCode] = useState(null);
   const [formError, setFormError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  // One ref per required field — used to scroll to the first error on submit
+  const fieldRefs = useRef(
+    Object.fromEntries(REQUIRED_FIELD_KEYS.map((k) => [k, React.createRef()]))
+  );
+
+  // When fieldErrors changes (i.e. user just clicked Save and failed validation),
+  // scroll smoothly to the first erroring required field so they don't have to
+  // hunt for it after clicking from the bottom of a long form.
+  useEffect(() => {
+    if (Object.keys(fieldErrors).length === 0) return;
+    for (const key of REQUIRED_FIELD_KEYS) {
+      if (fieldErrors[key] && fieldRefs.current[key]?.current) {
+        fieldRefs.current[key].current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        break; // scroll to the first one only
+      }
+    }
+  }, [fieldErrors]);
 
   useEffect(() => {
     (async () => {
@@ -168,6 +193,11 @@ const CandidateForm = ({ setShowForm, onSave }) => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    // Clear this field's inline error as soon as the user starts correcting it
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const updateEducation = (i, key, value) => {
@@ -201,6 +231,20 @@ const CandidateForm = ({ setShowForm, onSave }) => {
   };
 
   const handleSubmit = async () => {
+    // Client-side validation — show errors inline under each required field
+    const validation = {};
+    if (!formData.firstName?.trim()) validation.firstName = "First name is required";
+    if (!formData.lastName?.trim())  validation.lastName  = "Last name is required";
+    if (!formData.email?.trim())     validation.email     = "Email is required";
+    if (!formData.phone?.trim())     validation.phone     = "Phone number is required";
+    if (!formData.jobTitle?.trim())  validation.jobTitle  = "Current job title is required";
+
+    if (Object.keys(validation).length > 0) {
+      setFieldErrors(validation);
+      return; // do NOT call onSave — stop here and let inline errors guide the user
+    }
+
+    setFieldErrors({});
     const payload = {
       ...formData,
       name: [formData.firstName, formData.lastName]
@@ -290,6 +334,8 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 placeholder="Enter first name"
                 onChange={handleChange}
                 required
+                error={fieldErrors.firstName}
+                wrapperRef={fieldRefs.current.firstName}
               />
 
               <Field
@@ -298,6 +344,8 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 placeholder="Enter last name"
                 onChange={handleChange}
                 required
+                error={fieldErrors.lastName}
+                wrapperRef={fieldRefs.current.lastName}
               />
             </Row>
 
@@ -309,6 +357,8 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 placeholder="email@example.com"
                 onChange={handleChange}
                 required
+                error={fieldErrors.email}
+                wrapperRef={fieldRefs.current.email}
               />
 
               <Field
@@ -317,6 +367,8 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 placeholder="+91 9876543210"
                 onChange={handleChange}
                 required
+                error={fieldErrors.phone}
+                wrapperRef={fieldRefs.current.phone}
               />
             </Row>
           </Section>
@@ -399,6 +451,8 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 placeholder="e.g. Software Engineer"
                 onChange={handleChange}
                 required
+                error={fieldErrors.jobTitle}
+                wrapperRef={fieldRefs.current.jobTitle}
               />
             </Row>
 
@@ -746,14 +800,22 @@ const FieldLabel = ({ label, required, alignTop }) => (
   </label>
 );
 
-const Field = ({ label, required, full, ...props }) => (
+const Field = ({ label, required, full, error, wrapperRef, ...props }) => (
   <div
-    className={`flex items-center gap-2.5 ${
+    ref={wrapperRef}
+    className={`flex items-start gap-2.5 ${
       full ? "col-span-2" : ""
     }`}
   >
     <FieldLabel label={label} required={required} />
-    <input {...props} className={fieldInputClass} style={fieldInputStyle} />
+    <div className="min-w-0 flex-1">
+      <input
+        {...props}
+        className={`${fieldInputClass}${error ? " border-red-400 bg-[#FFF5F5] placeholder-red-300 ring-1 ring-red-300" : ""}`}
+        style={error ? {} : fieldInputStyle}
+      />
+      {error && <p className="mt-1 text-[11.5px] text-red-500 leading-tight">{error}</p>}
+    </div>
   </div>
 );
 
@@ -792,55 +854,60 @@ const SelectField = ({
   placeholder = "Select...",
   allowFreeText,
   value,
+  error,
   ...props
 }) => {
   if (allowFreeText) {
     return (
       <div
-        className={`flex items-center gap-2.5 ${
+        className={`flex items-start gap-2.5 ${
           full ? "col-span-2" : ""
         }`}
       >
         <FieldLabel label={label} required={required} />
-
-        <input
-          {...props}
-          value={value}
-          placeholder={placeholder}
-          style={fieldInputStyle}
-          className={fieldInputClass}
-        />
+        <div className="min-w-0 flex-1">
+          <input
+            {...props}
+            value={value}
+            placeholder={placeholder}
+            style={error ? {} : fieldInputStyle}
+            className={`${fieldInputClass}${error ? " border-red-400 bg-[#FFF5F5] placeholder-red-300 ring-1 ring-red-300" : ""}`}
+          />
+          {error && <p className="mt-1 text-[11.5px] text-red-500 leading-tight">{error}</p>}
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className={`flex items-center gap-2.5 ${
+      className={`flex items-start gap-2.5 ${
         full ? "col-span-2" : ""
       }`}
     >
       <FieldLabel label={label} required={required} />
+      <div className="min-w-0 flex-1">
+        <select
+          {...props}
+          value={value}
+          className={`${fieldInputClass} cursor-pointer appearance-none pr-9${error ? " border-red-400 bg-[#FFF5F5] ring-1 ring-red-300" : ""}`}
+          style={{
+            ...(error ? {} : fieldInputStyle),
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "right 10px center",
+          }}
+        >
+          <option value="">{placeholder}</option>
 
-      <select
-        {...props}
-        value={value}
-        className={`${fieldInputClass} cursor-pointer appearance-none pr-9`}
-        style={{
-          ...fieldInputStyle,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "right 10px center",
-        }}
-      >
-        <option value="">{placeholder}</option>
-
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
+          {options.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </select>
+        {error && <p className="mt-1 text-[11.5px] text-red-500 leading-tight">{error}</p>}
+      </div>
     </div>
   );
 };
@@ -849,6 +916,7 @@ const TextAreaField = ({
   label,
   required,
   short,
+  error,
   ...props
 }) => (
   <div className="flex items-start gap-2.5">
@@ -857,14 +925,16 @@ const TextAreaField = ({
       required={required}
       alignTop
     />
-
-    <textarea
-      {...props}
-      style={fieldInputStyle}
-      className={`${
-        short ? "min-h-16" : "min-h-24"
-      } min-w-0 flex-1 resize-y rounded-lg border bg-white px-3 py-2 text-[13px] leading-[1.6] text-gray-800 placeholder-gray-400 outline-none transition-all duration-150 focus:border-blue-500 focus:ring-2 focus:ring-blue-500`}
-    />
+    <div className="min-w-0 flex-1">
+      <textarea
+        {...props}
+        style={error ? {} : fieldInputStyle}
+        className={`${
+          short ? "min-h-16" : "min-h-24"
+        } w-full resize-y rounded-lg border px-3 py-2 text-[13px] leading-[1.6] text-gray-800 outline-none transition-all duration-150 focus:border-blue-500 focus:ring-2 focus:ring-blue-500${error ? " border-red-400 bg-[#FFF5F5] placeholder-red-300 ring-1 ring-red-300" : " bg-white placeholder-gray-400"}`}
+      />
+      {error && <p className="mt-1 text-[11.5px] text-red-500 leading-tight">{error}</p>}
+    </div>
   </div>
 );
 

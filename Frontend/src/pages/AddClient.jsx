@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useClientForm from "../hooks/useClientForm";
@@ -22,17 +22,36 @@ import useRoleBase from "../hooks/useRoleBase";
 const AddClient = () => {
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({});
     const [formError, setFormError] = useState(null);
 
     const roleBase = useRoleBase();
+
+    // Refs for scrolling to the first error field — same three required fields
+    // that validateClientForm checks.
+    const CLIENT_REQUIRED_FIELDS = ["clientName", "contactNumber", "industry"];
+    const fieldRefs = useRef(
+        Object.fromEntries(CLIENT_REQUIRED_FIELDS.map((k) => [k, React.createRef()]))
+    );
+
+    // Scroll to the first error field whenever fieldErrors changes
+    useEffect(() => {
+        if (Object.keys(fieldErrors).length === 0) return;
+        for (const key of CLIENT_REQUIRED_FIELDS) {
+            if (fieldErrors[key] && fieldRefs.current[key]?.current) {
+                fieldRefs.current[key].current.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+                break;
+            }
+        }
+    }, [fieldErrors]);
 
     // ALL form state + handlers come from the hook
     const form = useClientForm();
 
     // ─── NEXT CODE PREVIEW ─────────────────────────────────────────────────────
-    // Read-only preview of the code this client will be assigned (e.g.
-    // "CL014"). The real code is only actually assigned by the backend at
-    // save time — this is purely informational.
     const [nextCode, setNextCode] = useState(null);
 
     useEffect(() => {
@@ -45,26 +64,31 @@ const AddClient = () => {
             }
         })();
     }, []);
+
+    // Clear a specific field's inline error as soon as the user starts typing
+    const handleChange = (e) => {
+        form.handleChange(e);
+        const { name } = e.target;
+        if (fieldErrors[name]) {
+            setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+        }
+    };
+
     // ─── SUBMIT HANDLER ───────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         if (e?.preventDefault) e.preventDefault();
 
-        // 1. Frontend validation (fast feedback)
+        // 1. Frontend validation — show errors inline under each field
         const { valid, errors } = validateClientForm({
             formData: form.formData,
             pocs: form.pocs,
         });
         if (!valid) {
-            const errorMessages = Object.values(errors).filter(Boolean);
-            setFormError({
-                title: "Please fix the following",
-                message: errorMessages[0] || "Some required fields are missing.",
-                errors: errorMessages.map((m) => ({ message: m })),
-            });
+            setFieldErrors(errors);
             return;
         }
 
-        // 2. Submit to backend
+        // 2. Submit to backend — API failures go to the modal
         try {
             setSubmitting(true);
             const payload = form.buildPayload();
@@ -91,13 +115,14 @@ const AddClient = () => {
                 onCancel={handleCancel}
                 onSave={handleSubmit}
                 submitting={submitting}
-                
             />
 
             <form onSubmit={handleSubmit} className="max-w-4xl mx-auto px-6 py-6 space-y-4">
                 <ClientInfoSection
                     formData={form.formData}
-                    handleChange={form.handleChange}
+                    handleChange={handleChange}
+                    errors={fieldErrors}
+                    fieldRefs={fieldRefs.current}
                 />
 
                 <LocationList
@@ -134,6 +159,7 @@ const AddClient = () => {
             </form>
         </div>
 
+        {/* Only shown for real API/backend failures, not validation errors */}
         {formError && (
             <ErrorModal
                 title={formError.title}
