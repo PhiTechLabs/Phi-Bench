@@ -5,32 +5,32 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     "For Validation":       ["Internal Hold", "Internal Reject", "Need More Info", "Submitted To Client"],
     "Internal Hold":        ["For Validation", "Submitted To Client"],
     "Internal Reject":      ["For Validation"],
-    "Need More Info":       ["Internal Hold", "For Validation", "Internal Reject"],
+    "Need More Info":       ["Internal Hold", "For Validation", "Internal Reject", "Submitted To Client"],
     "Submitted To Client":  ["Duplicate", "Hold by Client", "Screen Reject", "Position Closed", "L1 Schedule Pending"],
     "Duplicate":            ["For Validation"],
     "Hold by Client":       ["Submitted To Client", "Screen Reject", "Position Closed", "Duplicate", "L1 Schedule Pending", "L2 Schedule Pending", "L3 Schedule Pending", "L4 Schedule Pending"],
     "Screen Reject":        ["For Validation"],
     "Position Closed":      ["Screen Reject", "Submitted To Client", "Duplicate", "L1 Schedule Pending"],
     "L1 Schedule Pending":  ["L1 Scheduled", "L1 Backout", "Hold by Client"],
-    "L1 Scheduled":         [],
+    "L1 Scheduled":         ["L1 Rescheduled"],
     "L1 Feedback Pending":  ["L1 Rejected", "L1 Backout", "L2 Schedule Pending", "Final Select", "Hold by Client"],
     "L1 Rescheduled":       ["L1 Schedule Pending", "L1 Feedback Pending"],
     "L1 Rejected":          ["Submitted To Client"],
     "L1 Backout":           ["L1 Schedule Pending", "Hold by Client"],
     "L2 Schedule Pending":  ["L2 Scheduled", "L2 Backout", "Hold by Client"],
-    "L2 Scheduled":         [],
+    "L2 Scheduled":         ["L2 Rescheduled"],
     "L2 Feedback Pending":  ["L2 Rejected", "L2 Backout", "L3 Schedule Pending", "Final Select", "Hold by Client"],
     "L2 Rescheduled":       ["L2 Schedule Pending", "L2 Feedback Pending"],
     "L2 Rejected":          ["Submitted To Client"],
     "L2 Backout":           ["L2 Schedule Pending", "Hold by Client"],
     "L3 Schedule Pending":  ["L3 Scheduled", "L3 Backout", "Hold by Client"],
-    "L3 Scheduled":         [],
+    "L3 Scheduled":         ["L3 Rescheduled"],
     "L3 Feedback Pending":  ["L3 Rejected", "L3 Backout", "L4 Schedule Pending", "Final Select", "Hold by Client"],
     "L3 Rescheduled":       ["L3 Schedule Pending", "L3 Feedback Pending"],
     "L3 Rejected":          ["Submitted To Client"],
     "L3 Backout":           ["L3 Schedule Pending", "Hold by Client"],
     "L4 Schedule Pending":  ["L4 Scheduled", "L4 Backout", "Hold by Client"],
-    "L4 Scheduled":         [],
+    "L4 Scheduled":         ["L4 Rescheduled"],
     "L4 Feedback Pending":  ["L4 Rejected", "L4 Backout", "Final Select", "Hold by Client"],
     "L4 Rescheduled":       ["L4 Schedule Pending", "L4 Feedback Pending"],
     "L4 Rejected":          ["Submitted To Client"],
@@ -142,3 +142,40 @@ export const INTERVIEW_STATUS_STYLES = {
     "Cancelled":   { bg: "#FEF2F2", text: "#991B1B", dot: "#EF4444" },
     "No Show":     { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF" },
 };
+
+// ─── TERMINAL STATUS HELPERS ──────────────────────────────────────────────────
+// A submission is "terminal" when it has definitively ended with no path
+// forward to an interview — i.e., rejected, withdrawn, closed, or placed.
+// Statuses with empty transition arrays in SUBMISSION_STATUS_TRANSITIONS are
+// terminal; we also include a few that have limited re-entry paths but are
+// functionally dead ends for interview scheduling purposes.
+const TERMINAL_STATUSES = new Set([
+    "Internal Reject",
+    "Screen Reject",
+    "Duplicate",
+    "L1 Rejected",
+    "L2 Rejected",
+    "L3 Rejected",
+    "L4 Rejected",
+    "Offer Rejected",
+    "Offer Withdrawn",
+    "Final Backout",
+    "BGV Failed",
+    "Joining Backout",
+    "Absconded",
+    "Replacement Term Ended",
+    "Project Completed",
+    "Project Ended",
+    "Joined",       // already placed — no new interview needed
+    "Position Closed",
+]);
+
+// True when a submission's status means it can no longer proceed to interview.
+export const isTerminalStatus = (status) => TERMINAL_STATUSES.has(status);
+
+// True when a candidate has at least one submission that is still in-flight
+// (not rejected/closed/placed). Used in CandidateDetails to gate the
+// "Schedule Interview" button — a candidate with no active submission should
+// not be schedulable for interview.
+export const hasActiveSubmission = (submissions = []) =>
+    submissions.some((s) => !isTerminalStatus(s.status));

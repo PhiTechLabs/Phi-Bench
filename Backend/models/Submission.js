@@ -108,6 +108,7 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
         "Internal Hold",
         "For Validation",
         "Internal Reject",
+        "Submitted To Client",   // once info is obtained, can submit directly
     ],
     "Submitted To Client": [
         "Duplicate",
@@ -144,7 +145,9 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
         "L1 Backout",
         "Hold by Client",
     ],
-    "L1 Scheduled": [],
+    "L1 Scheduled": [
+        "L1 Rescheduled",
+    ],
     "L1 Feedback Pending": [
         "L1 Rejected",
         "L1 Backout",
@@ -169,7 +172,9 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
         "L2 Backout",
         "Hold by Client",
     ],
-    "L2 Scheduled": [],
+    "L2 Scheduled": [
+        "L2 Rescheduled",
+    ],
     "L2 Feedback Pending": [
         "L2 Rejected",
         "L2 Backout",
@@ -194,7 +199,9 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
         "L3 Backout",
         "Hold by Client",
     ],
-    "L3 Scheduled": [],
+    "L3 Scheduled": [
+        "L3 Rescheduled",
+    ],
     "L3 Feedback Pending": [
         "L3 Rejected",
         "L3 Backout",
@@ -219,7 +226,9 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
         "L4 Backout",
         "Hold by Client",
     ],
-    "L4 Scheduled": [],
+    "L4 Scheduled": [
+        "L4 Rescheduled",
+    ],
     "L4 Feedback Pending": [
         "L4 Rejected",
         "L4 Backout",
@@ -241,7 +250,9 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     "Final Select": [
         "HR Discussion",
         "Final Backout",
-        "Offer Sent",
+        // Offer Sent removed — HR Discussion is a required step in staffing.
+        // Removing the backend bypass to match the frontend and enforce the
+        // correct pipeline: Final Select → HR Discussion → Offer Sent.
     ],
     "HR Discussion": [
         "Offer Sent",

@@ -1,6 +1,7 @@
 import Submission, { SUBMISSION_STATUS_TRANSITIONS } from "../models/Submission.js";
 import Candidate from "../models/Candidate.js";
 import Job from "../models/Job.js";
+import { syncCandidateStatus } from "../utils/candidateStatusSync.js";
 
 // ─── HELPER: validate status transition ───────────────────────────────────────
 const validateTransition = (current, next) => {
@@ -54,6 +55,9 @@ export const createSubmissionService = async (payload, userId) => {
             }],
         });
 
+        // Derive and update the candidate's overall status from all their submissions
+        await syncCandidateStatus(candidateId);
+
         return submission;
 
     } catch (err) {
@@ -87,6 +91,7 @@ export const getCandidateSubmissionsService = async (candidateId) => {
     return await Submission.find({ candidate: candidateId })
         .populate("job", "title client status jobType city country")
         .populate("createdBy", "username")
+        .populate("statusHistory.changedBy", "username")
         .sort({ createdAt: -1 });
 };
 
@@ -102,6 +107,7 @@ export const getJobSubmissionsService = async (jobId) => {
     return await Submission.find({ job: jobId })
         .populate("candidate", "firstName lastName email jobTitle experienceYears skills")
         .populate("createdBy", "username")
+        .populate("statusHistory.changedBy", "username")
         .sort({ createdAt: -1 });
 };
 
@@ -176,6 +182,11 @@ export const updateSubmissionService = async (id, payload, userId) => {
         runValidators: true,
     });
 
+    // Sync the candidate's overall status to reflect this change
+    if (updates.status || updateQuery.$set?.status) {
+        await syncCandidateStatus(submission.candidate);
+    }
+
     return updated;
 };
 
@@ -208,6 +219,9 @@ export const forceStatusService = async (id, status, userId, note) => {
         throw err;
     }
 
+    // Sync the candidate's overall status to reflect the forced change
+    await syncCandidateStatus(updated.candidate);
+
     return updated;
 };
 
@@ -221,4 +235,3 @@ export const deleteSubmissionService = async (id) => {
     }
     return submission;
 };
-

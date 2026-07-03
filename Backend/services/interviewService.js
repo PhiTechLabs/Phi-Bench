@@ -2,6 +2,7 @@ import Interview, { ROUND_TO_STATUS } from "../models/Interview.js";
 import Submission from "../models/Submission.js";
 import Candidate from "../models/Candidate.js";
 import Job from "../models/Job.js";
+import { syncCandidateStatus } from "../utils/candidateStatusSync.js";
 
 // ─── HELPER: advance submission status after interview action ─────────────────
 const advanceSubmissionStatus = async (submissionId, interviewRound, outcome, userId, note = "") => {
@@ -86,7 +87,42 @@ export const createInterviewService = async (payload, userId) => {
         throw err;
     }
 
-    // Block if an active interview already exists for this candidate + job
+    // ─── SUBMISSION REQUIRED ──────────────────────────────────────────────────
+    // An interview without a submission has no ATS context — it can't be
+    // tracked against a client, can't advance the pipeline, and can't generate
+    // meaningful reports. Every interview MUST be linked to an active submission.
+    if (!submissionId) {
+        const err = new Error(
+            "A submission is required before scheduling an interview. Submit the candidate to a job opening first."
+        );
+        err.statusCode = 400;
+        throw err;
+    }
+
+    const submission = await Submission.findById(submissionId);
+    if (!submission) {
+        const err = new Error("Submission not found");
+        err.statusCode = 404;
+        throw err;
+    }
+
+    // Prevent scheduling interviews on closed/rejected submissions
+    const TERMINAL_STATUSES = new Set([
+        "Internal Reject", "Screen Reject", "Duplicate",
+        "L1 Rejected", "L2 Rejected", "L3 Rejected", "L4 Rejected",
+        "Offer Rejected", "Offer Withdrawn", "Final Backout",
+        "BGV Failed", "Joining Backout", "Absconded",
+        "Replacement Term Ended", "Project Completed", "Project Ended",
+        "Joined", "Position Closed",
+    ]);
+    if (TERMINAL_STATUSES.has(submission.status)) {
+        const err = new Error(
+            `Cannot schedule an interview — this submission is already in a terminal status ("${submission.status}").`
+        );
+        err.statusCode = 400;
+        throw err;
+    }
+
     const activeInterview = await Interview.findOne({
         candidate: candidateId,
         job:       jobId,
@@ -107,7 +143,7 @@ export const createInterviewService = async (payload, userId) => {
     const interview = await Interview.create({
         candidate:      candidateId,
         job:            jobId,
-        submission:     submissionId || null,
+        submission:     submissionId,
         candidateName:  candidate.name || `${candidate.firstName} ${candidate.lastName}`.trim(),
         jobTitle:       job.title,
         clientName:     job.client,
@@ -138,6 +174,8 @@ export const createInterviewService = async (payload, userId) => {
                 },
             },
         });
+        // Sync the candidate's overall status to reflect the schedule
+        await syncCandidateStatus(candidateId);
     }
 
     return interview;
@@ -262,6 +300,8 @@ export const addFeedbackService = async (id, { feedback, rating, status, outcome
             userId,
             notes || ""
         );
+        // Sync the candidate's overall status to reflect the outcome
+        await syncCandidateStatus(interview.candidate);
     }
 
     return interview;
@@ -293,4 +333,3 @@ export const deleteInterviewService = async (id) => {
     }
     return interview;
 };
-

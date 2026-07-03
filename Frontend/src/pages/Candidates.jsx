@@ -23,27 +23,21 @@ import PermissionGuard from "../components/PermissionGuard";
 
 /* ──────────────────── STATUS OPTIONS ──────────────────── */
 
+// ─── CANDIDATE STATUS OPTIONS ─────────────────────────────────────────────────
+// Must match Backend/models/Candidate.js CANDIDATE_STATUSES enum exactly.
+// Status is now also derived automatically from submissions (see
+// utils/candidateStatusSync.js), but recruiters can still override it
+// manually here for pre-submission states (e.g. keeping someone On Hold).
 const STATUS_OPTIONS = [
-  {
-    value: "Available",
-    color: "bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]",
-  },
-  {
-    value: "Interviewing",
-    color: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]",
-  },
-  {
-    value: "On Project",
-    color: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]",
-  },
-  {
-    value: "Hold",
-    color: "bg-[#F5F4F0] text-[#6B6860] border-[#E0DDD6]",
-  },
-  {
-    value: "Inactive",
-    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]",
-  },
+  { value: "New",         color: "bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]" },
+  { value: "Screening",   color: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]" },
+  { value: "Shortlisted", color: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]" },
+  { value: "Interview",   color: "bg-[#F5F3FF] text-[#5B21B6] border-[#DDD6FE]" },
+  { value: "Offer",       color: "bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]" },
+  { value: "Hired",       color: "bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]" },
+  { value: "Rejected",    color: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]" },
+  { value: "On Hold",     color: "bg-[#F5F4F0] text-[#6B6860] border-[#E0DDD6]" },
+  { value: "Withdrawn",   color: "bg-[#FAFAFA] text-[#9B9890] border-[#E0DDD6]" },
 ];
 
 /* ──────────────────── COMPONENT ──────────────────── */
@@ -92,7 +86,29 @@ const canDelete = hasPermission(
 );
 
 
+// const user = getCurrentUser();
 
+console.log("USER", user);
+
+console.log(
+  "Candidate View",
+  hasPermission(user, "candidate", "view")
+);
+
+console.log(
+  "Candidate Add",
+  hasPermission(user, "candidate", "add")
+);
+
+console.log(
+  "Candidate Edit",
+  hasPermission(user, "candidate", "edit")
+);
+
+console.log(
+  "Candidate Delete",
+  hasPermission(user, "candidate", "delete")
+);
 
 
   /* ──────────────────── ACCESS DENIED ──────────────────── */
