@@ -1,6 +1,6 @@
 import Role from "../models/role.js";
 import User from "../models/User.js";
-
+import ActivityLog from "../models/activityLog.js";
 
 import { canManageRole } from "../utils/rbac.js";
 
@@ -153,7 +153,7 @@ export const createRole = async (req, res) => {
             });
         }
 
-        
+
 
         // ─────────────────────────────────────────────
         // CREATE ROLE
@@ -289,9 +289,6 @@ export const updateRole = async (req, res) => {
                 Number(hierarchyLevel);
         }
 
-        if (dataScope) {
-        }
-
         await role.save();
 
         return res.status(200).json({
@@ -389,10 +386,17 @@ export const updateModulePermissions =
                 });
             }
 
-            // ───────────────── UPDATE MODULE PERMISSIONS ─────────────────
-            role.modulePermissions[
-                module
-            ] = {
+            // ───────────────── CAPTURE OLD VALUES ─────────────────
+            const existingModulePermissions =
+                role.modulePermissions[module];
+
+            const oldPermissions =
+                existingModulePermissions?.toObject
+                    ? existingModulePermissions.toObject()
+                    : (existingModulePermissions || {});
+
+            // ───────────────── BUILD NEW VALUES ─────────────────
+            const newPermissions = {
                 view:
                     permissions.view ||
                     "none",
@@ -410,7 +414,53 @@ export const updateModulePermissions =
                     "none",
             };
 
+            // ───────────────── DIFF OLD VS NEW ─────────────────
+            const changedFields = [
+                "view",
+                "edit",
+                "add",
+                "delete",
+            ];
+
+            const changes = [];
+
+            changedFields.forEach((field) => {
+
+                const oldValue =
+                    oldPermissions[field] ||
+                    "none";
+
+                const newValue =
+                    newPermissions[field];
+
+                if (oldValue !== newValue) {
+
+                    changes.push({
+                        field,
+                        oldValue,
+                        newValue,
+                    });
+                }
+            });
+
+            // ───────────────── UPDATE MODULE PERMISSIONS ─────────────────
+            role.modulePermissions[module] =
+                newPermissions;
+
             await role.save();
+
+            // ───────────────── LOG ACTIVITY (ONLY IF CHANGED) ─────────────────
+            if (changes.length > 0) {
+
+                await ActivityLog.create({
+                    userId: req.user.id,
+                    action: "permission_update",
+                    module,
+                    roleId: role._id,
+                    roleName: role.name,
+                    changes,
+                });
+            }
 
             return res.status(200).json({
 
@@ -429,7 +479,45 @@ export const updateModulePermissions =
         }
     };
 
-    
+
+// ───────────────────────────────────────────────────────────
+// GET ACTIVITY LOGS
+// ───────────────────────────────────────────────────────────
+export const getActivityLogs = async (req, res) => {
+
+    try {
+
+        const { module } = req.query;
+
+        const query = {};
+
+        if (module) {
+            query.module = module.toLowerCase();
+        }
+
+        const logs = await ActivityLog.find(query)
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .populate("userId", "username email")
+            .lean();
+
+        return res.status(200).json({
+
+            count: logs.length,
+
+            logs,
+
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+
 // ───────────────────────────────────────────────────────────
 // DELETE ROLE
 // ───────────────────────────────────────────────────────────
