@@ -31,6 +31,7 @@ const SubmitToJobModal = ({ candidate, onClose, onSuccess }) => {
 
     // Fetch open jobs on mount
     useEffect(() => {
+         
         const fetchJobs = async () => {
             try {
                 setLoading(true);

@@ -311,7 +311,7 @@ const inputBorderStyle = { borderColor: "#d1cdc7" };
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
     className={`shrink-0 text-[12.5px] text-gray-500 text-right leading-tight ${
-      alignTop ? "pt-2" : ""
+      alignTop ? "pt-2" : "pt-[7px]"
     }`}
     style={{ minWidth: "96px" }}
   >

@@ -174,69 +174,15 @@ const DataTable = ({
                                 <th style={{ width: 40, minWidth: 40 }} className="border-b border-[#E8E6E0] bg-[#F5F4F0] px-3 py-2 text-center">
                                     <Checkbox checked={t.allOnPageSelected} indeterminate={!t.allOnPageSelected && t.someOnPageSelected} onChange={t.togglePageAll} />
                                 </th>
-                                {t.columns.map((col, idx) => {
-                                    const isDragging  = t.dragKey === col.key;
-                                    const isOver      = t.overKey === col.key && t.dragKey && t.dragKey !== col.key;
-                                    const sortActive  = t.sort.key === col.key;
-                                    const distincts   = t.columnDistinctValues[col.key] || [];
-                                    const filterActive = !!t.filters[col.key]?.size;
-                                    const [filterOpen, setFilterOpen] = useState(false);
-                                    return (
-                                        <th key={col.key}
-                                            draggable={!col.fixed}
-                                            onDragStart={(e) => t.onHeaderDragStart(e, col)}
-                                            onDragOver={(e) => t.onHeaderDragOver(e, col)}
-                                            onDrop={(e) => t.onHeaderDrop(e, col)}
-                                            onDragEnd={t.resetDrag}
-                                            style={{ width: col.width, minWidth: col.width }}
-                                            className={`group relative select-none border-b border-[#E8E6E0] px-3 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#6B6860] transition-colors
-                                                ${col.fixed ? "cursor-default bg-[#F5F4F0]" : "cursor-grab hover:bg-[#F5F4F0] active:cursor-grabbing"}
-                                                ${isDragging ? "opacity-40" : ""}
-                                                ${idx !== t.columns.length - 1 ? "border-r border-[#F0EDE8]" : ""}`}>
-
-                                            {isOver && t.dropSide === "left"  && <span className="pointer-events-none absolute left-0 top-0 h-full w-0.5 bg-[#1C4ED8]" />}
-                                            {isOver && t.dropSide === "right" && <span className="pointer-events-none absolute right-0 top-0 h-full w-0.5 bg-[#1C4ED8]" />}
-
-                                            {/* resize handle */}
-                                            <div onMouseDown={(e) => {
-                                                e.preventDefault(); e.stopPropagation();
-                                                const sx = e.clientX, sw = col.width;
-                                                const onMove = (mv) => t.resizeColumn(col.key, sw + (mv.clientX - sx));
-                                                const onUp   = () => { document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); };
-                                                document.addEventListener("mousemove", onMove);
-                                                document.addEventListener("mouseup", onUp);
-                                            }} className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-[#1C4ED8]/20 active:bg-[#1C4ED8]" />
-
-                                            <div className="flex items-center justify-between gap-1">
-                                                <span className={`flex flex-1 items-center gap-1 truncate ${col.sortable ? "cursor-pointer" : ""}`}
-                                                    onClick={(e) => { if (!col.sortable) return; e.stopPropagation(); t.toggleSort(col.key); }}>
-                                                    {col.fixed ? <LockIcon /> : <DragHandle />}
-                                                    <span className="min-w-0 truncate">{col.label}</span>
-                                                    {col.sortable && <SortIcon dir={sortActive ? t.sort.dir : null} />}
-                                                </span>
-                                                <div className="flex items-center gap-0.5">
-                                                    {col.filterable && distincts.length > 0 && (
-                                                        <InlineFilterBtn
-                                                            active={filterActive}
-                                                            open={filterOpen}
-                                                            onToggle={() => setFilterOpen((s) => !s)}
-                                                            options={distincts}
-                                                            selected={filterActive ? Array.from(t.filters[col.key]) : []}
-                                                            onChange={(vals) => t.setColumnFilter(col.key, vals)}
-                                                            onClose={() => setFilterOpen(false)}
-                                                        />
-                                                    )}
-                                                    {col.removable !== false && !col.fixed && (
-                                                        <button onClick={(e) => { e.stopPropagation(); t.removeColumn(col.key); }}
-                                                            className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[#C8C5BD] opacity-0 hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100 transition">
-                                                            <XIcon />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </th>
-                                    );
-                                })}
+                                {t.columns.map((col, idx) => (
+                                    <ColumnHeader
+                                        key={col.key}
+                                        col={col}
+                                        idx={idx}
+                                        isLast={idx === t.columns.length - 1}
+                                        t={t}
+                                    />
+                                ))}
                                 {onDelete && <th style={{ width: 44, minWidth: 44 }} className="border-b border-[#E8E6E0] px-2 py-2" />}
                             </tr>
                         </thead>
@@ -781,6 +727,75 @@ const Checkbox = ({ checked, indeterminate, onChange }) => {
     const ref = useRef();
     useEffect(() => { if (ref.current) ref.current.indeterminate = !!indeterminate; }, [indeterminate]);
     return <input ref={ref} type="checkbox" checked={checked} onChange={onChange} onClick={(e) => e.stopPropagation()} className="h-3.5 w-3.5 cursor-pointer accent-[#1C4ED8]" />;
+};
+
+// ─── COLUMN HEADER ────────────────────────────────────────────────────────────
+// Extracted from the thead .map() so that filterOpen state lives in a proper
+// component scope — not inside a .map() callback, which would violate React's
+// Rules of Hooks (hook count changes whenever column count changes).
+const ColumnHeader = ({ col, isLast, t }) => {
+    const [filterOpen, setFilterOpen] = useState(false);
+    const isDragging   = t.dragKey === col.key;
+    const isOver       = t.overKey === col.key && t.dragKey && t.dragKey !== col.key;
+    const sortActive   = t.sort.key === col.key;
+    const distincts    = t.columnDistinctValues[col.key] || [];
+    const filterActive = !!t.filters[col.key]?.size;
+
+    return (
+        <th
+            draggable={!col.fixed}
+            onDragStart={(e) => t.onHeaderDragStart(e, col)}
+            onDragOver={(e) => t.onHeaderDragOver(e, col)}
+            onDrop={(e) => t.onHeaderDrop(e, col)}
+            onDragEnd={t.resetDrag}
+            style={{ width: col.width, minWidth: col.width }}
+            className={`group relative select-none border-b border-[#E8E6E0] px-3 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#6B6860] transition-colors
+                ${col.fixed ? "cursor-default bg-[#F5F4F0]" : "cursor-grab hover:bg-[#F5F4F0] active:cursor-grabbing"}
+                ${isDragging ? "opacity-40" : ""}
+                ${!isLast ? "border-r border-[#F0EDE8]" : ""}`}>
+
+            {isOver && t.dropSide === "left"  && <span className="pointer-events-none absolute left-0 top-0 h-full w-0.5 bg-[#1C4ED8]" />}
+            {isOver && t.dropSide === "right" && <span className="pointer-events-none absolute right-0 top-0 h-full w-0.5 bg-[#1C4ED8]" />}
+
+            {/* resize handle */}
+            <div onMouseDown={(e) => {
+                e.preventDefault(); e.stopPropagation();
+                const sx = e.clientX, sw = col.width;
+                const onMove = (mv) => t.resizeColumn(col.key, sw + (mv.clientX - sx));
+                const onUp   = () => { document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); };
+                document.addEventListener("mousemove", onMove);
+                document.addEventListener("mouseup", onUp);
+            }} className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-[#1C4ED8]/20 active:bg-[#1C4ED8]" />
+
+            <div className="flex items-center justify-between gap-1">
+                <span className={`flex flex-1 items-center gap-1 truncate ${col.sortable ? "cursor-pointer" : ""}`}
+                    onClick={(e) => { if (!col.sortable) return; e.stopPropagation(); t.toggleSort(col.key); }}>
+                    {col.fixed ? <LockIcon /> : <DragHandle />}
+                    <span className="min-w-0 truncate">{col.label}</span>
+                    {col.sortable && <SortIcon dir={sortActive ? t.sort.dir : null} />}
+                </span>
+                <div className="flex items-center gap-0.5">
+                    {col.filterable && distincts.length > 0 && (
+                        <InlineFilterBtn
+                            active={filterActive}
+                            open={filterOpen}
+                            onToggle={() => setFilterOpen((s) => !s)}
+                            options={distincts}
+                            selected={filterActive ? Array.from(t.filters[col.key]) : []}
+                            onChange={(vals) => t.setColumnFilter(col.key, vals)}
+                            onClose={() => setFilterOpen(false)}
+                        />
+                    )}
+                    {col.removable !== false && !col.fixed && (
+                        <button onClick={(e) => { e.stopPropagation(); t.removeColumn(col.key); }}
+                            className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[#C8C5BD] opacity-0 hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100 transition">
+                            <XIcon />
+                        </button>
+                    )}
+                </div>
+            </div>
+        </th>
+    );
 };
 
 const EmptyStateBlock = ({ title, hint, action }) => (
