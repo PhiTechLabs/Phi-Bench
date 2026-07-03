@@ -25,7 +25,7 @@ const STATUS_OPTIONS = [
 /* ──────────────────── COMPONENT ──────────────────── */
 
 const Bench = () => {
-  const [list, setList]               = useState([]);
+  const [list, setList] = useState([]);
   const [confirmRemove, setConfirmRemove] = useState(null);
   const navigate = useNavigate();
   const roleBase = useRoleBase();
