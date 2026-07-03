@@ -40,10 +40,10 @@ const clientSchema = new mongoose.Schema({
     clientName:     { type: String, required: true, trim: true },
     parentClient:   { type: String, trim: true, default: "" },
     contactNumber:  { type: String, required: true, trim: true },
-    website:        { type: String, required: true, trim: true },
+    website:        { type: String, trim: true, default: "" },
     accountManager: { type: String, trim: true, default: "" },
     linkedin:       { type: String, trim: true, default: "" },
-    industry:       { type: String, trim: true, default: "" },
+    industry:       { type: String, required: true, trim: true },
     about:          { type: String, trim: true, default: "" },
     source:         { type: String, trim: true, default: "" },
 

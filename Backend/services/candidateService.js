@@ -142,13 +142,16 @@ import Candidate from "../models/Candidate.js";
     };
 
     // ─── LIST ────────────────────────────────────────────────────────────────────
-    export const listCandidatesService = async (userId) => {
-
-    const user = await User.findById(userId)
-        .populate("roleId");
+    // Accepts the already-authenticated req.user (populated by the protect
+    // middleware, which already fetched User + roleId for this request) —
+    // NOT a raw userId. Re-fetching the user here would mean doing the
+    // exact same User.findById().populate("roleId") lookup a second time
+    // on every single request, which was adding a full extra database
+    // round-trip to every candidate list load for no reason.
+    export const listCandidatesService = async (currentUser) => {
 
     const viewPermission =
-        user.roleId?.modulePermissions?.candidate?.view;
+        currentUser.role?.modulePermissions?.candidate?.view;
 
     if (
         !viewPermission ||
@@ -165,7 +168,7 @@ import Candidate from "../models/Candidate.js";
 
     const accessibleUsers =
         await getAccessibleUserIds(
-        user,
+        currentUser,
         viewPermission
         );
 

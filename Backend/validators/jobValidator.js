@@ -32,6 +32,8 @@ export const createJobRules = [
     body("experience").optional().trim().isLength({ max: 100 }),
     body("industry").optional().trim().isLength({ max: 100 }),
     body("salary").optional().trim().isLength({ max: 100 }),
+    body("billRate").optional().trim().isLength({ max: 100 }),
+    body("payRate").optional().trim().isLength({ max: 100 }),
     body("skills").optional().trim().isLength({ max: 2000 }),
     body("city").optional().trim().isLength({ max: 100 }),
     body("country").optional().trim().isLength({ max: 100 }),

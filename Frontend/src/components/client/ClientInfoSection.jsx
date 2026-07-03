@@ -10,16 +10,18 @@ const INDUSTRIES = ["Technology", "Healthcare", "Finance", "Retail", "Manufactur
 const SOURCES = ["Added by User", "Referral", "Website", "Cold Outreach", "Social Media"];
 
 // ─── CLIENT INFO SECTION ──────────────────────────────────────────────────────
-// Top "Client Information" card — name, contact, website, dropdowns, about.
-const ClientInfoSection = ({ formData, handleChange }) => (
+// errors     — { fieldName: "error message" } for inline red error display
+// fieldRefs  — { fieldName: React.createRef() } for auto-scroll to first error
+const ClientInfoSection = ({ formData, handleChange, errors = {}, fieldRefs = {} }) => (
     <Card title="Client Information">
         <FieldRow>
-            <Field label="Client Name" required>
+            <Field label="Client Name" required error={errors.clientName} wrapperRef={fieldRefs.clientName}>
                 <TInput
                     name="clientName"
                     value={formData.clientName}
                     onChange={handleChange}
                     placeholder="Enter client name"
+                    hasError={!!errors.clientName}
                 />
             </Field>
             <Field label="Parent Client">
@@ -33,23 +35,23 @@ const ClientInfoSection = ({ formData, handleChange }) => (
         </FieldRow>
 
         <FieldRow>
-            <Field label="Contact Number" required>
+            <Field label="Contact Number" required error={errors.contactNumber} wrapperRef={fieldRefs.contactNumber}>
                 <TInput
                     name="contactNumber"
                     type="tel"
                     value={formData.contactNumber}
                     onChange={handleChange}
                     placeholder="Contact number"
-                    required
+                    hasError={!!errors.contactNumber}
                 />
             </Field>
-            <Field label="Website" required>
+            <Field label="Website" error={errors.website}>
                 <TInput
                     name="website"
                     value={formData.website}
                     onChange={handleChange}
                     placeholder="https://example.com"
-                    required
+                    hasError={!!errors.website}
                 />
             </Field>
         </FieldRow>
@@ -63,24 +65,26 @@ const ClientInfoSection = ({ formData, handleChange }) => (
                     placeholder="Enter account manager name"
                 />
             </Field>
-            <Field label="LinkedIn">
+            <Field label="LinkedIn" error={errors.linkedin}>
                 <TInput
                     name="linkedin"
                     value={formData.linkedin}
                     onChange={handleChange}
                     placeholder="https://linkedin.com/company/..."
+                    hasError={!!errors.linkedin}
                 />
             </Field>
         </FieldRow>
 
         <FieldRow>
-            <Field label="Industry">
+            <Field label="Industry" required error={errors.industry} wrapperRef={fieldRefs.industry}>
                 <SInput
                     name="industry"
                     value={formData.industry}
                     onChange={handleChange}
                     placeholder="Select industry"
                     options={INDUSTRIES}
+                    hasError={!!errors.industry}
                 />
             </Field>
             <Field label="Source">

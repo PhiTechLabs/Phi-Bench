@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import SubmissionForm from "./SubmissionForm";
 import DataTable from "../components/DataTable/DataTable";
 import {
   listSubmissions,
-  createSubmission,
   deleteSubmission,
 } from "../api/submissionsApi";
 import useRoleBase from "../hooks/useRoleBase";
 import { getStatusStyle } from "../utils/submissionStatuses";
 
 const Submissions = () => {
-  const [showForm,     setShowForm]     = useState(false);
   const [submissions,  setSubmissions]  = useState([]);
   const [confirmDel,   setConfirmDel]   = useState(null);
   const navigate = useNavigate();
@@ -23,11 +20,6 @@ const Submissions = () => {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const handleAdd = async (data) => {
-    await createSubmission(data);
-    await refresh();
-    setShowForm(false);
-  };
   const handleDelete      = (row) => setConfirmDel(row);
   const confirmDelete     = async () => {
     await deleteSubmission(confirmDel.id);
@@ -85,8 +77,6 @@ const Submissions = () => {
     },
   ];
 
-  if (showForm) return <SubmissionForm setShowForm={setShowForm} onSave={handleAdd} />;
-
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
       <div className="w-full">
@@ -98,14 +88,7 @@ const Submissions = () => {
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, client…"
-          emptyState={{ title: "No submissions yet", hint: "Click + New Submission to get started" }}
-          actions={
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm hover:bg-[#1741B6] transition">
-              <span className="text-[14px] leading-none">+</span> New Submission
-            </button>
-          }
+          emptyState={{ title: "No submissions yet", hint: "Submit a candidate from a Job or Candidate detail page to get started" }}
         />
       </div>
 

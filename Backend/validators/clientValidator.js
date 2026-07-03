@@ -11,8 +11,18 @@ export const createClientRules = [
         .trim().notEmpty().withMessage("Contact number is required")
         .isLength({ min: 6, max: 20 }).withMessage("Invalid contact number"),
 
+    // Industry is required — used for search, reporting, and matching across
+    // most ATS platforms including Ceipal. A client without an industry
+    // category can't be properly segmented or reported on.
+    body("industry")
+        .trim().notEmpty().withMessage("Industry is required")
+        .isLength({ max: 100 }).withMessage("Industry name too long"),
+
+    // Website is optional — many prospect clients don't have a public website
+    // ready to add yet. Making it required adds unnecessary friction for new
+    // client onboarding.
     body("website")
-        .trim().notEmpty().withMessage("Website is required")
+        .optional({ checkFalsy: true }).trim()
         .isURL({ require_protocol: false }).withMessage("Invalid website URL"),
 
     body("linkedin").optional({ checkFalsy: true }).trim()

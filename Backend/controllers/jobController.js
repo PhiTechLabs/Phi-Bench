@@ -19,7 +19,7 @@ export const createJob = asyncHandler(async (req, res) => {
 // ─── GET ALL JOBS ─────────────────────────────────────────────────────────────
 export const getAllJobs = asyncHandler(async (req, res) => {
     const jobs = await getAllJobsService();
-    res.json({ count: jobs.length, jobs });
+    res.json({ count: jobs.length, jobs }); 
 });
 
 // ─── GET JOB BY ID ────────────────────────────────────────────────────────────

@@ -2,7 +2,15 @@ import axiosInstance from "./axiosInstance";
 
 const normalize = (iv) => {
     if (!iv) return iv;
-    return { ...iv, id: iv._id || iv.id };
+    return {
+        ...iv,
+        id: iv._id || iv.id,
+        // The DataTable column uses key:"client". The backend stores the value
+        // as clientName (denormalized on the Interview doc at creation time)
+        // and also populates job.client. Map whichever is present to "client"
+        // so the column displays correctly without touching the column definition.
+        client: iv.clientName || iv.job?.client || "",
+    };
 };
 
 export const createInterview = async (payload) => {
