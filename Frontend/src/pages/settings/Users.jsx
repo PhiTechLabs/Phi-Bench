@@ -148,7 +148,7 @@ export default function Users() {
                         <p className="text-sm">{search ? "No users match your search" : "No users found"}</p>
                     </div>
                 ) : (
-                    <table className="min-w-[1200px] lg:min-w-full table-fixed border-collapse">
+                    <table className="min-w-300 lg:min-w-full table-fixed border-collapse">
                         <thead className="sticky top-0 bg-white z-10">
                             <tr className="group hover:bg-gray-50">
                                 <th className="w-[3%] px-3 py-3 text-left text-xs text-gray-400 font-semibold uppercase">

@@ -7,6 +7,12 @@ import axiosInstance from "../../../api/axiosInstance";
 
 import { RxCross2 } from "react-icons/rx";
 import {
+    FiUsers,
+    FiFileText,
+    FiMapPin,
+    FiUserCheck,
+} from "react-icons/fi";
+import {
     createTeam,
     updateTeam,
 } from "../../../api/teamsApi";
@@ -227,9 +233,12 @@ export default function TeamModal({
                     bg-white
                     rounded-2xl
                     w-full
-                    max-w-xl
+                    max-w-md
+                    max-h-[70vh]
                     shadow-xl
                     overflow-hidden
+                    flex
+                    flex-col
                 "
             >
 
@@ -238,33 +247,66 @@ export default function TeamModal({
                 <div className="
                     flex
                     justify-between
-                    items-center
-                    p-5
+                    items-start
+                    p-6
+                    pb-4
                     border-b
+                    border-gray-100
                 ">
 
-                    <h2
-                        className="
-                            text-xl
-                            font-semibold
-                        "
-                    >
-                        {isEdit
-                            ? "Edit Team"
-                            : "Create Team"}
-                    </h2>
+                    <div>
+
+                        <h2
+                            className="
+                                text-xl
+                                font-bold
+                                text-gray-900
+                            "
+                        >
+                            {isEdit
+                                ? "Edit Team"
+                                : "Create Team"}
+                        </h2>
+
+                        <p
+                            className="
+                                text-sm
+                                text-gray-400
+                                mt-1
+                            "
+                        >
+                            {isEdit
+                                ? "Update the team details below"
+                                : "Fill in the details to add a new team"}
+                        </p>
+
+                    </div>
 
                     <button
                         onClick={onClose}
+                        className="
+                            text-gray-400
+                            hover:text-gray-600
+                            transition-colors
+                            mt-1
+                        "
                     >
-                        <RxCross2 />
+                        <RxCross2
+                            size={20}
+                        />
                     </button>
 
                 </div>
 
                 {/* Body */}
 
-                <div className="p-5 space-y-4">
+                <div
+                    className="
+                        p-6
+                        space-y-4
+                        overflow-y-auto
+                    "
+                >
 
                     {error && (
 
@@ -289,29 +331,61 @@ export default function TeamModal({
 
                     <div>
 
-                        <label className="block text-sm mb-1">
+                        <label
+                            className="
+                                block
+                                text-sm
+                                font-medium
+                                text-gray-700
+                                mb-1.5
+                            "
+                        >
                             Team Name
                         </label>
 
-                        <input
-                            value={form.name}
-                            onChange={(e) =>
-                                setForm(
-                                    (prev) => ({
-                                        ...prev,
-                                        name:
-                                            e.target.value,
-                                    })
-                                )
-                            }
-                            className="
-                                w-full
-                                border
-                                rounded-lg
-                                px-3
-                                py-2
-                            "
-                        />
+                        <div className="relative">
+
+                            <FiUsers
+                                className="
+                                    absolute
+                                    left-3
+                                    top-1/2
+                                    -translate-y-1/2
+                                    text-gray-400
+                                "
+                                size={16}
+                            />
+
+                            <input
+                                value={form.name}
+                                onChange={(e) =>
+                                    setForm(
+                                        (prev) => ({
+                                            ...prev,
+                                            name:
+                                                e.target.value,
+                                        })
+                                    )
+                                }
+                                placeholder="Enter team name"
+                                className="
+                                    w-full
+                                    border
+                                    border-gray-200
+                                    rounded-xl
+                                    pl-10
+                                    pr-3
+                                    py-2.5
+                                    text-sm
+                                    outline-none
+                                    focus:border-blue-500
+                                    focus:ring-1
+                                    focus:ring-blue-500
+                                    transition-colors
+                                "
+                            />
+
+                        </div>
 
                     </div>
 
@@ -319,31 +393,64 @@ export default function TeamModal({
 
                     <div>
 
-                        <label className="block text-sm mb-1">
+                        <label
+                            className="
+                                block
+                                text-sm
+                                font-medium
+                                text-gray-700
+                                mb-1.5
+                            "
+                        >
                             Description
                         </label>
 
-                        <textarea
-                            value={
-                                form.description
-                            }
-                            onChange={(e) =>
-                                setForm(
-                                    (prev) => ({
-                                        ...prev,
-                                        description:
-                                            e.target.value,
-                                    })
-                                )
-                            }
-                            className="
-                                w-full
-                                border
-                                rounded-lg
-                                px-3
-                                py-2
-                            "
-                        />
+                        <div className="relative">
+
+                            <FiFileText
+                                className="
+                                    absolute
+                                    left-3
+                                    top-3
+                                    text-gray-400
+                                "
+                                size={16}
+                            />
+
+                            <textarea
+                                value={
+                                    form.description
+                                }
+                                onChange={(e) =>
+                                    setForm(
+                                        (prev) => ({
+                                            ...prev,
+                                            description:
+                                                e.target.value,
+                                        })
+                                    )
+                                }
+                                placeholder="Enter description"
+                                rows={3}
+                                className="
+                                    w-full
+                                    border
+                                    border-gray-200
+                                    rounded-xl
+                                    pl-10
+                                    pr-3
+                                    py-2.5
+                                    text-sm
+                                    outline-none
+                                    focus:border-blue-500
+                                    focus:ring-1
+                                    focus:ring-blue-500
+                                    transition-colors
+                                    resize-none
+                                "
+                            />
+
+                        </div>
 
                     </div>
 
@@ -351,54 +458,87 @@ export default function TeamModal({
 
                     <div>
 
-                        <label className="block text-sm mb-1">
+                        <label
+                            className="
+                                block
+                                text-sm
+                                font-medium
+                                text-gray-700
+                                mb-1.5
+                            "
+                        >
                             Branch
                         </label>
 
-                        <select
-                            value={
-                                form.branchId
-                            }
-                            onChange={(e) =>
-                                setForm(
-                                    (prev) => ({
-                                        ...prev,
-                                        branchId:
-                                            e.target.value,
-                                    })
-                                )
-                            }
-                            className="
-                                w-full
-                                border
-                                rounded-lg
-                                px-3
-                                py-2
-                            "
-                        >
+                        <div className="relative">
 
-                            <option value="">
-                                Select Branch
-                            </option>
+                            <FiMapPin
+                                className="
+                                    absolute
+                                    left-3
+                                    top-1/2
+                                    -translate-y-1/2
+                                    text-gray-400
+                                "
+                                size={16}
+                            />
 
-                            {branches.map(
-                                (branch) => (
-                                    <option
-                                        key={
-                                            branch._id
-                                        }
-                                        value={
-                                            branch._id
-                                        }
-                                    >
-                                        {
-                                            branch.name
-                                        }
-                                    </option>
-                                )
-                            )}
+                            <select
+                                value={
+                                    form.branchId
+                                }
+                                onChange={(e) =>
+                                    setForm(
+                                        (prev) => ({
+                                            ...prev,
+                                            branchId:
+                                                e.target.value,
+                                        })
+                                    )
+                                }
+                                className="
+                                    w-full
+                                    border
+                                    border-gray-200
+                                    rounded-xl
+                                    pl-10
+                                    pr-3
+                                    py-2.5
+                                    text-sm
+                                    outline-none
+                                    focus:border-blue-500
+                                    focus:ring-1
+                                    focus:ring-blue-500
+                                    transition-colors
+                                    appearance-none
+                                    bg-white
+                                "
+                            >
 
-                        </select>
+                                <option value="">
+                                    Select Branch
+                                </option>
+
+                                {branches.map(
+                                    (branch) => (
+                                        <option
+                                            key={
+                                                branch._id
+                                            }
+                                            value={
+                                                branch._id
+                                            }
+                                        >
+                                            {
+                                                branch.name
+                                            }
+                                        </option>
+                                    )
+                                )}
+
+                            </select>
+
+                        </div>
 
                     </div>
 
@@ -406,54 +546,87 @@ export default function TeamModal({
 
                     <div>
 
-                        <label className="block text-sm mb-1">
+                        <label
+                            className="
+                                block
+                                text-sm
+                                font-medium
+                                text-gray-700
+                                mb-1.5
+                            "
+                        >
                             Team Lead
                         </label>
 
-                        <select
-                            value={
-                                form.teamLead
-                            }
-                            onChange={(e) =>
-                                setForm(
-                                    (prev) => ({
-                                        ...prev,
-                                        teamLead:
-                                            e.target.value,
-                                    })
-                                )
-                            }
-                            className="
-                                w-full
-                                border
-                                rounded-lg
-                                px-3
-                                py-2
-                            "
-                        >
+                        <div className="relative">
 
-                            <option value="">
-                                Select Lead
-                            </option>
+                            <FiUserCheck
+                                className="
+                                    absolute
+                                    left-3
+                                    top-1/2
+                                    -translate-y-1/2
+                                    text-gray-400
+                                "
+                                size={16}
+                            />
 
-                            {users.map(
-                                (user) => (
-                                    <option
-                                        key={
-                                            user._id
-                                        }
-                                        value={
-                                            user._id
-                                        }
-                                    >
-                                        {
-                                            user.username
-                                        }
-                                    </option>
-                                )
-                            )}
+                            <select
+                                value={
+                                    form.teamLead
+                                }
+                                onChange={(e) =>
+                                    setForm(
+                                        (prev) => ({
+                                            ...prev,
+                                            teamLead:
+                                                e.target.value,
+                                        })
+                                    )
+                                }
+                                className="
+                                    w-full
+                                    border
+                                    border-gray-200
+                                    rounded-xl
+                                    pl-10
+                                    pr-3
+                                    py-2.5
+                                    text-sm
+                                    outline-none
+                                    focus:border-blue-500
+                                    focus:ring-1
+                                    focus:ring-blue-500
+                                    transition-colors
+                                    appearance-none
+                                    bg-white
+                                "
+                            >
 
-                        </select>
+                                <option value="">
+                                    Select Lead
+                                </option>
+
+                                {users.map(
+                                    (user) => (
+                                        <option
+                                            key={
+                                                user._id
+                                            }
+                                            value={
+                                                user._id
+                                            }
+                                        >
+                                            {
+                                                user.username
+                                            }
+                                        </option>
+                                    )
+                                )}
+
+                            </select>
+
+                        </div>
 
                     </div>
 
@@ -461,17 +634,27 @@ export default function TeamModal({
 
                     <div>
 
-                        <label className="block text-sm mb-2">
+                        <label
+                            className="
+                                block
+                                text-sm
+                                font-medium
+                                text-gray-700
+                                mb-1.5
+                            "
+                        >
                             Members
                         </label>
 
                         <div
                             className="
-                                max-h-44
+                                max-h-40
                                 overflow-y-auto
                                 border
-                                rounded-lg
+                                border-gray-200
+                                rounded-xl
                                 p-3
+                                space-y-0.5
                             "
                         >
 
@@ -485,8 +668,13 @@ export default function TeamModal({
                                         className="
                                             flex
                                             items-center
-                                            gap-2
-                                            py-1
+                                            gap-2.5
+                                            py-1.5
+                                            px-1
+                                            rounded-lg
+                                            hover:bg-gray-50
+                                            cursor-pointer
+                                            transition-colors
                                         "
                                     >
 
@@ -500,11 +688,26 @@ export default function TeamModal({
                                                     user._id
                                                 )
                                             }
+                                            className="
+                                                w-4
+                                                h-4
+                                                rounded
+                                                border-gray-300
+                                                text-blue-600
+                                                focus:ring-blue-500
+                                            "
                                         />
 
-                                        {
-                                            user.username
-                                        }
+                                        <span
+                                            className="
+                                                text-sm
+                                                text-gray-700
+                                            "
+                                        >
+                                            {
+                                                user.username
+                                            }
+                                        </span>
 
                                     </label>
 
@@ -523,9 +726,11 @@ export default function TeamModal({
                     className="
                         flex
                         justify-end
-                        gap-2
-                        p-5
+                        gap-3
+                        p-6
+                        pt-4
                         border-t
+                        border-gray-100
                     "
                 >
 
@@ -533,9 +738,15 @@ export default function TeamModal({
                         onClick={onClose}
                         className="
                             px-4
-                            py-2
+                            py-2.5
                             border
-                            rounded-lg
+                            border-gray-200
+                            rounded-xl
+                            text-sm
+                            font-medium
+                            text-gray-600
+                            hover:bg-gray-50
+                            transition-colors
                         "
                     >
                         Cancel
@@ -548,10 +759,15 @@ export default function TeamModal({
                         disabled={loading}
                         className="
                             px-4
-                            py-2
+                            py-2.5
                             bg-blue-700
+                            hover:bg-blue-800
+                            disabled:opacity-60
                             text-white
-                            rounded-lg
+                            rounded-xl
+                            text-sm
+                            font-medium
+                            transition-colors
                         "
                     >
                         {

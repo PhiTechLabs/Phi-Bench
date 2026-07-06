@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 
 import PermissionModal from "./modals/PermissionModal";
+import ActivityDrawer from "../../components/permissions/ActivityDrawer";
 
 import BackButton from "../../reusable/BackButton";
 
@@ -53,6 +54,9 @@ export default function Permissions() {
 
     const [selectedRole, setSelectedRole] =
         useState(null);
+
+    // ───────────────── ACTIVITY DRAWER STATE ─────────────────
+    const [activityOpen, setActivityOpen] = useState(false);
 
     // ───────────────── SAFE MODULE KEY ─────────────────
     const currentModuleKey =
@@ -133,7 +137,10 @@ export default function Permissions() {
 
                 </div>
 
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-sm font-medium text-gray-700">
+                <button
+                    onClick={() => setActivityOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-sm font-medium text-gray-700"
+                >
 
                     <FaHistory />
 
@@ -162,10 +169,6 @@ export default function Permissions() {
                         className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-200"
                     >
 
-                        {/* <option value="">
-                            Select Module
-                        </option> */}
-
                         {modules.map((module) => (
 
                             <option
@@ -189,7 +192,6 @@ export default function Permissions() {
 
                 <table className="w-full border-collapse">
 
-                    {/* HEADER */}
                     <thead className="bg-gray-50">
 
                         <tr className="border-b border-gray-200">
@@ -218,7 +220,6 @@ export default function Permissions() {
 
                     </thead>
 
-                    {/* BODY */}
                     <tbody>
 
                         {roles.map((role, index) => {
@@ -238,7 +239,6 @@ export default function Permissions() {
                                     className="border-b border-gray-200 hover:bg-sky-50 transition-all duration-200"
                                 >
 
-                                    {/* ROLE */}
                                     <td className="px-6 py-5 border-r border-gray-200">
 
                                         <div className="flex items-center gap-3">
@@ -285,7 +285,6 @@ export default function Permissions() {
 
                                     </td>
 
-                                    {/* VIEW */}
                                     <td className="px-6 py-5 border-r border-gray-200">
 
                                         <PermissionStatus
@@ -297,7 +296,6 @@ export default function Permissions() {
 
                                     </td>
 
-                                    {/* EDIT */}
                                     <td className="px-6 py-5 border-r border-gray-200">
 
                                         <PermissionStatus
@@ -309,7 +307,6 @@ export default function Permissions() {
 
                                     </td>
 
-                                    {/* ADD */}
                                     <td className="px-6 py-5 border-r border-gray-200">
 
                                         <PermissionStatus
@@ -321,7 +318,6 @@ export default function Permissions() {
 
                                     </td>
 
-                                    {/* DELETE */}
                                     <td className="px-6 py-5">
 
                                         <PermissionStatus
@@ -343,7 +339,7 @@ export default function Permissions() {
 
             </div>
 
-            {/* MODAL */}
+            {/* PERMISSION MODAL */}
             <PermissionModal
                 open={openPermissionModal}
                 onClose={() =>
@@ -352,6 +348,13 @@ export default function Permissions() {
                 role={selectedRole}
                 moduleName={selectedModule}
                 onSave={handlePermissionSave}
+            />
+
+            {/* ACTIVITY DRAWER */}
+            <ActivityDrawer
+                open={activityOpen}
+                onClose={() => setActivityOpen(false)}
+                module={selectedModule}
             />
 
         </div>

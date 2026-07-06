@@ -11,6 +11,7 @@ import {
 
 import { protect } from "../middleware/authMiddleware.js";
 import { requirePermission } from "../middleware/permissionMiddleware.js";
+import {getActivityLogs} from "../controllers/roleController.js";
 
 const router = express.Router();
 
@@ -34,6 +35,8 @@ router.post(
     requirePermission("roles", "add"),
     createRole
 );
+
+router.get("/activity-logs", getActivityLogs);
 
 router.put(
     "/:id",
