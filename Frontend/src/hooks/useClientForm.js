@@ -36,15 +36,49 @@ const defaultFormData = {
 };
 
 // ─── CUSTOM HOOK: useClientForm ───────────────────────────────────────────────
-// Centralizes ALL state and handlers for the AddClient page.
-// The page component just consumes what this hook returns.
-const useClientForm = () => {
+// Centralizes ALL state and handlers for the AddClient/EditClient pages.
+// Pass `initialData` (a client object from the API) to pre-populate for editing.
+const useClientForm = (initialData = null) => {
     // ─── STATE ────────────────────────────────────────────────────────────────
-    const [formData, setFormData] = useState(defaultFormData);
-    const [locations, setLocations] = useState([defaultLocation()]);
-    const [pocs, setPocs] = useState([]);
+    const [formData, setFormData] = useState(() => {
+        if (!initialData) return defaultFormData;
+        return {
+            clientName:    initialData.clientName    || "",
+            parentClient:  initialData.parentClient  || "",
+            contactNumber: initialData.contactNumber || "",
+            website:       initialData.website       || "",
+            accountManager:initialData.accountManager|| "",
+            linkedin:      initialData.linkedin      || "",
+            industry:      initialData.industry      || "",
+            about:         initialData.about         || "",
+            source:        initialData.source        || "",
+        };
+    });
+
+    const [locations, setLocations] = useState(() => {
+        if (initialData?.locations?.length) {
+            return initialData.locations.map((loc) => ({
+                ...loc,
+                id: loc._id || loc.id || Date.now() + Math.random(),
+            }));
+        }
+        return [defaultLocation()];
+    });
+
+    const [pocs, setPocs] = useState(() => {
+        if (initialData?.pocs?.length) {
+            return initialData.pocs.map((p) => ({
+                ...p,
+                id: p._id || p.id || Date.now() + Math.random(),
+            }));
+        }
+        return [];
+    });
+
     const [documents, setDocuments] = useState([]);
-    const [showPocSection, setShowPocSection] = useState(false);
+    const [showPocSection, setShowPocSection] = useState(
+        () => !!(initialData?.pocs?.length)
+    );
 
     // ─── CLIENT INFO HANDLERS ─────────────────────────────────────────────────
     const handleChange = (e) => {
@@ -93,6 +127,38 @@ const useClientForm = () => {
     };
     const removeDocument = (id) =>
         setDocuments((prev) => prev.filter((d) => d.id !== id));
+
+    // ─── SEED FORM (for edit mode) ────────────────────────────────────────────
+    // Called once after fetching an existing client to populate all state.
+    // Simpler than lazy initializers since it runs after mount regardless of
+    // when data arrives — no race conditions with the loading state.
+    const seedForm = (client) => {
+        if (!client) return;
+        setFormData({
+            clientName:     client.clientName     || "",
+            parentClient:   client.parentClient   || "",
+            contactNumber:  client.contactNumber  || "",
+            website:        client.website        || "",
+            accountManager: client.accountManager || "",
+            linkedin:       client.linkedin       || "",
+            industry:       client.industry       || "",
+            about:          client.about          || "",
+            source:         client.source         || "",
+        });
+        if (client.locations?.length) {
+            setLocations(client.locations.map((loc) => ({
+                ...loc,
+                id: loc._id || loc.id || Date.now() + Math.random(),
+            })));
+        }
+        if (client.pocs?.length) {
+            setPocs(client.pocs.map((p) => ({
+                ...p,
+                id: p._id || p.id || Date.now() + Math.random(),
+            })));
+            setShowPocSection(true);
+        }
+    };
 
     // ─── RESET (used after successful submit) ────────────────────────────────
     const resetForm = () => {
@@ -149,6 +215,7 @@ const useClientForm = () => {
 
         // utilities
         resetForm,
+        seedForm,
         buildPayload,
     };
 };

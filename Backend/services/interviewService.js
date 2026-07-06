@@ -29,9 +29,16 @@ const advanceSubmissionStatus = async (submissionId, interviewRound, outcome, us
             newStatus = roundMap.backout;
             break;
         case "No Show":
+            // Candidate didn't show — go straight back to schedule pending
+            // (no interview happened, so "Rescheduled" isn't the right term)
+            newStatus = roundMap.schedulePending;
+            break;
         case "Client Reschedule":
         case "Candidate Reschedule":
-            newStatus = roundMap.schedulePending;
+            // An interview WAS scheduled but rescheduled — use Lx Rescheduled
+            // to distinguish from a fresh schedule. This is the ONLY path that
+            // sets Lx Rescheduled; without it these statuses are unreachable.
+            newStatus = roundMap.rescheduled;
             break;
         default:
             return;
