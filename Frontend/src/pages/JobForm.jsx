@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getAllClients } from "../api/clientApi";
 import { getNextCodePreview } from "../api/codePreviewApi";
+import axiosInstance from "../api/axiosInstance";
 import ErrorModal from "../components/shared/ErrorModal";
 import { parseApiError } from "../utils/apiError";
 
@@ -12,34 +13,29 @@ const JobForm = ({ setShowForm, onSave }) => {
   const [formError, setFormError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Refs for scrolling to the first erroring field on submit
   const fieldRefs = useRef(
     Object.fromEntries(JOB_REQUIRED_FIELDS.map((k) => [k, React.createRef()]))
   );
 
-  // Scroll to the first error field whenever validation fires
   useEffect(() => {
     if (Object.keys(errors).length === 0) return;
     for (const key of JOB_REQUIRED_FIELDS) {
       if (errors[key] && fieldRefs.current[key]?.current) {
-        fieldRefs.current[key].current.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
+        fieldRefs.current[key].current.scrollIntoView({ behavior: "smooth", block: "center" });
         break;
       }
     }
   }, [errors]);
 
-  // ─── CLIENT LIST (for the searchable client picker) ──────────────────────
-  const [clients, setClients]           = useState([]);
+  // ─── CLIENT LIST ─────────────────────────────────────────────────────────
+  const [clients, setClients]               = useState([]);
   const [clientsLoading, setClientsLoading] = useState(true);
-  const [clientsError, setClientsError] = useState(false);
+  const [clientsError,   setClientsError]   = useState(false);
 
-  // ─── NEXT CODE PREVIEW ─────────────────────────────────────────────────────
-  // Read-only preview of the code this job will be assigned (e.g. "JC014").
-  // The real code is only actually assigned by the backend at save time —
-  // this is purely informational so the user isn't surprised by it later.
+  // ─── ALL USERS (for Account Manager picker) ───────────────────────────────
+  const [users, setUsers]               = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+
   const [nextCode, setNextCode] = useState(null);
 
   useEffect(() => {
@@ -59,7 +55,16 @@ const JobForm = ({ setShowForm, onSave }) => {
         const data = await getAllClients();
         const list = Array.isArray(data) ? data : (data?.clients || []);
         setClients(
-          list.map((c) => ({ id: c._id || c.id, clientName: c.clientName }))
+          list.map((c) => ({
+            id:             c._id || c.id,
+            clientName:     c.clientName,
+            accountManager: c.accountManager || "",
+            pocs:           (c.pocs || []).map((p) => ({
+              name:    `${p.firstName || ""} ${p.lastName || ""}`.trim(),
+              contact: p.contact || "",
+              email:   p.email   || "",
+            })).filter((p) => p.name),
+          }))
         );
       } catch (err) {
         console.warn("Failed to load clients:", err?.response?.data || err);
@@ -70,52 +75,57 @@ const JobForm = ({ setShowForm, onSave }) => {
     })();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axiosInstance.get("/auth/users");
+        const list = res.data?.users || [];
+        setUsers(list.map((u) => ({
+          id:       u._id || u.id,
+          username: u.username,
+          role:     u.roleId?.name || u.role || "",
+        })));
+      } catch (err) {
+        console.warn("Failed to load users:", err?.response?.data || err);
+      } finally {
+        setUsersLoading(false);
+      }
+    })();
+  }, []);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    // Clear error for this field as user types
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: undefined });
     }
   };
 
-  // Called when the user picks a client from the dropdown — stores both the
-  // real Client _id (clientId, sent to the backend as the source of truth)
-  // and the display name (client, shown in the input + used in tables).
   const handleClientSelect = (client) => {
-    setFormData((f) => ({ ...f, clientId: client.id, client: client.clientName }));
+    setFormData((f) => ({
+      ...f,
+      clientId:     client.id,
+      client:       client.clientName,
+      // clear contact fields when switching clients
+      contact:      "",
+      contactPhone: "",
+    }));
     if (errors.clientId) {
       setErrors((e) => ({ ...e, clientId: undefined }));
     }
   };
 
-  const validate = () => {
-    const next = {};
-    if (!formData.title?.trim())       next.title = "Position title is required";
-    if (!formData.clientId)            next.clientId = "Please select an existing client";
-    if (!formData.description?.trim()) next.description = "Job description is required";
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
   const handleSubmit = async () => {
-    // Run validation — sets errors state for inline field-level highlighting.
-    // If validation fails, return early. No modal needed since the red messages
-    // under each field already guide the user.
     const validationErrors = {};
-    if (!formData.title?.trim())       validationErrors.title = "Position title is required";
-    if (!formData.clientId)            validationErrors.clientId = "Please select an existing client";
+    if (!formData.title?.trim())       validationErrors.title       = "Position title is required";
+    if (!formData.clientId)            validationErrors.clientId    = "Please select an existing client";
     if (!formData.description?.trim()) validationErrors.description = "Job description is required";
     setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      return;
-    }
+    if (Object.keys(validationErrors).length > 0) return;
 
     setSubmitting(true);
     try {
       await onSave(formData);
     } catch (err) {
-      // Only API/backend failures go to the modal — validation is handled inline
       setFormError(parseApiError(err, "Failed to create job opening"));
     } finally {
       setSubmitting(false);
@@ -190,8 +200,43 @@ const JobForm = ({ setShowForm, onSave }) => {
               />
             </Row>
             <Row>
-              <Field label="Contact Name" name="contact" placeholder="Hiring manager" onChange={handleChange} />
-              <Field label="Account Manager" name="manager" placeholder="Internal AM" onChange={handleChange} />
+              {/* Contact Name — searchable POC combobox, same pattern as ClientSelect */}
+              <PocSelect
+                label="Contact Name"
+                pocs={(() => {
+                  const sel = clients.find((c) => c.id === formData.clientId);
+                  return sel?.pocs || [];
+                })()}
+                hasClient={!!formData.clientId}
+                value={formData.contact || ""}
+                onSelect={(poc) => {
+                  setFormData((f) => ({
+                    ...f,
+                    contact:      poc.name,
+                    contactPhone: poc.contact || "",
+                  }));
+                }}
+                onClear={() => setFormData((f) => ({ ...f, contact: "", contactPhone: "" }))}
+              />
+              {/* Contact Number — auto-filled when a POC is selected */}
+              <Field
+                label="Contact Number"
+                name="contactPhone"
+                value={formData.contactPhone || ""}
+                placeholder="Auto-filled from POC"
+                onChange={handleChange}
+              />
+            </Row>
+            <Row>
+              {/* Account Manager — searchable combobox of all system users */}
+              <UserSelect
+                label="Account Manager"
+                users={users}
+                loading={usersLoading}
+                value={formData.manager || ""}
+                onSelect={(username) => setFormData((f) => ({ ...f, manager: username }))}
+                onClear={() => setFormData((f) => ({ ...f, manager: "" }))}
+              />
             </Row>
             <Row>
               <Field label="Assign Recruiter" name="recruiter" placeholder="Recruiter name" onChange={handleChange} />
@@ -333,7 +378,7 @@ const Field = ({ label, required, full, error, wrapperRef, ...props }) => (
   </div>
 );
 
-const SelectField = ({ label, options = [], required, full, error, wrapperRef, ...props }) => (
+const SelectField = ({ label, options = [], required, full, error, wrapperRef, placeholder = "Select...", ...props }) => (
   <div ref={wrapperRef} className={`flex items-start gap-2.5 ${full ? "col-span-2" : ""}`}>
     <FieldLabel label={label} required={required} />
     <div className="flex min-w-0 flex-1 flex-col">
@@ -347,7 +392,7 @@ const SelectField = ({ label, options = [], required, full, error, wrapperRef, .
           backgroundPosition: "right 10px center",
         }}
       >
-        <option value="">Select status...</option>
+        <option value="">{placeholder}</option>
         {options.map((o) => (
           <option key={o} value={o}>
             {o}
@@ -464,6 +509,156 @@ const ClientSelect = ({
           </span>
         )}
         {error && <span className="mt-1 text-[11px] text-[#DC2626]">{error}</span>}
+      </div>
+    </div>
+  );
+};
+
+// ─── POC SELECT ──────────────────────────────────────────────────────────────
+// Searchable combobox for picking a POC from the selected client's POC list.
+// Same interaction model as ClientSelect — type to filter, click to confirm.
+// Auto-fills contactPhone when a POC with a phone number is picked.
+const PocSelect = ({ label, pocs = [], hasClient, value, onSelect, onClear }) => {
+  const [open,  setOpen]  = useState(false);
+  const [query, setQuery] = useState("");
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    const h = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const filtered = pocs.filter((p) =>
+    p.name.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
+  const inputValue = open ? query : (value || "");
+
+  const placeholder = !hasClient
+    ? "Select a client first"
+    : pocs.length === 0
+    ? "No POCs on this client"
+    : "Search contact name…";
+
+  return (
+    <div className="flex items-start gap-2.5" ref={boxRef}>
+      <FieldLabel label={label} />
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => { setQuery(""); setOpen(true); }}
+          placeholder={placeholder}
+          disabled={!hasClient || pocs.length === 0}
+          autoComplete="off"
+          style={inputBorderStyle}
+          className={`${inputClass(false)} ${(!hasClient || pocs.length === 0) ? "cursor-not-allowed opacity-60" : ""}`}
+        />
+        {/* Clear button */}
+        {value && (
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); onClear(); setQuery(""); setOpen(false); }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9B9890] hover:text-[#DC2626] text-[11px]">
+            ✕
+          </button>
+        )}
+        {open && pocs.length > 0 && (
+          <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-20 max-h-52 overflow-y-auto rounded-lg border border-[#d1cdc7] bg-white py-1 shadow-lg">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-[12.5px] text-gray-400">No POCs match your search.</div>
+            ) : (
+              filtered.map((poc, i) => (
+                <button key={i} type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { onSelect(poc); setQuery(""); setOpen(false); }}
+                  className={`flex w-full flex-col px-3 py-1.5 text-left transition-colors hover:bg-gray-50 ${
+                    value === poc.name ? "bg-blue-50" : ""
+                  }`}>
+                  <span className={`text-[13px] ${value === poc.name ? "font-medium text-blue-700" : "text-gray-800"}`}>
+                    {poc.name}
+                  </span>
+                  {poc.contact && (
+                    <span className="text-[11px] text-gray-400">{poc.contact}</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── USER SELECT ──────────────────────────────────────────────────────────────
+// Searchable combobox listing ALL system users (any role, any branch).
+// Used for Account Manager — lets recruiter pick any user regardless of role.
+const UserSelect = ({ label, users = [], loading, value, onSelect, onClear }) => {
+  const [open,  setOpen]  = useState(false);
+  const [query, setQuery] = useState("");
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    const h = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const filtered = users.filter((u) =>
+    u.username.toLowerCase().includes(query.trim().toLowerCase()) ||
+    u.role.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
+  const inputValue = open ? query : (value || "");
+
+  return (
+    <div className="flex items-start gap-2.5" ref={boxRef}>
+      <FieldLabel label={label} />
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => { setQuery(""); setOpen(true); }}
+          placeholder={loading ? "Loading users…" : "Search account manager…"}
+          disabled={loading}
+          autoComplete="off"
+          style={inputBorderStyle}
+          className={`${inputClass(false)} ${loading ? "cursor-not-allowed opacity-60" : ""}`}
+        />
+        {/* Clear button */}
+        {value && (
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); onClear(); setQuery(""); setOpen(false); }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9B9890] hover:text-[#DC2626] text-[11px]">
+            ✕
+          </button>
+        )}
+        {open && !loading && (
+          <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-20 max-h-52 overflow-y-auto rounded-lg border border-[#d1cdc7] bg-white py-1 shadow-lg">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-[12.5px] text-gray-400">
+                {users.length === 0 ? "No users found." : "No users match your search."}
+              </div>
+            ) : (
+              filtered.map((u) => (
+                <button key={u.id} type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { onSelect(u.username); setQuery(""); setOpen(false); }}
+                  className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-gray-50 ${
+                    value === u.username ? "bg-blue-50" : ""
+                  }`}>
+                  <span className={`text-[13px] ${value === u.username ? "font-medium text-blue-700" : "text-gray-800"}`}>
+                    {u.username}
+                  </span>
+                  {u.role && (
+                    <span className="text-[11px] text-gray-400 ml-2">{u.role}</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
