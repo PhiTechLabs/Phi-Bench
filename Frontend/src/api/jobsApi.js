@@ -15,10 +15,15 @@
 
 import axiosInstance  from "./axiosInstance";
 
-/* ── normalize MongoDB _id → id for frontend consistency ── */
+/* ── normalize MongoDB _id → id and flatten audit user fields ── */
 const normalize = (job) => {
     if (!job) return job;
-    return { ...job, id: job._id || job.id };
+    return {
+        ...job,
+        id:        job._id || job.id,
+        createdBy: job.createdBy?.username || job.createdBy || "",
+        updatedBy: job.updatedBy?.username || job.updatedBy || "",
+    };
 };
 
 /* ── public API ── */

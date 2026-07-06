@@ -504,6 +504,30 @@ console.log(
       sortable: true,
       sortType: "date",
     },
+
+    {
+      key: "createdBy",
+      label: "Created By",
+      width: 130,
+      type: "text",
+      sortable: true,
+      sortType: "string",
+      searchable: true,
+      filterable: true,
+      defaultVisible: false,
+    },
+
+    {
+      key: "updatedBy",
+      label: "Updated By",
+      width: 130,
+      type: "text",
+      sortable: true,
+      sortType: "string",
+      searchable: true,
+      filterable: true,
+      defaultVisible: false,
+    },
   ];
 
   /* ──────────────────── FORM VIEW ──────────────────── */

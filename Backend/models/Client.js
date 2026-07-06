@@ -56,6 +56,11 @@ const clientSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+    },
     status: {
     type: String,
     enum: ["Active", "Prospect", "Onboarding", "On Hold", "Inactive"],

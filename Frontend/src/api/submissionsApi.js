@@ -2,7 +2,13 @@ import axiosInstance from "./axiosInstance";
 
 const normalize = (s) => {
     if (!s) return s;
-    return { ...s, id: s._id || s.id };
+    return {
+        ...s,
+        id:          s._id || s.id,
+        submittedBy: s.createdBy?.username || s.createdBy || "",
+        createdBy:   s.createdBy?.username || s.createdBy || "",
+        updatedBy:   s.updatedBy?.username || s.updatedBy || "",
+    };
 };
 
 export const createSubmission = async (payload) => {

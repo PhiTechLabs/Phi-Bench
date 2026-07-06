@@ -92,6 +92,7 @@ const Interviews = () => {
   const refresh = useCallback(async () => {
     try {
       const data = await listInterviews();
+      console.log("INTERVIEW DATA:", data);
       const normalized = data.map((item) => ({
         ...item,
         id: item.id || item._id,
@@ -340,6 +341,28 @@ const Interviews = () => {
         type: "date",
         sortable: true,
         sortType: "date",
+      },
+      {
+        key: "createdBy",
+        label: "Created By",
+        width: 130,
+        type: "text",
+        sortable: true,
+        sortType: "string",
+        searchable: true,
+        filterable: true,
+        defaultVisible: false,
+      },
+      {
+        key: "updatedBy",
+        label: "Updated By",
+        width: 130,
+        type: "text",
+        sortable: true,
+        sortType: "string",
+        searchable: true,
+        filterable: true,
+        defaultVisible: false,
       },
     ],
     [handleStatusChange, handleRoundChange, handleModeChange]

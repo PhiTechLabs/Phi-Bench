@@ -42,7 +42,7 @@ export const getCandidateById = asyncHandler(async (req, res) => {
 });
 
 export const updateCandidate = asyncHandler(async (req, res) => {
-    const candidate = await updateCandidateService(req.params.id, req.body);
+    const candidate = await updateCandidateService(req.params.id, req.body, req.user.id);
     res.json({ message: "Candidate updated successfully", candidate });
 });
 

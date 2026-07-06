@@ -19,7 +19,7 @@ export const createJob = asyncHandler(async (req, res) => {
 // ─── GET ALL JOBS ─────────────────────────────────────────────────────────────
 export const getAllJobs = asyncHandler(async (req, res) => {
     const jobs = await getAllJobsService();
-    res.json({ count: jobs.length, jobs }); 
+    res.json({ count: jobs.length, jobs });
 });
 
 // ─── GET JOB BY ID ────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ export const getJobById = asyncHandler(async (req, res) => {
 
 // ─── UPDATE JOB ───────────────────────────────────────────────────────────────
 export const updateJob = asyncHandler(async (req, res) => {
-    const job = await updateJobService(req.params.id, req.body);
+    const job = await updateJobService(req.params.id, req.body, req.user.id);
     res.json({ message: "Job updated successfully", job });
 });
 

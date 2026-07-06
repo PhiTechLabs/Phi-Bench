@@ -75,6 +75,16 @@ const Submissions = () => {
       key: "createdAt", label: "Created", width: 120, type: "date",
       sortable: true, sortType: "date", defaultVisible: false,
     },
+    {
+      key: "submittedBy", label: "Submitted By", width: 130, type: "text",
+      sortable: true, sortType: "string", searchable: true, filterable: true,
+      defaultVisible: true,
+    },
+    {
+      key: "updatedBy", label: "Updated By", width: 130, type: "text",
+      sortable: true, sortType: "string", searchable: true, filterable: true,
+      defaultVisible: false,
+    },
   ];
 
   return (

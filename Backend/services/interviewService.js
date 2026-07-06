@@ -129,7 +129,6 @@ export const createInterviewService = async (payload, userId) => {
         err.statusCode = 400;
         throw err;
     }
-
     const activeInterview = await Interview.findOne({
         candidate: candidateId,
         job:       jobId,
@@ -194,6 +193,7 @@ export const listInterviewsService = async () => {
         .populate("candidate", "firstName lastName email jobTitle")
         .populate("job", "title client status")
         .populate("createdBy", "username")
+        .populate("updatedBy", "username")
         .sort({ scheduledDate: 1 });
 };
 
@@ -209,6 +209,7 @@ export const getCandidateInterviewsService = async (candidateId) => {
     return await Interview.find({ candidate: candidateId })
         .populate("job", "title client status")
         .populate("createdBy", "username")
+        .populate("updatedBy", "username")
         .sort({ scheduledDate: -1 });
 };
 
@@ -224,6 +225,7 @@ export const getJobInterviewsService = async (jobId) => {
     return await Interview.find({ job: jobId })
         .populate("candidate", "firstName lastName email jobTitle")
         .populate("createdBy", "username")
+        .populate("updatedBy", "username")
         .sort({ scheduledDate: 1 });
 };
 
@@ -233,7 +235,8 @@ export const getInterviewByIdService = async (id) => {
         .populate("candidate", "firstName lastName email phone jobTitle")
         .populate("job", "title client status")
         .populate("submission")
-        .populate("createdBy", "username");
+        .populate("createdBy", "username")
+        .populate("updatedBy", "username");
 
     if (!interview) {
         const err = new Error("Interview not found");
@@ -245,7 +248,7 @@ export const getInterviewByIdService = async (id) => {
 };
 
 // ─── UPDATE INTERVIEW ─────────────────────────────────────────────────────────
-export const updateInterviewService = async (id, payload) => {
+export const updateInterviewService = async (id, payload, userId) => {
 
     const allowedUpdates = {
         interviewRound: payload.interviewRound,
@@ -265,6 +268,8 @@ export const updateInterviewService = async (id, payload) => {
     Object.keys(allowedUpdates).forEach(
         (key) => allowedUpdates[key] === undefined && delete allowedUpdates[key]
     );
+
+    if (userId) allowedUpdates.updatedBy = userId;
 
     const interview = await Interview.findByIdAndUpdate(id, allowedUpdates, {
         new: true,

@@ -63,9 +63,21 @@ export const createClient = async (payload) => {
     return data;
 };
 
+// ─── NORMALIZER ──────────────────────────────────────────────────────────────
+const normalize = (c) => {
+    if (!c) return c;
+    return {
+        ...c,
+        id:        c._id || c.id,
+        createdBy: c.createdBy?.username || c.createdBy || "",
+        updatedBy: c.updatedBy?.username || c.updatedBy || "",
+    };
+};
+
 export const getAllClients = async () => {
     const { data } = await axiosInstance.get("/clients");
-    return data;
+    const list = Array.isArray(data) ? data : (data?.clients || []);
+    return list.map(normalize);
 };
 
 export const getClientById = async (id) => {

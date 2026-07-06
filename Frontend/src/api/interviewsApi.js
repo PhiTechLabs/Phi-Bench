@@ -4,12 +4,10 @@ const normalize = (iv) => {
     if (!iv) return iv;
     return {
         ...iv,
-        id: iv._id || iv.id,
-        // The DataTable column uses key:"client". The backend stores the value
-        // as clientName (denormalized on the Interview doc at creation time)
-        // and also populates job.client. Map whichever is present to "client"
-        // so the column displays correctly without touching the column definition.
-        client: iv.clientName || iv.job?.client || "",
+        id:        iv._id || iv.id,
+        client:    iv.clientName || iv.job?.client || "",
+        createdBy: iv.createdBy?.username || iv.createdBy || "",
+        updatedBy: iv.updatedBy?.username || iv.updatedBy || "",
     };
 };
 

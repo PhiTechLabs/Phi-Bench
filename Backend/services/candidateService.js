@@ -163,6 +163,8 @@ import Candidate from "../models/Candidate.js";
     if (viewPermission === "all") {
 
         return Candidate.find()
+        .populate("createdBy", "username")
+        .populate("updatedBy", "username")
         .sort({ createdAt: -1 });
     }
 
@@ -176,7 +178,10 @@ import Candidate from "../models/Candidate.js";
         createdBy: {
         $in: accessibleUsers,
         },
-    }).sort({
+    })
+    .populate("createdBy", "username")
+    .populate("updatedBy", "username")
+    .sort({
         createdAt: -1,
     });
     };
@@ -188,7 +193,8 @@ import Candidate from "../models/Candidate.js";
     ) => {
 
     const candidate = await Candidate.findById(id)
-        .populate("createdBy", "username role");
+        .populate("createdBy", "username")
+        .populate("updatedBy", "username");
 
     if (!candidate) {
 
@@ -207,13 +213,16 @@ import Candidate from "../models/Candidate.js";
     // ─── UPDATE ──────────────────────────────────────────────────────────────────
     export const updateCandidateService = async (
     id,
-    payload
+    payload,
+    userId
     ) => {
 
     const updates =
         sanitizeArrays(payload);
 
     delete updates.attachments;
+
+    if (userId) updates.updatedBy = userId;
 
     try {
 

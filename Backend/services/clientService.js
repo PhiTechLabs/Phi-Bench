@@ -50,18 +50,17 @@ export const createClientService = async (
 // ─── GET ALL CLIENTS ──────────────────────────────────────────────────────────
 export const getAllClientsService = async () => {
     return await Client.find()
-        .populate("createdBy", "username role")
+        .populate("createdBy", "username")
+        .populate("updatedBy", "username")
         .sort({ createdAt: -1 });
 };
 
 // ─── GET CLIENT BY ID ─────────────────────────────────────────────────────────
 export const getClientByIdService = async (id) => {
     const client = await Client.findById(id)
-        .populate("createdBy", "username role");
+        .populate("createdBy", "username")
+        .populate("updatedBy", "username");
 
-        console.log(
-    JSON.stringify(client.documents, null, 2)
-);
     if (!client) {
         const err = new Error("Client not found");
         err.statusCode = 404;
@@ -71,10 +70,12 @@ export const getClientByIdService = async (id) => {
 };
 
 // ─── UPDATE CLIENT ────────────────────────────────────────────────────────────
-export const updateClientService = async (id, payload) => {
+export const updateClientService = async (id, payload, userId) => {
     const updates = { ...payload };
     if (Array.isArray(updates.locations)) updates.locations = stripFrontendIds(updates.locations);
     if (Array.isArray(updates.pocs))      updates.pocs      = stripFrontendIds(updates.pocs);
+
+    if (userId) updates.updatedBy = userId;
 
     const client = await Client.findByIdAndUpdate(id, updates, {
         new: true,

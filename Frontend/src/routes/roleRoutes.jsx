@@ -1,7 +1,10 @@
 import Home from "../pages/Home";
 import JobOpenings from "../pages/JobOpenings";
 import JobDetails from "../pages/JobDetails";
+import EditJob from "../pages/EditJob";
 import Candidates from "../pages/Candidates";
+import CandidateDetails from "../pages/CandidateDetails";
+import EditCandidate from "../pages/EditCandidate";
 import Interviews from "../pages/Interviews";
 import Bench from "../pages/Bench";
 import Submissions from "../pages/Submissions";
@@ -13,7 +16,6 @@ import Client from "../pages/Client";
 import ClientDetails from "../pages/ClientDetails";
 import AddClient from "../pages/AddClient";
 import EditClient from "../pages/EditClient";
-import CandidateDetails from "../pages/CandidateDetails";
 import Users from "../pages/settings/Users";
 import Roles from "../pages/settings/Roles";
 import Permissions from "../pages/settings/Permission";
@@ -55,6 +57,15 @@ export const roleRoutes = [
     },
 
     {
+        path: "jobs/edit/:id",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.JOB_EDIT}>
+                <EditJob />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
         path: "jobs/:id",
         element: (
             <ProtectedRoute permission={PERMISSIONS.JOB_VIEW}>
@@ -69,6 +80,15 @@ export const roleRoutes = [
         element: (
             <ProtectedRoute permission={PERMISSIONS.CANDIDATE_VIEW}>
                 <Candidates />
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "candidates/edit/:id",
+        element: (
+            <ProtectedRoute permission={PERMISSIONS.CANDIDATE_EDIT}>
+                <EditCandidate />
             </ProtectedRoute>
         ),
     },

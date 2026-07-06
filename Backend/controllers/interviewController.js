@@ -47,7 +47,7 @@ export const getInterview = asyncHandler(async (req, res) => {
 
 // ─── UPDATE INTERVIEW ─────────────────────────────────────────────────────────
 export const updateInterview = asyncHandler(async (req, res) => {
-    const interview = await updateInterviewService(req.params.id, req.body);
+    const interview = await updateInterviewService(req.params.id, req.body, req.user.id);
     res.json({ message: "Interview updated successfully", interview });
 });
 

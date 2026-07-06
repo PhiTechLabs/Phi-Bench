@@ -25,6 +25,7 @@ const jobSchema = new mongoose.Schema({
     client:         { type: String, required: true, trim: true },
 
     contact:        { type: String, trim: true, default: "" },
+    contactPhone:   { type: String, trim: true, default: "" },
     manager:        { type: String, trim: true, default: "" },
     recruiter:      { type: String, trim: true, default: "" },
     status: {
@@ -58,6 +59,11 @@ const jobSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
+    },
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
     },
 }, { timestamps: true });
 

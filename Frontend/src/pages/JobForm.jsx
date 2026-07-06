@@ -7,11 +7,41 @@ import { parseApiError } from "../utils/apiError";
 
 const JOB_REQUIRED_FIELDS = ["title", "clientId", "description"];
 
-const JobForm = ({ setShowForm, onSave }) => {
+const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) => {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Seed all form fields when editing an existing job.
+  // Runs once on mount when initialData is provided.
+  useEffect(() => {
+    if (!initialData) return;
+    setFormData({
+      title:        initialData.title        || "",
+      clientId:     initialData.clientId     || "",
+      client:       initialData.client       || "",
+      description:  initialData.description  || "",
+      status:       initialData.status       || "Open",
+      contact:      initialData.contact      || "",
+      contactPhone: initialData.contactPhone || "",
+      manager:      initialData.manager      || "",
+      recruiter:    initialData.recruiter    || "",
+      jobType:      initialData.jobType      || "",
+      experience:   initialData.experience   || "",
+      industry:     initialData.industry     || "",
+      salary:       initialData.salary       || "",
+      billRate:     initialData.billRate     || "",
+      payRate:      initialData.payRate      || "",
+      skills:       initialData.skills       || "",
+      city:         initialData.city         || "",
+      country:      initialData.country      || "",
+      postInfo:     initialData.postInfo     || "",
+      dateOpened:   initialData.dateOpened   ? initialData.dateOpened.substring(0, 10) : "",
+      targetDate:   initialData.targetDate   ? initialData.targetDate.substring(0, 10)  : "",
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount only
 
   const fieldRefs = useRef(
     Object.fromEntries(JOB_REQUIRED_FIELDS.map((k) => [k, React.createRef()]))
@@ -39,6 +69,7 @@ const JobForm = ({ setShowForm, onSave }) => {
   const [nextCode, setNextCode] = useState(null);
 
   useEffect(() => {
+    if (isEdit) return; // no code preview needed for edits
     (async () => {
       try {
         const code = await getNextCodePreview("job");
@@ -47,7 +78,7 @@ const JobForm = ({ setShowForm, onSave }) => {
         console.warn("Failed to preview next job code:", err?.response?.data || err);
       }
     })();
-  }, []);
+  }, [isEdit]);
 
   useEffect(() => {
     (async () => {
@@ -148,14 +179,19 @@ const JobForm = ({ setShowForm, onSave }) => {
               <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
                 PhiBench
               </div>
-              {nextCode && (
+              {!isEdit && nextCode && (
                 <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
                   Next code: {nextCode}
                 </span>
               )}
+              {isEdit && initialData?.code && (
+                <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                  {initialData.code}
+                </span>
+              )}
             </div>
             <div className="text-[18px] font-semibold leading-tight text-[#1C1B18]">
-              New Job Opening
+              {isEdit ? "Edit Job Opening" : "New Job Opening"}
             </div>
           </div>
         </div>
@@ -173,7 +209,7 @@ const JobForm = ({ setShowForm, onSave }) => {
             disabled={submitting}
             className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] hover:shadow-[0_4px_12px_rgba(28,78,216,0.35)] disabled:opacity-50"
           >
-            {submitting ? "Saving..." : "Save Job Opening →"}
+            {submitting ? "Saving..." : isEdit ? "Save Changes →" : "Save Job Opening →"}
           </button>
         </div>
       </div>
@@ -185,7 +221,7 @@ const JobForm = ({ setShowForm, onSave }) => {
           {/* SECTION 1: JOB INFO */}
           <Section title="Job Info" subtitle="Core details about the position and assignment">
             <Row>
-              <Field label="Position Title" name="title" placeholder="e.g. Senior Java Developer" onChange={handleChange} required error={errors.title} wrapperRef={fieldRefs.current.title} />
+              <Field label="Position Title" name="title" value={formData.title || ""} placeholder="e.g. Senior Java Developer" onChange={handleChange} required error={errors.title} wrapperRef={fieldRefs.current.title} />
               <ClientSelect
                 label="Client"
                 clients={clients}
@@ -200,7 +236,6 @@ const JobForm = ({ setShowForm, onSave }) => {
               />
             </Row>
             <Row>
-              {/* Contact Name — searchable POC combobox, same pattern as ClientSelect */}
               <PocSelect
                 label="Contact Name"
                 pocs={(() => {
@@ -218,7 +253,6 @@ const JobForm = ({ setShowForm, onSave }) => {
                 }}
                 onClear={() => setFormData((f) => ({ ...f, contact: "", contactPhone: "" }))}
               />
-              {/* Contact Number — auto-filled when a POC is selected */}
               <Field
                 label="Contact Number"
                 name="contactPhone"
@@ -228,7 +262,6 @@ const JobForm = ({ setShowForm, onSave }) => {
               />
             </Row>
             <Row>
-              {/* Account Manager — searchable combobox of all system users */}
               <UserSelect
                 label="Account Manager"
                 users={users}
@@ -239,43 +272,44 @@ const JobForm = ({ setShowForm, onSave }) => {
               />
             </Row>
             <Row>
-              <Field label="Assign Recruiter" name="recruiter" placeholder="Recruiter name" onChange={handleChange} />
+              <Field label="Assign Recruiter" name="recruiter" value={formData.recruiter || ""} placeholder="Recruiter name" onChange={handleChange} />
               <SelectField
                 label="Job Status"
                 name="status"
+                value={formData.status || ""}
                 options={["Open", "Closed", "On Hold", "Filled"]}
                 onChange={handleChange}
               />
             </Row>
             <Row>
-              <Field label="Date Opened" name="dateOpened" type="date" onChange={handleChange} />
-              <Field label="Target Date" name="targetDate" type="date" onChange={handleChange} />
+              <Field label="Date Opened" name="dateOpened" type="date" value={formData.dateOpened || ""} onChange={handleChange} />
+              <Field label="Target Date"  name="targetDate"  type="date" value={formData.targetDate  || ""} onChange={handleChange} />
             </Row>
             <Row>
-              <Field label="Job Type" name="jobType" placeholder="Full-time / Contract / C2C" onChange={handleChange} />
-              <Field label="Work Experience" name="experience" placeholder="e.g. 5+ years" onChange={handleChange} />
+              <Field label="Job Type"        name="jobType"     value={formData.jobType     || ""} placeholder="Full-time / Contract / C2C" onChange={handleChange} />
+              <Field label="Work Experience" name="experience"  value={formData.experience  || ""} placeholder="e.g. 5+ years"              onChange={handleChange} />
             </Row>
             <Row>
-              <Field label="Industry" name="industry" placeholder="e.g. Fintech, Healthcare" onChange={handleChange} />
-              <Field label="Salary / Rate" name="salary" placeholder="e.g. $120k or $65/hr" onChange={handleChange} />
+              <Field label="Industry"      name="industry" value={formData.industry || ""} placeholder="e.g. Fintech, Healthcare"     onChange={handleChange} />
+              <Field label="Salary / Rate" name="salary"   value={formData.salary   || ""} placeholder="e.g. $120k or $65/hr"         onChange={handleChange} />
             </Row>
             <Row>
-              <Field label="Bill Rate" name="billRate" placeholder="e.g. $75/hr" onChange={handleChange} />
-              <Field label="Pay Rate" name="payRate" placeholder="e.g. $60/hr" onChange={handleChange} />
+              <Field label="Bill Rate" name="billRate" value={formData.billRate || ""} placeholder="e.g. $75/hr"  onChange={handleChange} />
+              <Field label="Pay Rate"  name="payRate"  value={formData.payRate  || ""} placeholder="e.g. $60/hr"  onChange={handleChange} />
             </Row>
             <Row>
-              <Field label="Required Skills" name="skills" placeholder="e.g. React, Node.js, AWS, Kubernetes..." onChange={handleChange} full />
+              <Field label="Required Skills" name="skills" value={formData.skills || ""} placeholder="e.g. React, Node.js, AWS, Kubernetes..." onChange={handleChange} full />
             </Row>
           </Section>
 
           {/* SECTION 2: LOCATION */}
           <Section title="Location & Posting" subtitle="Where is this role based and how it will be listed">
             <Row>
-              <Field label="City" name="city" placeholder="e.g. Austin" onChange={handleChange} />
-              <Field label="Country" name="country" placeholder="e.g. United States" onChange={handleChange} />
+              <Field label="City"    name="city"    value={formData.city    || ""} placeholder="e.g. Austin"         onChange={handleChange} />
+              <Field label="Country" name="country" value={formData.country || ""} placeholder="e.g. United States"  onChange={handleChange} />
             </Row>
             <Row>
-              <Field label="Post Info / Job Board" name="postInfo" placeholder="Where should this opening be posted?" onChange={handleChange} full />
+              <Field label="Post Info / Job Board" name="postInfo" value={formData.postInfo || ""} placeholder="Where should this opening be posted?" onChange={handleChange} full />
             </Row>
           </Section>
 
@@ -284,6 +318,7 @@ const JobForm = ({ setShowForm, onSave }) => {
             <TextAreaField
               label="Description"
               name="description"
+              value={formData.description || ""}
               required
               error={errors.description}
               placeholder="Write a detailed job description including responsibilities, qualifications, and any other relevant information..."
@@ -306,7 +341,7 @@ const JobForm = ({ setShowForm, onSave }) => {
               disabled={submitting}
               className="rounded-[10px] bg-[#1C4ED8] px-6 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] disabled:opacity-50"
             >
-              {submitting ? "Saving..." : "Save Job Opening →"}
+              {submitting ? "Saving..." : isEdit ? "Save Changes →" : "Save Job Opening →"}
             </button>
           </div>
         </div>

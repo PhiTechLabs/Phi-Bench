@@ -43,14 +43,16 @@ export const createJobService = async (payload, userId) => {
 // ─── GET ALL JOBS ─────────────────────────────────────────────────────────────
 export const getAllJobsService = async () => {
     return await Job.find()
-        .populate("createdBy", "username role")
+        .populate("createdBy", "username")
+        .populate("updatedBy", "username")
         .sort({ createdAt: -1 });
 };
 
 // ─── GET JOB BY ID ────────────────────────────────────────────────────────────
 export const getJobByIdService = async (id) => {
     const job = await Job.findById(id)
-        .populate("createdBy", "username role");
+        .populate("createdBy", "username")
+        .populate("updatedBy", "username");
     if (!job) {
         const err = new Error("Job not found");
         err.statusCode = 404;
@@ -60,17 +62,16 @@ export const getJobByIdService = async (id) => {
 };
 
 // ─── UPDATE JOB ───────────────────────────────────────────────────────────────
-export const updateJobService = async (id, payload) => {
+export const updateJobService = async (id, payload, userId) => {
     const updates = { ...payload };
 
-    // Only re-resolve the client if the caller is actually changing it.
-    // This keeps partial updates (e.g. just changing status) from requiring
-    // clientId on every request.
     if (updates.clientId !== undefined) {
         const client = await resolveClient(updates.clientId);
         updates.clientId = client._id;
         updates.client   = client.clientName;
     }
+
+    if (userId) updates.updatedBy = userId;
 
     const job = await Job.findByIdAndUpdate(id, updates, {
         new: true,

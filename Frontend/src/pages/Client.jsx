@@ -93,7 +93,6 @@ const canDelete = hasPermission(
 
   /* ── columns ── */
   const columns = [
-    { key: "sno",            label: "S.No",            width: 56,  type: "sno", fixed: true, removable: false, defaultVisible: true, searchable: false },
     { key: "code",           label: "Code",            width: 90,  type: "text", bold: true, defaultVisible: true, sortable: true, searchable: true },
     { key: "clientName",     label: "Client",          width: 200, type: "text", bold: true, link: true, avatar: true, removable: false, defaultVisible: true, sortable: true, searchable: true },
     { key: "industry",       label: "Industry",        width: 140, type: "text", defaultVisible: true, sortable: true, filterable: true, searchable: true },
@@ -115,6 +114,8 @@ const canDelete = hasPermission(
     { key: "gstNumber",    label: "GST Number",   width: 150, type: "text" },
     { key: "panNumber",    label: "PAN Number",   width: 130, type: "text" },
     { key: "updatedAt",    label: "Last Updated", width: 120, type: "date", sortable: true, sortType: "date" },
+    { key: "createdBy",   label: "Created By",   width: 130, type: "text", defaultVisible: false, sortable: true, sortType: "string", searchable: true, filterable: true },
+    { key: "updatedBy",   label: "Updated By",   width: 130, type: "text", defaultVisible: false, sortable: true, sortType: "string", searchable: true, filterable: true },
   ];
 
   return (

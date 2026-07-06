@@ -45,6 +45,10 @@ const normalize = (candidate) => {
             : [],
 
         attachments: candidate.attachments || {},
+
+        // flatten audit user references to username strings
+        createdBy: candidate.createdBy?.username || candidate.createdBy || "",
+        updatedBy: candidate.updatedBy?.username || candidate.updatedBy || "",
     };
 };
 

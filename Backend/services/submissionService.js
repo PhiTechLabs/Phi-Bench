@@ -76,6 +76,7 @@ export const listSubmissionsService = async () => {
         .populate("candidate", "firstName lastName email jobTitle")
         .populate("job", "title client status")
         .populate("createdBy", "username")
+        .populate("updatedBy", "username")
         .sort({ createdAt: -1 });
 };
 
@@ -166,6 +167,9 @@ export const updateSubmissionService = async (id, payload, userId) => {
     if (payload.recruiterNotes !== undefined) updates.recruiterNotes = payload.recruiterNotes;
     if (payload.clientFeedback !== undefined) updates.clientFeedback = payload.clientFeedback;
 
+    // Track who last updated this submission
+    if (userId) updates.updatedBy = userId;
+
     // If nothing to update
     if (Object.keys(updates).length === 0) return submission;
 
@@ -200,7 +204,7 @@ export const forceStatusService = async (id, status, userId, note) => {
     const updated = await Submission.findByIdAndUpdate(
         id,
         {
-            $set:  { status },
+            $set:  { status, updatedBy: userId },
             $push: {
                 statusHistory: {
                     status,

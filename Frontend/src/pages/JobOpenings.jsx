@@ -36,7 +36,7 @@ const JobOpenings = () => {
   const roleBase = useRoleBase();
 
   const user = getCurrentUser();
-  const canCreate = hasPermission(user, PERMISSIONS.JOB_ADD);
+  const canCreate = hasPermission(user, PERMISSIONS.JOB_CREATE);
   const canEdit = hasPermission(user, PERMISSIONS.JOB_EDIT);
   const canDelete = hasPermission(user, PERMISSIONS.JOB_DELETE);
 
@@ -55,10 +55,7 @@ const JobOpenings = () => {
 
   /* ── handlers ── */
   const handleAdd = async (data) => {
-    if (!canCreate) {
-        alert("You don't have permission to create jobs.");
-        return;
-    }
+    if (!canCreate) return;
     try {
       await createJob(data);
       await refresh();
@@ -124,6 +121,8 @@ const JobOpenings = () => {
     { key: "dateOpened", label: "Date Opened",   width: 120, type: "date", sortable: true, sortType: "date" },
     { key: "targetDate", label: "Target Date",   width: 120, type: "date", sortable: true, sortType: "date" },
     { key: "createdAt",  label: "Created",       width: 120, type: "date", sortable: true, sortType: "date" },
+    { key: "createdBy",  label: "Created By",    width: 130, type: "text", sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
+    { key: "updatedBy",  label: "Updated By",    width: 130, type: "text", sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
   ];
 
   if (showForm) {

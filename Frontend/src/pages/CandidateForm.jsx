@@ -135,7 +135,7 @@ const STATUS_OPTIONS = [
 
 /* ──────────────────── MAIN COMPONENT ──────────────────── */
 
-const CandidateForm = ({ setShowForm, onSave }) => {
+const CandidateForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) => {
   const [formData, setFormData] = useState({
     status: "New",
     onBench: true,
@@ -145,10 +145,43 @@ const CandidateForm = ({ setShowForm, onSave }) => {
   const [experience, setExperience] = useState([{}]);
   const [attachments, setAttachments] = useState({});
 
+  // Seed all state from initialData when editing an existing candidate.
+  // Runs once after mount when initialData is provided.
+  useEffect(() => {
+    if (!initialData) return;
+    setFormData({
+      firstName:      initialData.firstName      || "",
+      lastName:       initialData.lastName       || "",
+      email:          initialData.email          || "",
+      phone:          initialData.phone          || "",
+      jobTitle:       initialData.jobTitle       || "",
+      status:         initialData.status         || "New",
+      onBench:        Boolean(initialData.onBench),
+      linkedin:       initialData.linkedin       || "",
+      experienceYears:initialData.experienceYears|| "",
+      currentSalary:  initialData.currentSalary  || "",
+      expectedSalary: initialData.expectedSalary || "",
+      qualification:  initialData.qualification  || "",
+      skills:         initialData.skills         || "",
+      street:         initialData.street         || "",
+      city:           initialData.city           || "",
+      state:          initialData.state          || "",
+      pincode:        initialData.pincode        || "",
+      country:        initialData.country        || "",
+    });
+    if (Array.isArray(initialData.education) && initialData.education.length) {
+      setEducation(initialData.education);
+    }
+    if (Array.isArray(initialData.experience) && initialData.experience.length) {
+      setExperience(initialData.experience);
+    }
+    if (initialData.attachments) {
+      setAttachments(initialData.attachments);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount only
+
   // ─── NEXT CODE PREVIEW ─────────────────────────────────────────────────────
-  // Read-only preview of the code this candidate will be assigned (e.g.
-  // "CD014"). The real code is only actually assigned by the backend at
-  // save time — this is purely informational.
   const [nextCode, setNextCode] = useState(null);
   const [formError, setFormError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -176,6 +209,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
   }, [fieldErrors]);
 
   useEffect(() => {
+    if (isEdit) return; // no code preview needed for edits
     (async () => {
       try {
         const code = await getNextCodePreview("candidate");
@@ -184,7 +218,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
         console.warn("Failed to preview next candidate code:", err?.response?.data || err);
       }
     })();
-  }, []);
+  }, [isEdit]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -286,15 +320,20 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#9B9890]">
                 PhiBench
               </div>
-              {nextCode && (
+              {!isEdit && nextCode && (
                 <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
                   Next code: {nextCode}
+                </span>
+              )}
+              {isEdit && initialData?.code && (
+                <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                  {initialData.code}
                 </span>
               )}
             </div>
 
             <div className="text-[18px] font-semibold leading-tight text-[#1C1B18]">
-              Create Candidate
+              {isEdit ? "Edit Candidate" : "Create Candidate"}
             </div>
           </div>
         </div>
@@ -313,7 +352,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
             disabled={submitting}
             className="rounded-[10px] bg-[#1C4ED8] px-5.5 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] transition-all hover:bg-[#1741B6] disabled:opacity-50"
           >
-            {submitting ? "Saving..." : "Save Candidate →"}
+            {submitting ? "Saving..." : isEdit ? "Save Changes →" : "Save Candidate →"}
           </button>
         </div>
       </div>
@@ -331,6 +370,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="First Name"
                 name="firstName"
+                value={formData.firstName || ""}
                 placeholder="Enter first name"
                 onChange={handleChange}
                 required
@@ -341,6 +381,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="Last Name"
                 name="lastName"
+                value={formData.lastName || ""}
                 placeholder="Enter last name"
                 onChange={handleChange}
                 required
@@ -354,6 +395,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
                 label="Email"
                 name="email"
                 type="email"
+                value={formData.email || ""}
                 placeholder="email@example.com"
                 onChange={handleChange}
                 required
@@ -364,6 +406,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="Phone Number"
                 name="phone"
+                value={formData.phone || ""}
                 placeholder="+91 9876543210"
                 onChange={handleChange}
                 required
@@ -382,6 +425,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="Street"
                 name="street"
+                value={formData.street || ""}
                 placeholder="Street address"
                 onChange={handleChange}
                 full
@@ -392,6 +436,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="City"
                 name="city"
+                value={formData.city || ""}
                 placeholder="City"
                 onChange={handleChange}
               />
@@ -399,6 +444,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="Pincode"
                 name="pincode"
+                value={formData.pincode || ""}
                 placeholder="Postal / Zip code"
                 onChange={handleChange}
               />
@@ -441,6 +487,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="Experience (Years)"
                 name="experienceYears"
+                value={formData.experienceYears || ""}
                 placeholder="e.g. 5"
                 onChange={handleChange}
               />
@@ -448,6 +495,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="Current Job Title"
                 name="jobTitle"
+                value={formData.jobTitle || ""}
                 placeholder="e.g. Software Engineer"
                 onChange={handleChange}
                 required
@@ -510,6 +558,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <CurrencyField
                 label="Expected Salary"
                 name="expectedSalary"
+                value={formData.expectedSalary || ""}
                 placeholder="e.g. 700000"
                 onChange={handleChange}
               />
@@ -519,6 +568,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <CurrencyField
                 label="Current Salary"
                 name="currentSalary"
+                value={formData.currentSalary || ""}
                 placeholder="e.g. 500000"
                 onChange={handleChange}
               />
@@ -526,6 +576,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="LinkedIn"
                 name="linkedin"
+                value={formData.linkedin || ""}
                 placeholder="linkedin.com/in/username"
                 onChange={handleChange}
               />
@@ -535,6 +586,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               <Field
                 label="Skill Details"
                 name="skills"
+                value={formData.skills || ""}
                 placeholder="e.g. React, Node.js, AWS..."
                 onChange={handleChange}
                 full
@@ -737,7 +789,7 @@ const CandidateForm = ({ setShowForm, onSave }) => {
               disabled={submitting}
               className="rounded-[10px] bg-[#1C4ED8] px-6 py-2.5 text-[13px] font-medium text-white shadow-[0_1px_3px_rgba(28,78,216,0.3)] disabled:opacity-50"
             >
-              {submitting ? "Saving..." : "Save Candidate →"}
+              {submitting ? "Saving..." : isEdit ? "Save Changes →" : "Save Candidate →"}
             </button>
           </div>
         </div>

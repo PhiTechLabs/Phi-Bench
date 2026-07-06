@@ -37,7 +37,7 @@ export const getClientById = asyncHandler(async (req, res) => {
 
 // ─── UPDATE CLIENT ────────────────────────────────────────────────────────────
 export const updateClient = asyncHandler(async (req, res) => {
-    const client = await updateClientService(req.params.id, req.body);
+    const client = await updateClientService(req.params.id, req.body, req.user.id);
     res.json({ message: "Client updated successfully", client });
 });
 
