@@ -36,7 +36,7 @@ const JobOpenings = () => {
   const roleBase = useRoleBase();
 
   const user = getCurrentUser();
-  const canCreate = hasPermission(user, PERMISSIONS.JOB_CREATE);
+  const canCreate = hasPermission(user, PERMISSIONS.JOB_ADD);
   const canEdit = hasPermission(user, PERMISSIONS.JOB_EDIT);
   const canDelete = hasPermission(user, PERMISSIONS.JOB_DELETE);
 
