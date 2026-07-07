@@ -336,11 +336,12 @@ const Interviews = () => {
       },
       {
         key: "createdAt",
-        label: "Created",
+        label: "Created On",
         width: 120,
         type: "date",
         sortable: true,
         sortType: "date",
+        defaultVisible: false,
       },
       {
         key: "createdBy",
@@ -351,6 +352,15 @@ const Interviews = () => {
         sortType: "string",
         searchable: true,
         filterable: true,
+        defaultVisible: false,
+      },
+      {
+        key: "updatedAt",
+        label: "Updated On",
+        width: 120,
+        type: "date",
+        sortable: true,
+        sortType: "date",
         defaultVisible: false,
       },
       {

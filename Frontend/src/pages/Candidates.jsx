@@ -498,11 +498,12 @@ console.log(
 
     {
       key: "createdAt",
-      label: "Date Added",
+      label: "Created On",
       width: 120,
       type: "date",
       sortable: true,
       sortType: "date",
+      defaultVisible: false,
     },
 
     {
@@ -514,6 +515,16 @@ console.log(
       sortType: "string",
       searchable: true,
       filterable: true,
+      defaultVisible: false,
+    },
+
+    {
+      key: "updatedAt",
+      label: "Updated On",
+      width: 120,
+      type: "date",
+      sortable: true,
+      sortType: "date",
       defaultVisible: false,
     },
 

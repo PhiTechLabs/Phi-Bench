@@ -120,9 +120,10 @@ const JobOpenings = () => {
     { key: "country",    label: "Country",       width: 120, type: "text", sortable: true, filterable: true },
     { key: "dateOpened", label: "Date Opened",   width: 120, type: "date", sortable: true, sortType: "date" },
     { key: "targetDate", label: "Target Date",   width: 120, type: "date", sortable: true, sortType: "date" },
-    { key: "createdAt",  label: "Created",       width: 120, type: "date", sortable: true, sortType: "date" },
-    { key: "createdBy",  label: "Created By",    width: 130, type: "text", sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
-    { key: "updatedBy",  label: "Updated By",    width: 130, type: "text", sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
+    { key: "createdAt",  label: "Created On",   width: 120, type: "date", sortable: true, sortType: "date",   defaultVisible: false },
+    { key: "createdBy",  label: "Created By",   width: 130, type: "text", sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
+    { key: "updatedAt",  label: "Updated On",   width: 120, type: "date", sortable: true, sortType: "date",   defaultVisible: false },
+    { key: "updatedBy",  label: "Updated By",   width: 130, type: "text", sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
   ];
 
   if (showForm) {

@@ -106,14 +106,14 @@ const canDelete = hasPermission(
       statusOptions: STATUS_OPTIONS, onStatusChange: handleStatusChange,
       defaultVisible: true, sortable: true, filterable: true,
     },
-    { key: "createdAt",    label: "Created",      width: 110, type: "date", defaultVisible: true, sortable: true, sortType: "date" },
+    { key: "createdAt",    label: "Created On",   width: 110, type: "date", defaultVisible: false, sortable: true, sortType: "date" },
     /* ─── Hidden by default ─── */
     { key: "website",      label: "Website",      width: 180, type: "text" },
     { key: "primaryState", label: "State",        width: 120, type: "text", filterable: true },
     { key: "country",      label: "Country",      width: 120, type: "text", filterable: true, sortable: true },
     { key: "gstNumber",    label: "GST Number",   width: 150, type: "text" },
     { key: "panNumber",    label: "PAN Number",   width: 130, type: "text" },
-    { key: "updatedAt",    label: "Last Updated", width: 120, type: "date", sortable: true, sortType: "date" },
+    { key: "updatedAt",    label: "Updated On",   width: 120, type: "date", sortable: true, sortType: "date" },
     { key: "createdBy",   label: "Created By",   width: 130, type: "text", defaultVisible: false, sortable: true, sortType: "string", searchable: true, filterable: true },
     { key: "updatedBy",   label: "Updated By",   width: 130, type: "text", defaultVisible: false, sortable: true, sortType: "string", searchable: true, filterable: true },
   ];

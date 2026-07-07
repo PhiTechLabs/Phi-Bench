@@ -64,7 +64,7 @@ const Submissions = () => {
       },
     },
     {
-      key: "submittedDate", label: "Submitted", width: 120, type: "date",
+      key: "submittedDate", label: "Submitted On", width: 120, type: "date",
       defaultVisible: true, sortable: true, sortType: "date",
     },
     {
@@ -72,13 +72,17 @@ const Submissions = () => {
       defaultVisible: false,
     },
     {
-      key: "createdAt", label: "Created", width: 120, type: "date",
+      key: "createdAt", label: "Created On", width: 120, type: "date",
       sortable: true, sortType: "date", defaultVisible: false,
     },
     {
       key: "submittedBy", label: "Submitted By", width: 130, type: "text",
       sortable: true, sortType: "string", searchable: true, filterable: true,
       defaultVisible: true,
+    },
+    {
+      key: "updatedAt", label: "Updated On", width: 120, type: "date",
+      sortable: true, sortType: "date", defaultVisible: false,
     },
     {
       key: "updatedBy", label: "Updated By", width: 130, type: "text",
