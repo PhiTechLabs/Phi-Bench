@@ -2,6 +2,7 @@
     import usePermissions from "../hooks/usePermission";
     import ComingSoon from "../components/comingSoon";
     import { BarChart3 } from "lucide-react";
+    import BackButton from "../reusable/BackButton";
 
     import {
     MODULES,
@@ -14,18 +15,21 @@
 
     if (!canView) {
         return (
-        <div className="p-10 text-red-500">
+        <div className="p-10 text-red-500"> 
             Access Denied
         </div>
         );
     }
 
     return (
+        <>
+        <BackButton />
         <ComingSoon
         icon={BarChart3}
         title="Reports are Taking Shape"
         subtitle="We're crafting a powerful reporting experience with deeper insights, smarter filtering, and meaningful analytics."
         />
+        </>
     );
     };
 

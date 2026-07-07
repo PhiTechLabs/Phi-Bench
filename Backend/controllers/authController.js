@@ -17,7 +17,7 @@ export const loginUser = async (req, res) => {
 
     try {
 
-        const { loginId, password } = req.body;
+        const { loginId, password , rememberMe } = req.body;
 
         if (!loginId || !password) {
             return res.status(400).json({
@@ -62,7 +62,7 @@ export const loginUser = async (req, res) => {
             generateAccessToken(user);
 
         const refreshToken =
-            generateRefreshToken(user);
+            generateRefreshToken(user, rememberMe);
 
         user.refreshToken = refreshToken;
 
@@ -72,7 +72,16 @@ export const loginUser = async (req, res) => {
         res.cookie("accessToken", accessToken, cookieOptions(15 * 60 * 1000));
 
         // ─── REFRESH TOKEN COOKIE ────────────────────────
-        res.cookie("refreshToken", refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
+        // rememberMe → persists 30 days across browser restarts.
+        // Not remembered → session cookie (no maxAge), so it's wiped when the
+        // browser closes, even though the JWT itself lives 1 day as a safety net.
+        res.cookie(
+            "refreshToken",
+            refreshToken,
+            rememberMe
+                ? cookieOptions(30 * 24 * 60 * 60 * 1000)
+                : cookieOptions()
+        );
 
         const populatedUser =
             await User.findById(user._id)

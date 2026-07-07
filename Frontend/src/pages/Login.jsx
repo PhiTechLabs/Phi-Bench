@@ -16,35 +16,38 @@ export default function Login() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
+    const [rememberChecked, setRememberChecked] = useState(!!localStorage.getItem("rememberedUser"));
+
+
 
     async function handleSubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData);
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
 
+    try {
+        const res = await api.post("/auth/login", {
+            loginId: data.loginId,
+            password: data.password,
+            rememberMe: !!data.remember, // tell backend to issue a longer session
+        });
+
+        const { user } = res.data;
+
+        // Fix: was data.username (undefined), should be data.loginId
         if (data.remember) {
-            localStorage.setItem("rememberedUser", data.username);
+            localStorage.setItem("rememberedUser", data.loginId);
         } else {
             localStorage.removeItem("rememberedUser");
         }
 
-        try {
-            const res = await api.post("/auth/login", {
-                loginId: data.loginId,
-                password: data.password,
-            });
+        localStorage.setItem("user", JSON.stringify(user));
+        navigate("/home");
 
-            const { user } = res.data;
-            // console.log(res.data);
-            // console.log(user);
-
-            localStorage.setItem("user", JSON.stringify(user));
-            navigate("/home");
-
-        } catch (error) {
-            alert(error.response?.data?.message || "Login Failed");
-        }
+    } catch (error) {
+        alert(error.response?.data?.message || "Login Failed");
     }
+}
 
     const ssoCardBase = `
         group relative flex items-center justify-center gap-2
@@ -169,7 +172,13 @@ export default function Login() {
                         {/* REMEMBER + FORGOT */}
                         <div className="flex items-center justify-between">
                             <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
-                                <input type="checkbox" name="remember" className="accent-blue-900 w-3 h-3" />
+                                <input
+                                    type="checkbox"
+                                    name="remember"
+                                    checked={rememberChecked}
+                                    onChange={(e) => setRememberChecked(e.target.checked)}
+                                    className="accent-blue-900 w-3 h-3"
+                                />
                                 Remember me
                             </label>
                             <button

@@ -8,7 +8,7 @@
     icon: Icon = Rocket,
     }) => {
     return (
-        <div className="flex min-h-[calc(100vh-240px)] items-center justify-center px-6 py-8">
+        <div className="flex min-h-[calc(100vh-240px)] items-center justify-center px-6 py-4">
 
         <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-slate-50 via-white to-blue-50 shadow-lg">
 

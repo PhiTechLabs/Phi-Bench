@@ -21,14 +21,14 @@ export const generateAccessToken = (user) => {
 };
 
 
-export const generateRefreshToken = (user) => {
+export const generateRefreshToken = (user, rememberMe = false) => {
     return jwt.sign(
         {
             id: user._id,
         },
         process.env.JWT_REFRESH_SECRET,
         {
-            expiresIn: "7d",
+            expiresIn: rememberMe ? "30d" : "1d",
         }
     );
 };
