@@ -31,7 +31,6 @@ const SubmitToJobModal = ({ candidate, onClose, onSuccess }) => {
 
     // Fetch open jobs on mount
     useEffect(() => {
-         
         const fetchJobs = async () => {
             try {
                 setLoading(true);
@@ -102,11 +101,11 @@ const SubmitToJobModal = ({ candidate, onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-20">
+            <div className="flex w-full max-w-lg flex-col rounded-xl bg-white shadow-2xl overflow-hidden" style={{ maxHeight: "calc(100vh - 10rem)" }}>
 
-                {/* ── Header ── */}
-                <div className="flex items-center justify-between border-b border-[#F1F5F9] px-6 py-4">
+                {/* ── Header ── sticky, never scrolls */}
+                <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-6 py-4">
                     <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#2563EB]">
                             <Icon d={icons.submit} size={17} />
@@ -122,8 +121,8 @@ const SubmitToJobModal = ({ candidate, onClose, onSuccess }) => {
                     </button>
                 </div>
 
-                {/* ── Content ── */}
-                <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                {/* ── Content ── fills remaining space and scrolls */}
+                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4 min-h-0">
 
                     {/* Search bar */}
                     <div className="relative">
@@ -153,7 +152,7 @@ const SubmitToJobModal = ({ candidate, onClose, onSuccess }) => {
                             <p className="text-[11px] font-semibold uppercase tracking-widest text-[#94A3B8]">
                                 Select a job ({filteredJobs.length} open)
                             </p>
-                            <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
+                            <div className="space-y-1.5">
                                 {filteredJobs.map((job) => (
                                     <button
                                         key={job.id}
@@ -233,8 +232,8 @@ const SubmitToJobModal = ({ candidate, onClose, onSuccess }) => {
                     )}
                 </div>
 
-                {/* ── Footer ── */}
-                <div className="flex items-center justify-between border-t border-[#F1F5F9] px-6 py-4">
+                {/* ── Footer ── sticky, never scrolls */}
+                <div className="flex shrink-0 items-center justify-between border-t border-[#F1F5F9] px-6 py-4">
                     <button onClick={onClose}
                         className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
                         Cancel
