@@ -70,7 +70,8 @@ const candidateSchema = new mongoose.Schema({
     currentSalary:   { type: String, trim: true, default: "" },
     linkedin:        { type: String, trim: true, default: "" },
     skills:          { type: String, trim: true, default: "" },
-    noticePeriod:    { type: String, trim: true, default: "" }, // shown in table, editable later
+    noticePeriod:    { type: String, trim: true, default: "" },
+    source:          { type: String, trim: true, default: "" }, // how the candidate was sourced
 
     // Pipeline state
     status: {

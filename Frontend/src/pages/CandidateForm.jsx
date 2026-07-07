@@ -163,6 +163,7 @@ const CandidateForm = ({ setShowForm, onSave, initialData = null, isEdit = false
       expectedSalary: initialData.expectedSalary || "",
       qualification:  initialData.qualification  || "",
       skills:         initialData.skills         || "",
+      source:         initialData.source         || "",
       street:         initialData.street         || "",
       city:           initialData.city           || "",
       state:          initialData.state          || "",
@@ -578,6 +579,17 @@ const CandidateForm = ({ setShowForm, onSave, initialData = null, isEdit = false
                 name="linkedin"
                 value={formData.linkedin || ""}
                 placeholder="linkedin.com/in/username"
+                onChange={handleChange}
+              />
+            </Row>
+
+            <Row>
+              <SelectField
+                label="Source"
+                name="source"
+                value={formData.source || ""}
+                options={["Added by User", "Referral", "Job Board", "LinkedIn", "Website", "Cold Outreach", "Social Media"]}
+                placeholder="How was this candidate sourced?"
                 onChange={handleChange}
               />
             </Row>

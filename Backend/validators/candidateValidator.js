@@ -39,6 +39,9 @@ export const createCandidateRules = [
     body("currentSalary").optional({ checkFalsy: true }).trim()
         .isLength({ max: 15 }).withMessage("Invalid salary"),
 
+    body("source").optional({ checkFalsy: true }).trim()
+        .isLength({ max: 100 }).withMessage("Source too long"),
+
     // Status (mostly relevant on update, but allow on create too)
     body("status").optional()
         .isIn(CANDIDATE_STATUSES)
@@ -79,6 +82,9 @@ export const updateCandidateRules = [
         .withMessage("Invalid status"),
 
     body("onBench").optional().isBoolean(),
+
+    body("source").optional({ checkFalsy: true }).trim()
+        .isLength({ max: 100 }).withMessage("Source too long"),
 
     body("education").optional().isArray(),
     body("experience").optional().isArray(),
