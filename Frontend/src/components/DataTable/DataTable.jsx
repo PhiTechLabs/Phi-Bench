@@ -3,6 +3,21 @@ import { useDataTable } from "./useDataTable";
 import { renderCell } from "./cellRenderers";
 import PermissionGuard from "../PermissionGuard";
 
+// ─── USER-SCOPED STORAGE KEY ──────────────────────────────────────────────────
+// Prefix every storageKey with the logged-in user's id so that multiple users
+// sharing the same browser/device each get their own isolated set of saved
+// views, column preferences, sort settings and page sizes.
+// Falls back to "shared" if no user is found (e.g. public pages).
+const getUserScopedKey = (key) => {
+    try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const uid  = user?.id || user?._id || "shared";
+        return `${uid}_${key}`;
+    } catch {
+        return key;
+    }
+};
+
 /* ═══════════════════════════════════════════════════════════════════════════
  *  DataTable — with Saved Views + Advanced Filter Panel (ATS-grade)
  * ═══════════════════════════════════════════════════════════════════════════
@@ -32,7 +47,8 @@ const DataTable = ({
     bulkDeletePermission,
 }) => {
     const defaultVisibleKeys = defaultVisible || registry.filter((c) => c.defaultVisible).map((c) => c.key);
-    const t = useDataTable({ registry, defaultVisibleKeys, storageKey, data });
+    const scopedKey = getUserScopedKey(storageKey);
+    const t = useDataTable({ registry, defaultVisibleKeys, storageKey: scopedKey, data });
 
     const [showAddColumn,   setShowAddColumn]   = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
