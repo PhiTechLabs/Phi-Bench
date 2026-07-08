@@ -65,9 +65,8 @@ axiosInstance.interceptors.response.use(
 
             } catch (refreshError) {
 
-                localStorage.clear();
-
-                // console.error("Session expired");
+                // Views are user-scoped (uid_key) so safe to leave — just remove session
+                localStorage.removeItem("user");
 
                 // redirect to login
                 window.location.href = "/login";
