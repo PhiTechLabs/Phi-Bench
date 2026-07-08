@@ -223,6 +223,28 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
     useEffect(() => { saveViews(storageKey, views); },           [views, storageKey]);
     useEffect(() => { localStorage.setItem(ACTIVE_KEY(storageKey), activeViewId); }, [activeViewId, storageKey]);
 
+    // ── RESTORE VIEW STATE ON MOUNT ───────────────────────────────────────────
+    // When the user navigates away and comes back, localStorage restores the
+    // activeViewId correctly (so the tab underline is right) but filters/search
+    // start empty. This effect applies the saved view's state on first render
+    // so the data shown matches the highlighted tab — not just on re-click.
+    useEffect(() => {
+        if (activeViewId === "__all__") return; // All Records — empty state is correct
+        const savedViews = loadViews(storageKey);
+        const view = savedViews.find((v) => v.id === activeViewId);
+        if (!view) return;
+        // Restore filters
+        const restoredFilters = {};
+        Object.entries(view.filters || {}).forEach(([k, v]) => {
+            const arr = Array.isArray(v) ? v : [];
+            if (arr.length) restoredFilters[k] = new Set(arr);
+        });
+        setFilters(restoredFilters);
+        setSearch(view.search || "");
+        setSort(view.sort || { key: null, dir: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // intentionally runs once on mount only
+
     const activeView = views.find((v) => v.id === activeViewId) || views[0];
 
     // Serialise current live state for dirty check
