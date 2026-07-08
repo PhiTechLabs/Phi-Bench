@@ -353,11 +353,11 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
             </Row>
             <Row>
               <Field label="Industry"      name="industry" value={formData.industry || ""} placeholder="e.g. Fintech, Healthcare"     onChange={handleChange} />
-              <Field label="Salary / Rate" name="salary"   value={formData.salary   || ""} placeholder="e.g. $120k or $65/hr"         onChange={handleChange} />
+              <Field label="Salary / Rate" name="salary"   value={formData.salary   || ""} placeholder="e.g. ₹8,00,000 or ₹650/hr"  onChange={handleChange} />
             </Row>
             <Row>
-              <Field label="Bill Rate" name="billRate" value={formData.billRate || ""} placeholder="e.g. $75/hr"  onChange={handleChange} />
-              <Field label="Pay Rate"  name="payRate"  value={formData.payRate  || ""} placeholder="e.g. $60/hr"  onChange={handleChange} />
+              <Field label="Bill Rate" name="billRate" value={formData.billRate || ""} placeholder="e.g. ₹750/hr"  onChange={handleChange} />
+              <Field label="Pay Rate"  name="payRate"  value={formData.payRate  || ""} placeholder="e.g. ₹600/hr"  onChange={handleChange} />
             </Row>
             <Row>
               <Field label="Required Skills" name="skills" value={formData.skills || ""} placeholder="e.g. React, Node.js, AWS, Kubernetes..." onChange={handleChange} full />
