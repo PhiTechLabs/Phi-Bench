@@ -11,7 +11,7 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     "Hold by Client":       ["Submitted To Client", "Screen Reject", "Position Closed", "Duplicate", "L1 Schedule Pending", "L2 Schedule Pending", "L3 Schedule Pending", "L4 Schedule Pending"],
     "Screen Reject":        ["For Validation"],
     "Position Closed":      ["Screen Reject", "Submitted To Client", "Duplicate", "L1 Schedule Pending"],
-    "L1 Schedule Pending":  ["L1 Scheduled", "L1 Backout", "Hold by Client"],
+    "L1 Schedule Pending":  [ "L1 Backout", "Hold by Client"],
     "L1 Scheduled":         ["L1 Rescheduled"],
     "L1 Feedback Pending":  ["L1 Rejected", "L1 Backout", "L2 Schedule Pending", "Final Select", "Hold by Client"],
     "L1 Rescheduled":       ["L1 Schedule Pending", "L1 Feedback Pending"],
