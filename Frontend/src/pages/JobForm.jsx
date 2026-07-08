@@ -7,6 +7,58 @@ import { parseApiError } from "../utils/apiError";
 
 const JOB_REQUIRED_FIELDS = ["title", "clientId", "description"];
 
+const COUNTRIES = [
+  "India",
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "Singapore",
+  "United Arab Emirates",
+  "Saudi Arabia",
+  "Qatar",
+  "Japan",
+  "China",
+  "South Korea",
+  "Netherlands",
+  "Sweden",
+  "Switzerland",
+  "Ireland",
+  "New Zealand",
+  "South Africa",
+  "Brazil",
+  "Mexico",
+  "Argentina",
+  "Italy",
+  "Spain",
+  "Belgium",
+  "Norway",
+  "Denmark",
+  "Finland",
+  "Poland",
+  "Portugal",
+  "Greece",
+  "Turkey",
+  "Russia",
+  "Indonesia",
+  "Malaysia",
+  "Thailand",
+  "Vietnam",
+  "Philippines",
+  "Bangladesh",
+  "Pakistan",
+  "Sri Lanka",
+  "Nepal",
+  "Egypt",
+  "Kenya",
+  "Nigeria",
+  "Israel",
+  "Hong Kong",
+  "Taiwan",
+];
+
 const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) => {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
@@ -109,12 +161,15 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
   useEffect(() => {
     (async () => {
       try {
-        const res = await axiosInstance.get("/auth/users");
+        // Use /users/picker — accessible by any authenticated user, no special
+        // permissions required. The full /users endpoint needs users.view which
+        // non-admin roles don't have.
+        const res = await axiosInstance.get("/auth/users/picker");
         const list = res.data?.users || [];
         setUsers(list.map((u) => ({
-          id:       u._id || u.id,
+          id:       u.id,
           username: u.username,
-          role:     u.roleId?.name || u.role || "",
+          role:     u.role || "",
         })));
       } catch (err) {
         console.warn("Failed to load users:", err?.response?.data || err);
@@ -286,7 +341,14 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
               <Field label="Target Date"  name="targetDate"  type="date" value={formData.targetDate  || ""} onChange={handleChange} />
             </Row>
             <Row>
-              <Field label="Job Type"        name="jobType"     value={formData.jobType     || ""} placeholder="Full-time / Contract / C2C" onChange={handleChange} />
+              <SelectField
+                label="Job Type"
+                name="jobType"
+                value={formData.jobType || ""}
+                onChange={handleChange}
+                options={["Full-Time", "Part-Time", "Contract", "Contract-to-Hire", "C2C", "Freelance", "Internship", "Temporary"]}
+                placeholder="Select job type"
+              />
               <Field label="Work Experience" name="experience"  value={formData.experience  || ""} placeholder="e.g. 5+ years"              onChange={handleChange} />
             </Row>
             <Row>
@@ -306,7 +368,14 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
           <Section title="Location & Posting" subtitle="Where is this role based and how it will be listed">
             <Row>
               <Field label="City"    name="city"    value={formData.city    || ""} placeholder="e.g. Austin"         onChange={handleChange} />
-              <Field label="Country" name="country" value={formData.country || ""} placeholder="e.g. United States"  onChange={handleChange} />
+              <SelectField
+                label="Country"
+                name="country"
+                value={formData.country || ""}
+                onChange={handleChange}
+                options={COUNTRIES}
+                placeholder="Select country"
+              />
             </Row>
             <Row>
               <Field label="Post Info / Job Board" name="postInfo" value={formData.postInfo || ""} placeholder="Where should this opening be posted?" onChange={handleChange} full />
