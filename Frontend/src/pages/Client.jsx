@@ -20,10 +20,14 @@ const STATUS_OPTIONS = [
 const shapeClient = (c) => {
   const loc = c.locations?.[0];
   const poc = c.pocs?.[0];
+  const pocFullName = poc
+    ? [poc.firstName, poc.lastName].filter(Boolean).join(" ")
+    : "";
+
   return {
     ...c,
     id:           c._id || c.id,
-    primaryPoc:   poc?.name || "",
+    primaryPoc:   pocFullName,
     primaryEmail: poc?.email || "",
     primaryPhone: poc?.contact || c.contactNumber || "",
     primaryCity:  loc?.city || c.billingCity || "",
