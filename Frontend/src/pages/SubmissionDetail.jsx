@@ -10,6 +10,9 @@ import {
     getAllowedTransitions,
     INTERVIEW_STATUS_STYLES,
     INTERVIEW_OUTCOME_STYLES,
+    canScheduleInterview,
+    isScheduledStatus,
+    getRoundFromStatus,
 } from "../utils/submissionStatuses";
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
@@ -108,7 +111,7 @@ const KV = ({ label, value }) => (
 );
 
 // ─── INLINE STATUS PANEL ─────────────────────────────────────────────────────
-const InlineStatusPanel = ({ submission, onStatusUpdated }) => {
+const InlineStatusPanel = ({ submission, onStatusUpdated, onGiveFeedback, scheduledInterview }) => {
     const [pendingStatus, setPendingStatus] = useState(null); // which status is being confirmed
     const [noteText,      setNoteText]      = useState("");
     const [updating,      setUpdating]      = useState(false);
@@ -285,6 +288,39 @@ const InlineStatusPanel = ({ submission, onStatusUpdated }) => {
                         </div>
                     </>
                 ) : (
+                    isScheduledStatus(submission.status) && scheduledInterview ? (
+                        // ── Lx Scheduled — only action is to give feedback ──
+                        // No manual status transitions exist. Place the feedback
+                        // button right here so the recruiter doesn't have to scroll
+                        // to find it.
+                        <div className="flex flex-col gap-3 py-2">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">
+                                Next Action
+                            </p>
+                            <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3.5 py-3 space-y-1">
+                                <p className="text-[12px] font-semibold text-[#1E293B]">
+                                    {scheduledInterview.interviewRound} Interview Scheduled
+                                </p>
+                                <p className="text-[11px] text-[#94A3B8]">
+                                    {scheduledInterview.scheduledDate
+                                        ? new Date(scheduledInterview.scheduledDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                                        : "Date TBD"}
+                                    {scheduledInterview.scheduledTime && ` · ${scheduledInterview.scheduledTime}`}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => onGiveFeedback?.(scheduledInterview)}
+                                className="w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-[12.5px] font-bold text-white transition"
+                                style={{ background: "linear-gradient(135deg, #7C3AED, #5B21B6)" }}
+                            >
+                                <Icon d={icons.note} size={13} />
+                                Give Feedback
+                            </button>
+                            <p className="text-[10.5px] text-[#CBD5E1] text-center">
+                                Status will advance automatically based on feedback outcome.
+                            </p>
+                        </div>
+                    ) : (
                     <div className="flex flex-col items-center gap-2 py-8 text-center">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F1F5F9]">
                             <Icon d={icons.lock} size={16} className="text-[#CBD5E1]" />
@@ -292,6 +328,7 @@ const InlineStatusPanel = ({ submission, onStatusUpdated }) => {
                         <p className="text-[12px] font-semibold text-[#94A3B8]">Terminal Status</p>
                         <p className="text-[11px] text-[#CBD5E1]">No further transitions</p>
                     </div>
+                    )
                 )}
             </div>
 
@@ -454,12 +491,14 @@ const SubmissionDetail = () => {
                         </div>
                     </div>
 
-                    {/* primary action — filled blue */}
+                    {/* Schedule Interview — only visible between Submitted To Client and Final Select */}
+                    {canScheduleInterview(submission.status) && (
                     <button onClick={() => setShowSchedule(true)}
                         className="flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-[#1D4ED8] transition shadow-sm shrink-0">
                         <Icon d={icons.calendar} size={13} />
                         Schedule Interview
                     </button>
+                    )}
                 </div>
 
                 {/* row 2 — tabs */}
@@ -855,6 +894,8 @@ const SubmissionDetail = () => {
                     <InlineStatusPanel
                         submission={submission}
                         onStatusUpdated={handleStatusUpdate}
+                        onGiveFeedback={(iv) => setShowFeedback(iv)}
+                        scheduledInterview={pendingInterviews[0] || null}
                     />
                 </div>
             </div>
@@ -876,6 +917,7 @@ const SubmissionDetail = () => {
                         lastName:  (submission.candidateName || "").split(" ").slice(1).join(" "),
                     }}
                     preselectedJob={{ id: jobId, title: submission.jobTitle, client: submission.clientName }}
+                    submissionStatus={submission.status}
                     onClose={() => setShowSchedule(false)}
                     onSuccess={async () => { setShowSchedule(false); await load(); }}
                 />

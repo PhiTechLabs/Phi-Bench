@@ -44,13 +44,9 @@ const Label = ({ children, required }) => (
 
 const inputCls = "w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3.5 py-2.5 text-[13px] text-[#1E293B] placeholder-[#CBD5E1] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/15 transition";
 
-const ScheduleInterviewModal = ({ candidate, preselectedJob, onClose, onSuccess }) => {
+const ScheduleInterviewModal = ({ candidate, preselectedJob, submissionStatus, onClose, onSuccess }) => {
 
     // ── Step 1 state (job selection) ─────────────────────────────────────────
-    // candidateSubs — pre-fetched at open time so we can filter jobs to only
-    // those the candidate is actually submitted to. Without this, a recruiter
-    // could pick ANY open job and hit the backend's "submission required" error
-    // only after filling in all the interview details — a frustrating UX gap.
     const [candidateSubs,   setCandidateSubs]   = useState([]);
     const [loadingSubs,     setLoadingSubs]     = useState(false);
     const [filteredJobs,    setFilteredJobs]    = useState([]);
@@ -61,8 +57,17 @@ const ScheduleInterviewModal = ({ candidate, preselectedJob, onClose, onSuccess 
     const [linkedSub,       setLinkedSub]       = useState(null);
     const [activeWarning,   setActiveWarning]   = useState("");
 
+    // Derive which round to lock to from the submission status.
+    // e.g. "L2 Schedule Pending" → locked to "L2", show only "L2" as option.
+    // If status doesn't map to a specific round, fall back to "L1" and show all.
+    const lockedRound = submissionStatus
+        ? (submissionStatus.match(/^(L[1-4]) Schedule Pending$/) || [])[1] || null
+        : null;
+
+    const availableRounds = lockedRound ? [lockedRound] : ["L1", "L2", "L3", "L4", "Final"];
+
     const [form, setForm] = useState({
-        interviewRound: "L1",
+        interviewRound: lockedRound || "L1",
         interviewType:  "Virtual",
         scheduledDate:  "",
         scheduledTime:  "",
@@ -402,8 +407,22 @@ const ScheduleInterviewModal = ({ candidate, preselectedJob, onClose, onSuccess 
                             {/* Interview Round */}
                             <div>
                                 <Label>Interview Round</Label>
+                                {lockedRound ? (
+                                    // Round is locked to match the submission's Lx Schedule Pending status
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            className="rounded-lg border px-4 py-1.5 text-[12.5px] font-bold"
+                                            style={{ background: "#1e3a5f", color: "white", borderColor: "#1e3a5f" }}
+                                        >
+                                            {lockedRound}
+                                        </button>
+                                        <span className="text-[11px] text-[#94A3B8]">
+                                            Locked — submission is at {lockedRound} Schedule Pending
+                                        </span>
+                                    </div>
+                                ) : (
                                 <div className="flex gap-2 flex-wrap">
-                                    {ROUNDS.map((r) => {
+                                    {availableRounds.map((r) => {
                                         const sel = form.interviewRound === r;
                                         return (
                                             <button key={r} onClick={() => set("interviewRound", r)}
@@ -418,6 +437,7 @@ const ScheduleInterviewModal = ({ candidate, preselectedJob, onClose, onSuccess 
                                         );
                                     })}
                                 </div>
+                                )}
                             </div>
 
                             {/* Interview Mode */}

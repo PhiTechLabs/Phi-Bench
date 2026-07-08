@@ -11,26 +11,26 @@ export const SUBMISSION_STATUS_TRANSITIONS = {
     "Hold by Client":       ["Submitted To Client", "Screen Reject", "Position Closed", "Duplicate", "L1 Schedule Pending", "L2 Schedule Pending", "L3 Schedule Pending", "L4 Schedule Pending"],
     "Screen Reject":        ["For Validation"],
     "Position Closed":      ["Screen Reject", "Submitted To Client", "Duplicate", "L1 Schedule Pending"],
-    "L1 Schedule Pending":  [ "L1 Backout", "Hold by Client"],
-    "L1 Scheduled":         ["L1 Rescheduled"],
+    "L1 Schedule Pending":  ["L1 Backout", "Hold by Client"],
+    "L1 Scheduled":         [],
     "L1 Feedback Pending":  ["L1 Rejected", "L1 Backout", "L2 Schedule Pending", "Final Select", "Hold by Client"],
     "L1 Rescheduled":       ["L1 Schedule Pending", "L1 Feedback Pending"],
     "L1 Rejected":          ["Submitted To Client"],
     "L1 Backout":           ["L1 Schedule Pending", "Hold by Client"],
-    "L2 Schedule Pending":  ["L2 Scheduled", "L2 Backout", "Hold by Client"],
-    "L2 Scheduled":         ["L2 Rescheduled"],
+    "L2 Schedule Pending":  ["L2 Backout", "Hold by Client"],
+    "L2 Scheduled":         [],
     "L2 Feedback Pending":  ["L2 Rejected", "L2 Backout", "L3 Schedule Pending", "Final Select", "Hold by Client"],
     "L2 Rescheduled":       ["L2 Schedule Pending", "L2 Feedback Pending"],
     "L2 Rejected":          ["Submitted To Client"],
     "L2 Backout":           ["L2 Schedule Pending", "Hold by Client"],
-    "L3 Schedule Pending":  ["L3 Scheduled", "L3 Backout", "Hold by Client"],
-    "L3 Scheduled":         ["L3 Rescheduled"],
+    "L3 Schedule Pending":  ["L3 Backout", "Hold by Client"],
+    "L3 Scheduled":         [],
     "L3 Feedback Pending":  ["L3 Rejected", "L3 Backout", "L4 Schedule Pending", "Final Select", "Hold by Client"],
     "L3 Rescheduled":       ["L3 Schedule Pending", "L3 Feedback Pending"],
     "L3 Rejected":          ["Submitted To Client"],
     "L3 Backout":           ["L3 Schedule Pending", "Hold by Client"],
-    "L4 Schedule Pending":  ["L4 Scheduled", "L4 Backout", "Hold by Client"],
-    "L4 Scheduled":         ["L4 Rescheduled"],
+    "L4 Schedule Pending":  ["L4 Backout", "Hold by Client"],
+    "L4 Scheduled":         [],
     "L4 Feedback Pending":  ["L4 Rejected", "L4 Backout", "Final Select", "Hold by Client"],
     "L4 Rescheduled":       ["L4 Schedule Pending", "L4 Feedback Pending"],
     "L4 Rejected":          ["Submitted To Client"],
@@ -172,6 +172,44 @@ const TERMINAL_STATUSES = new Set([
 
 // True when a submission's status means it can no longer proceed to interview.
 export const isTerminalStatus = (status) => TERMINAL_STATUSES.has(status);
+
+// ─── INTERVIEW SCHEDULING WINDOW ─────────────────────────────────────────────
+// Schedule Interview is only valid between "Submitted To Client" and
+// "Final Select" (exclusive). Before submission to client = no interview yet.
+// At/after Final Select = interview process is over.
+const SCHEDULE_INTERVIEW_STATUSES = new Set([
+    "Submitted To Client",
+    "Hold by Client",
+    "L1 Schedule Pending", "L1 Backout",
+    "L2 Schedule Pending", "L2 Backout",
+    "L3 Schedule Pending", "L3 Backout",
+    "L4 Schedule Pending", "L4 Backout",
+    "L1 Feedback Pending", "L2 Feedback Pending",
+    "L3 Feedback Pending", "L4 Feedback Pending",
+    "L1 Rescheduled", "L2 Rescheduled",
+    "L3 Rescheduled", "L4 Rescheduled",
+]);
+
+export const canScheduleInterview = (status) =>
+    SCHEDULE_INTERVIEW_STATUSES.has(status);
+
+// ─── Lx SCHEDULED DETECTION ──────────────────────────────────────────────────
+// When a submission is at Lx Scheduled, the sidebar should show a
+// "Give Feedback" button instead of the (empty) "Move To" list.
+export const isScheduledStatus = (status) =>
+    status === "L1 Scheduled" ||
+    status === "L2 Scheduled" ||
+    status === "L3 Scheduled" ||
+    status === "L4 Scheduled";
+
+// ─── DERIVE INTERVIEW ROUND FROM STATUS ──────────────────────────────────────
+// When opening ScheduleInterviewModal from a submission at "L2 Schedule Pending",
+// the round should be pre-set to "L2", not shown as all options.
+export const getRoundFromStatus = (status) => {
+    if (!status) return null;
+    const match = status.match(/^(L[1-4]) Schedule Pending$/);
+    return match ? match[1] : null;
+};
 
 // True when a candidate has at least one submission that is still in-flight
 // (not rejected/closed/placed). Used in CandidateDetails to gate the
