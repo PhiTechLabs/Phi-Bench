@@ -138,7 +138,7 @@ const STATUS_OPTIONS = [
 const CandidateForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) => {
   const [formData, setFormData] = useState({
     status: "New",
-    onBench: true,
+    onBench: false,
   });
 
   const [education, setEducation] = useState([{}]);
@@ -856,7 +856,7 @@ const fieldInputStyle = { borderColor: "#d1cdc7" };
 const FieldLabel = ({ label, required, alignTop }) => (
   <label
     className={`shrink-0 text-[12.5px] text-gray-500 text-right leading-tight ${
-      alignTop ? "pt-2" : "pt-[7px]"
+      alignTop ? "pt-2" : "pt-1.75"
     }`}
     style={{ minWidth: "96px" }}
   >
