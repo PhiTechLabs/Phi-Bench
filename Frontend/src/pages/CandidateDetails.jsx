@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
     import ChangeStatusModal from "../components/modals/ChangeStatusModal";
     import InterviewFeedbackModal from "../components/modals/InterviewFeedbackModal";
     import useRoleBase from "../hooks/useRoleBase";
-    import { getStatusStyle, INTERVIEW_STATUS_STYLES, INTERVIEW_OUTCOME_STYLES } from "../utils/submissionStatuses";
+    import { getStatusStyle, INTERVIEW_STATUS_STYLES, INTERVIEW_OUTCOME_STYLES, canScheduleInterview } from "../utils/submissionStatuses";
     import { SubmissionsTable, InterviewsTable } from "../components/shared/PipelineTables";
     import BackButton from "../reusable/BackButton";
     import { getResumeUrl } from "../api/candidatesApi";
@@ -458,12 +458,15 @@ import React, { useEffect, useState } from "react";
                     Submit to Job
                 </button>
 
-                {/* Schedule Interview */}
+                {/* Schedule Interview — only visible when at least one submission
+                    is in the interview scheduling window (post-submission, pre-Final Select) */}
+                {submissions.some((s) => canScheduleInterview(s.status)) && (
                 <button onClick={() => setShowInterviewModal(true)}
                     className="w-full flex items-center gap-2.5 rounded-lg border border-[#E2E8F0] bg-white px-4 py-2.5 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
                     <Icon d={icons.interview} size={15} />
                     Schedule Interview
                 </button>
+                )}
 
                 {/* Add to Bench - your feature */}
                 <button onClick={handleToggleBench}
