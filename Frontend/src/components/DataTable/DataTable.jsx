@@ -444,7 +444,13 @@ const ViewMenuItem = ({ icon, label, danger, onClick }) => (
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters, columnDistinctValues, totalRows, onClose }) => {
-    const filterableColumns = registry.filter((c) => c.filterable);
+    // Show every column that is in columnDistinctValues — which covers all
+    // non-date/sno/toggle columns regardless of the filterable flag or
+    // whether they have data yet. Includes hidden (+Add Column) columns too.
+    const SKIP_TYPES = new Set(["sno", "toggle", "date", "location", "chips"]);
+    const filterableColumns = registry.filter((c) =>
+        !SKIP_TYPES.has(c.type) && c.key in columnDistinctValues
+    );
     const [activeCol,     setActiveCol]     = useState(filterableColumns[0]?.key || null);
     const [colSearch,     setColSearch]     = useState(""); // search within a column's values
     const [panelSearch,   setPanelSearch]   = useState(""); // search across columns
