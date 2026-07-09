@@ -418,7 +418,7 @@ const ViewsTabs = ({ t }) => {
                                     className="flex h-7 items-center gap-1.5 rounded-lg border border-[#E0DDD6] bg-white px-3 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0] transition">
                                     Save as new view
                                 </button>
-                                <button onClick={() => { t.clearAllFilters(); setSaveMode(null); }}
+                                <button onClick={() => { t.applyView(t.activeView); setSaveMode(null); }}
                                     className="text-[11.5px] text-[#9B9890] hover:text-[#C2410C] transition">
                                     Discard
                                 </button>
