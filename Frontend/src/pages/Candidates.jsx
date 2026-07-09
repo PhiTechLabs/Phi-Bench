@@ -454,6 +454,16 @@ console.log(
     },
 
     {
+      key: "source",
+      label: "Source",
+      width: 130,
+      type: "text",
+      sortable: true,
+      filterable: true,
+      defaultVisible: false,
+    },
+
+    {
       key: "expectedSalary",
       label: "Expected Salary",
       width: 130,
