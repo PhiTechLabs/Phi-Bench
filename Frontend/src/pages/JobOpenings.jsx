@@ -114,6 +114,7 @@ const JobOpenings = () => {
       defaultVisible: true, sortable: true, filterable: true,
     },
     { key: "contact",    label: "Contact",       width: 150, type: "text", searchable: true },
+    { key: "contactPhone", label: "Contact No.", width: 130, type: "text", searchable: true },
     { key: "manager",    label: "Account Mgr.",  width: 150, type: "text", searchable: true, filterable: true },
     { key: "recruiter",  label: "Recruiter",     width: 150, type: "text", searchable: true, filterable: true },
     { key: "industry",   label: "Industry",      width: 140, type: "text", sortable: true, filterable: true },

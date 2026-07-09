@@ -12,6 +12,7 @@ import { protect } from "../middleware/authMiddleware.js";
 
 import {
     createJobRules,
+    updateJobRules,
     validate,
 } from "../validators/jobValidator.js";
 
@@ -46,7 +47,7 @@ router.put(
     "/:id",
     protect,
     requirePermission("job", "edit"),
-    createJobRules,
+    updateJobRules,
     validate,
     updateJob
 );
