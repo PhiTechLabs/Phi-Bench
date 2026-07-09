@@ -3,11 +3,6 @@ import { useDataTable } from "./useDataTable";
 import { renderCell } from "./cellRenderers";
 import PermissionGuard from "../PermissionGuard";
 
-// ─── USER-SCOPED STORAGE KEY ──────────────────────────────────────────────────
-// Prefix every storageKey with the logged-in user's id so that multiple users
-// sharing the same browser/device each get their own isolated set of saved
-// views, column preferences, sort settings and page sizes.
-// Falls back to "shared" if no user is found (e.g. public pages).
 const getUserScopedKey = (key) => {
     try {
         const user = JSON.parse(localStorage.getItem("user"));
@@ -257,6 +252,9 @@ const DataTable = ({
                     setColumnFilter={t.setColumnFilter}
                     clearAllFilters={t.clearAllFilters}
                     columnDistinctValues={t.columnDistinctValues}
+                    dateFilters={t.dateFilters}
+                    setDateFilter={t.setDateFilter}
+                    clearDateFilter={t.clearDateFilter}
                     totalRows={t.totalRows}
                     onClose={() => setShowFilterPanel(false)}
                 />
@@ -277,6 +275,7 @@ const ViewsTabs = ({ t }) => {
     const [renameId,     setRenameId]     = useState(null);
     const [renameValue,  setRenameValue]  = useState("");
     const [menuId,       setMenuId]       = useState(null);
+    const [menuPos,      setMenuPos]      = useState({ x: 0, y: 0 }); // fixed coords for 3-dot menu
     const saveLabelRef = useRef();
     const renameRef    = useRef();
     const menuRef      = useRef();
@@ -309,6 +308,7 @@ const ViewsTabs = ({ t }) => {
     };
 
     return (
+        <>
         <div className="mb-1">
 
             {/* views tab strip */}
@@ -347,23 +347,19 @@ const ViewsTabs = ({ t }) => {
                             {!view.builtIn && (
                                 <div className="relative">
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); setMenuId((id) => id === view.id ? null : view.id); }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (menuId === view.id) {
+                                                setMenuId(null);
+                                            } else {
+                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                setMenuPos({ x: rect.left, y: rect.bottom + 4 });
+                                                setMenuId(view.id);
+                                            }
+                                        }}
                                         className={`flex h-5 w-5 items-center justify-center rounded opacity-0 transition hover:bg-[#E8EEFF] group-hover:opacity-60 hover:!opacity-100 ${isActive ? "!opacity-50" : ""}`}>
                                         <DotsIcon />
                                     </button>
-                                    {menuId === view.id && (
-                                        <div ref={menuRef}
-                                            className="absolute left-0 top-full z-50 mt-1 w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
-                                            onClick={(e) => e.stopPropagation()}>
-                                            <ViewMenuItem icon={<PencilIcon />} label="Rename"
-                                                onClick={() => { setRenameId(view.id); setRenameValue(view.label); setMenuId(null); }} />
-                                            <ViewMenuItem icon={<CopyIcon />} label="Duplicate"
-                                                onClick={() => { t.duplicateView(view.id); setMenuId(null); }} />
-                                            <div className="border-t border-[#F0EDE8] my-0.5" />
-                                            <ViewMenuItem icon={<TrashIcon />} label="Delete view" danger
-                                                onClick={() => { t.deleteView(view.id); setMenuId(null); }} />
-                                        </div>
-                                    )}
                                 </div>
                             )}
                         </div>
@@ -428,6 +424,31 @@ const ViewsTabs = ({ t }) => {
                 </div>
             )}
         </div>
+
+            {/* 3-dot view menu — fixed portal so it escapes the
+                overflow-x-auto tab strip and is never clipped */}
+            {menuId && (
+                <>
+                    <div className="fixed inset-0 z-[60]" onClick={() => setMenuId(null)} />
+                    <div ref={menuRef}
+                        className="fixed z-[61] w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+                        style={{ left: menuPos.x, top: menuPos.y }}
+                        onClick={(e) => e.stopPropagation()}>
+                        <ViewMenuItem icon={<PencilIcon />} label="Rename"
+                            onClick={() => {
+                                const view = t.views.find((v) => v.id === menuId);
+                                if (view) { setRenameId(view.id); setRenameValue(view.label); }
+                                setMenuId(null);
+                            }} />
+                        <ViewMenuItem icon={<CopyIcon />} label="Duplicate"
+                            onClick={() => { t.duplicateView(menuId); setMenuId(null); }} />
+                        <div className="border-t border-[#F0EDE8] my-0.5" />
+                        <ViewMenuItem icon={<TrashIcon />} label="Delete view" danger
+                            onClick={() => { t.deleteView(menuId); setMenuId(null); }} />
+                    </div>
+                </>
+            )}
+        </>
     );
 };
 
@@ -443,24 +464,24 @@ const ViewMenuItem = ({ icon, label, danger, onClick }) => (
  *  FILTER PANEL — slide-in right drawer
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters, columnDistinctValues, totalRows, onClose }) => {
-    // Show every column that is in columnDistinctValues — which covers all
-    // non-date/sno/toggle columns regardless of the filterable flag or
-    // whether they have data yet. Includes hidden (+Add Column) columns too.
-    const SKIP_TYPES = new Set(["sno", "toggle", "date", "location", "chips"]);
-    const filterableColumns = registry.filter((c) =>
-        !SKIP_TYPES.has(c.type) && c.key in columnDistinctValues
-    );
-    const [activeCol,     setActiveCol]     = useState(filterableColumns[0]?.key || null);
-    const [colSearch,     setColSearch]     = useState(""); // search within a column's values
-    const [panelSearch,   setPanelSearch]   = useState(""); // search across columns
+const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters, columnDistinctValues, dateFilters, setDateFilter, clearDateFilter, totalRows, onClose }) => {
+    // Show EVERY column except sno (row numbers) and toggle (boolean)
+    const ALWAYS_SKIP = new Set(["sno", "toggle"]);
+    const filterableColumns = registry.filter((c) => !ALWAYS_SKIP.has(c.type));
+
+    const [activeCol,   setActiveCol]   = useState(filterableColumns[0]?.key || null);
+    const [colSearch,   setColSearch]   = useState("");
+    const [panelSearch, setPanelSearch] = useState("");
 
     const activeColDef     = registry.find((c) => c.key === activeCol);
+    const isDateCol        = activeColDef?.type === "date";
     const activeDistincts  = (columnDistinctValues[activeCol] || []).filter((v) =>
         !colSearch.trim() || v.toLowerCase().includes(colSearch.toLowerCase())
     );
     const activeSelected   = activeCol && filters[activeCol] ? Array.from(filters[activeCol]) : [];
-    const totalActiveCount = Object.keys(filters).length;
+    const activeDateFilter = (activeCol && dateFilters[activeCol]) ? dateFilters[activeCol] : { from: "", to: "" };
+
+    const totalActiveCount = Object.keys(filters).length + Object.keys(dateFilters).length;
 
     const filteredColumns  = filterableColumns.filter((c) =>
         !panelSearch.trim() || c.label.toLowerCase().includes(panelSearch.toLowerCase())
@@ -473,7 +494,14 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
     };
 
     const selectAll   = () => setColumnFilter(activeCol, columnDistinctValues[activeCol] || []);
-    const clearColumn = () => setColumnFilter(activeCol, []);
+    const clearColumn = () => {
+        if (isDateCol) clearDateFilter(activeCol);
+        else setColumnFilter(activeCol, []);
+    };
+
+    const hasActiveOnCol = isDateCol
+        ? !!(dateFilters[activeCol]?.from || dateFilters[activeCol]?.to)
+        : activeSelected.length > 0;
 
     return (
         <>
@@ -500,7 +528,7 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                     </div>
                     <div className="flex items-center gap-2">
                         {totalActiveCount > 0 && (
-                            <button onClick={() => { clearAllFilters(); }}
+                            <button onClick={clearAllFilters}
                                 className="rounded-lg border border-[#FED7AA] bg-[#FFF7ED] px-3 py-1.5 text-[11.5px] font-medium text-[#C2410C] hover:bg-[#FFEDD5] transition">
                                 Clear all
                             </button>
@@ -512,10 +540,10 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                     </div>
                 </div>
 
-                {/* two-column layout: left = field list, right = values */}
+                {/* two-column layout: left = field list, right = values/picker */}
                 <div className="flex flex-1 min-h-0">
 
-                    {/* LEFT — filterable field list */}
+                    {/* LEFT — all columns */}
                     <div className="flex w-[180px] shrink-0 flex-col border-r border-[#F0EDE8]">
                         <div className="px-3 py-2.5 border-b border-[#F5F4F0]">
                             <input type="text" value={panelSearch} onChange={(e) => setPanelSearch(e.target.value)}
@@ -526,7 +554,11 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                         <div className="flex-1 overflow-y-auto py-1">
                             {filteredColumns.map((col) => {
                                 const isActive  = activeCol === col.key;
-                                const hasFilter = !!filters[col.key]?.size;
+                                const isDate    = col.type === "date";
+                                const hasFilter = isDate
+                                    ? !!(dateFilters[col.key]?.from || dateFilters[col.key]?.to)
+                                    : !!filters[col.key]?.size;
+                                const cnt = !isDate && filters[col.key]?.size;
                                 return (
                                     <button key={col.key}
                                         onClick={() => { setActiveCol(col.key); setColSearch(""); }}
@@ -534,18 +566,22 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                                             isActive ? "bg-[#EEF2FF] text-[#1C4ED8] font-semibold" : "text-[#1C1B18] hover:bg-[#F5F4F0]"
                                         }`}>
                                         <span className="truncate">{col.label}</span>
-                                        {hasFilter && (
-                                            <span className="ml-1 flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9px] font-bold text-white">
-                                                {filters[col.key].size}
-                                            </span>
-                                        )}
+                                        <span className="flex items-center gap-1 shrink-0 ml-1">
+                                            {isDate && <span className="text-[9px] text-[#9B9890]">📅</span>}
+                                            {hasFilter && cnt != null && (
+                                                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9px] font-bold text-white">{cnt}</span>
+                                            )}
+                                            {hasFilter && cnt == null && (
+                                                <span className="h-2 w-2 rounded-full bg-[#1C4ED8]" />
+                                            )}
+                                        </span>
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* RIGHT — values for selected field */}
+                    {/* RIGHT — date picker or checkbox list */}
                     <div className="flex flex-1 min-w-0 flex-col">
                         {activeColDef ? (
                             <>
@@ -554,74 +590,119 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                                     <div>
                                         <p className="text-[12.5px] font-bold text-[#1C1B18]">{activeColDef.label}</p>
                                         <p className="text-[10.5px] text-[#9B9890] mt-0.5">
-                                            {columnDistinctValues[activeCol]?.length || 0} options
+                                            {isDateCol ? "Date range" : `${columnDistinctValues[activeCol]?.length || 0} options`}
                                             {activeSelected.length > 0 && ` · ${activeSelected.length} selected`}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {activeSelected.length > 0 && (
+                                        {hasActiveOnCol && (
                                             <button onClick={clearColumn} className="text-[11px] font-medium text-[#C2410C] hover:underline transition">
                                                 Clear
                                             </button>
                                         )}
-                                        <button onClick={selectAll} className="text-[11px] font-medium text-[#1C4ED8] hover:underline transition">
-                                            Select all
-                                        </button>
+                                        {!isDateCol && (
+                                            <button onClick={selectAll} className="text-[11px] font-medium text-[#1C4ED8] hover:underline transition">
+                                                Select all
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* value search */}
-                                <div className="px-4 py-2.5 border-b border-[#F5F4F0]">
-                                    <div className="relative">
-                                        <SearchIcon />
-                                        <input type="text" value={colSearch} onChange={(e) => setColSearch(e.target.value)}
-                                            placeholder={`Search ${activeColDef.label.toLowerCase()}…`}
-                                            className="h-7 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] pl-7 pr-3 text-[12px] placeholder-[#9B9890] outline-none focus:border-[#93AEFF] transition"
-                                        />
-                                        {colSearch && <button onClick={() => setColSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9B9890]"><XIcon size={9} /></button>}
-                                    </div>
-                                </div>
-
-                                {/* values list */}
-                                <div className="flex-1 overflow-y-auto py-1">
-                                    {activeDistincts.length === 0 ? (
-                                        <div className="py-8 text-center text-[12px] text-[#9B9890]">
-                                            {colSearch ? "No matching values" : "No values available"}
+                                {/* DATE RANGE PICKER */}
+                                {isDateCol ? (
+                                    <div className="px-4 py-5 space-y-4">
+                                        <div>
+                                            <label className="block text-[11px] font-semibold uppercase tracking-widest text-[#9B9890] mb-1.5">From</label>
+                                            <input type="date"
+                                                value={activeDateFilter.from}
+                                                max={activeDateFilter.to || undefined}
+                                                onChange={(e) => setDateFilter(activeCol, e.target.value, activeDateFilter.to)}
+                                                className="h-9 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] px-3 text-[12.5px] text-[#1C1B18] outline-none focus:border-[#93AEFF] focus:ring-2 focus:ring-[#EEF2FF] transition"
+                                            />
                                         </div>
-                                    ) : (
-                                        activeDistincts.map((val) => {
-                                            const isChecked = activeSelected.includes(val);
-                                            const count     = data.filter((r) => String(r[activeCol]) === val).length;
-                                            return (
-                                                <label key={val}
-                                                    className={`flex cursor-pointer items-center gap-3 px-4 py-2 transition hover:bg-[#F5F4F0] ${isChecked ? "bg-[#F0F5FF]" : ""}`}>
-                                                    <input type="checkbox" checked={isChecked} onChange={() => toggleValue(val)}
-                                                        className="h-3.5 w-3.5 cursor-pointer accent-[#1C4ED8] shrink-0"
-                                                    />
-                                                    <span className={`flex-1 truncate text-[12.5px] ${isChecked ? "font-semibold text-[#1C4ED8]" : "text-[#1C1B18]"}`}>{val}</span>
-                                                    <span className="shrink-0 text-[11px] text-[#9B9890]">{count}</span>
-                                                </label>
-                                            );
-                                        })
-                                    )}
-                                </div>
-
-                                {/* active selections summary */}
-                                {activeSelected.length > 0 && (
-                                    <div className="border-t border-[#F0EDE8] bg-[#FAFAF8] px-4 py-3">
-                                        <p className="text-[10.5px] font-semibold uppercase tracking-widest text-[#9B9890] mb-2">Selected</p>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {activeSelected.map((v) => (
-                                                <span key={v}
-                                                    className="inline-flex items-center gap-1.5 rounded-full border border-[#BFD3FF] bg-[#F0F5FF] px-2.5 py-0.5 text-[11px] font-medium text-[#1C4ED8]">
-                                                    {v}
-                                                    <button onClick={() => toggleValue(v)} className="opacity-60 hover:opacity-100 transition">
-                                                        <XIcon size={8} />
-                                                    </button>
-                                                </span>
-                                            ))}
+                                        <div>
+                                            <label className="block text-[11px] font-semibold uppercase tracking-widest text-[#9B9890] mb-1.5">To</label>
+                                            <input type="date"
+                                                value={activeDateFilter.to}
+                                                min={activeDateFilter.from || undefined}
+                                                onChange={(e) => setDateFilter(activeCol, activeDateFilter.from, e.target.value)}
+                                                className="h-9 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] px-3 text-[12.5px] text-[#1C1B18] outline-none focus:border-[#93AEFF] focus:ring-2 focus:ring-[#EEF2FF] transition"
+                                            />
                                         </div>
+                                        {(activeDateFilter.from || activeDateFilter.to) && (
+                                            <div className="rounded-lg border border-[#BFD3FF] bg-[#F0F5FF] px-3 py-2.5">
+                                                <p className="text-[11.5px] text-[#1C4ED8] font-medium">
+                                                    {activeDateFilter.from && activeDateFilter.to
+                                                        ? `${activeDateFilter.from} → ${activeDateFilter.to}`
+                                                        : activeDateFilter.from
+                                                        ? `From ${activeDateFilter.from}`
+                                                        : `Until ${activeDateFilter.to}`}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
+                                ) : (
+                                    <>
+                                        {/* value search */}
+                                        <div className="px-4 py-2.5 border-b border-[#F5F4F0]">
+                                            <div className="relative">
+                                                <SearchIcon />
+                                                <input type="text" value={colSearch} onChange={(e) => setColSearch(e.target.value)}
+                                                    placeholder={`Search ${activeColDef.label.toLowerCase()}…`}
+                                                    className="h-7 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] pl-7 pr-3 text-[12px] placeholder-[#9B9890] outline-none focus:border-[#93AEFF] transition"
+                                                />
+                                                {colSearch && <button onClick={() => setColSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9B9890]"><XIcon size={9} /></button>}
+                                            </div>
+                                        </div>
+
+                                        {/* values list */}
+                                        <div className="flex-1 overflow-y-auto py-1">
+                                            {activeDistincts.length === 0 ? (
+                                                <div className="py-8 text-center text-[12px] text-[#9B9890]">
+                                                    {colSearch ? "No matching values" : "No data in this column yet"}
+                                                </div>
+                                            ) : (
+                                                activeDistincts.map((val) => {
+                                                    const isChecked = activeSelected.includes(val);
+                                                    const count = data.filter((r) => {
+                                                        const rv = r[activeCol];
+                                                        if (activeColDef?.type === "chips") {
+                                                            return String(rv || "").split(",").map(s => s.trim()).includes(val);
+                                                        }
+                                                        return String(rv) === val;
+                                                    }).length;
+                                                    return (
+                                                        <label key={val}
+                                                            className={`flex cursor-pointer items-center gap-3 px-4 py-2 transition hover:bg-[#F5F4F0] ${isChecked ? "bg-[#F0F5FF]" : ""}`}>
+                                                            <input type="checkbox" checked={isChecked} onChange={() => toggleValue(val)}
+                                                                className="h-3.5 w-3.5 cursor-pointer accent-[#1C4ED8] shrink-0"
+                                                            />
+                                                            <span className={`flex-1 truncate text-[12.5px] ${isChecked ? "font-semibold text-[#1C4ED8]" : "text-[#1C1B18]"}`}>{val}</span>
+                                                            <span className="shrink-0 text-[11px] text-[#9B9890]">{count}</span>
+                                                        </label>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+
+                                        {/* selected summary */}
+                                        {activeSelected.length > 0 && (
+                                            <div className="border-t border-[#F0EDE8] bg-[#FAFAF8] px-4 py-3">
+                                                <p className="text-[10.5px] font-semibold uppercase tracking-widest text-[#9B9890] mb-2">Selected</p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {activeSelected.map((v) => (
+                                                        <span key={v}
+                                                            className="inline-flex items-center gap-1.5 rounded-full border border-[#BFD3FF] bg-[#F0F5FF] px-2.5 py-0.5 text-[11px] font-medium text-[#1C4ED8]">
+                                                            {v}
+                                                            <button onClick={() => toggleValue(v)} className="opacity-60 hover:opacity-100 transition">
+                                                                <XIcon size={8} />
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </>
                         ) : (
@@ -638,17 +719,14 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                         <span className="font-bold text-[#1C1B18]">{totalRows}</span> records match current filters
                     </p>
                     <button onClick={onClose}
-                        className="flex h-9 items-center gap-2 rounded-xl bg-[#1C4ED8] px-5 text-[13px] font-semibold text-white hover:bg-[#1741B6] transition shadow-sm">
+                        className="rounded-lg bg-[#1C1B18] px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-[#2D2C28] transition">
                         Done
                     </button>
                 </div>
             </div>
-            <style>{`@keyframes slideInRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}`}</style>
         </>
     );
 };
-
-/* ──────────────────── INLINE FILTER BTN (column header) ──────────────────── */
 
 const InlineFilterBtn = ({ active, open, onToggle, options, selected, onChange, onClose }) => {
     const ref = useRef();
