@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useDataTable } from "./useDataTable";
 import { renderCell } from "./cellRenderers";
 import PermissionGuard from "../PermissionGuard";
@@ -277,6 +278,10 @@ const ViewsTabs = ({ t }) => {
     const [renameId,     setRenameId]     = useState(null);
     const [renameValue,  setRenameValue]  = useState("");
     const [menuId,       setMenuId]       = useState(null);
+    // NEW: position of the currently-open 3-dot menu, in viewport coordinates.
+    // The menu itself is rendered through a portal (see <ViewMenuPortal>) so it
+    // is never clipped by the tab strip's `overflow-x-auto` scroll container.
+    const [menuPos,      setMenuPos]      = useState({ top: 0, left: 0 });
     const saveLabelRef = useRef();
     const renameRef    = useRef();
     const menuRef      = useRef();
@@ -284,13 +289,35 @@ const ViewsTabs = ({ t }) => {
     useEffect(() => { if (saveMode) setTimeout(() => saveLabelRef.current?.focus(), 40); }, [saveMode]);
     useEffect(() => { if (renameId)  setTimeout(() => renameRef.current?.focus(), 40); }, [renameId]);
 
-    // Close menu on outside click
+    // Close menu on outside click (also handles clicks inside the portal,
+    // since menuRef is attached to the portalled node — refs work fine
+    // across portals because they stay in the same React tree).
     useEffect(() => {
         if (!menuId) return;
         const fn = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuId(null); };
         document.addEventListener("mousedown", fn);
         return () => document.removeEventListener("mousedown", fn);
     }, [menuId]);
+
+    // Close menu on scroll/resize so it doesn't float in the wrong place.
+    useEffect(() => {
+        if (!menuId) return;
+        const close = () => setMenuId(null);
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
+        return () => {
+            window.removeEventListener("scroll", close, true);
+            window.removeEventListener("resize", close);
+        };
+    }, [menuId]);
+
+    const openMenu = (e, viewId) => {
+        e.stopPropagation();
+        if (menuId === viewId) { setMenuId(null); return; }
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMenuPos({ top: rect.bottom + 4, left: rect.left });
+        setMenuId(viewId);
+    };
 
     const commitSave = () => {
         if (saveMode === "new") {
@@ -307,6 +334,8 @@ const ViewsTabs = ({ t }) => {
         if (renameValue.trim()) t.renameView(renameId, renameValue.trim());
         setRenameId(null);
     };
+
+    const menuView = t.views.find((v) => v.id === menuId);
 
     return (
         <div className="mb-1">
@@ -343,28 +372,13 @@ const ViewsTabs = ({ t }) => {
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] shrink-0" title="Unsaved changes" />
                             )}
 
-                            {/* 3-dot menu — custom views only */}
+                            {/* 3-dot menu — custom views only. Menu itself renders via portal (below). */}
                             {!view.builtIn && (
-                                <div className="relative">
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); setMenuId((id) => id === view.id ? null : view.id); }}
-                                        className={`flex h-5 w-5 items-center justify-center rounded opacity-0 transition hover:bg-[#E8EEFF] group-hover:opacity-60 hover:!opacity-100 ${isActive ? "!opacity-50" : ""}`}>
-                                        <DotsIcon />
-                                    </button>
-                                    {menuId === view.id && (
-                                        <div ref={menuRef}
-                                            className="absolute left-0 top-full z-50 mt-1 w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
-                                            onClick={(e) => e.stopPropagation()}>
-                                            <ViewMenuItem icon={<PencilIcon />} label="Rename"
-                                                onClick={() => { setRenameId(view.id); setRenameValue(view.label); setMenuId(null); }} />
-                                            <ViewMenuItem icon={<CopyIcon />} label="Duplicate"
-                                                onClick={() => { t.duplicateView(view.id); setMenuId(null); }} />
-                                            <div className="border-t border-[#F0EDE8] my-0.5" />
-                                            <ViewMenuItem icon={<TrashIcon />} label="Delete view" danger
-                                                onClick={() => { t.deleteView(view.id); setMenuId(null); }} />
-                                        </div>
-                                    )}
-                                </div>
+                                <button
+                                    onClick={(e) => openMenu(e, view.id)}
+                                    className={`flex h-5 w-5 items-center justify-center rounded opacity-0 transition hover:bg-[#E8EEFF] group-hover:opacity-60 hover:!opacity-100 ${isActive ? "!opacity-50" : ""}`}>
+                                    <DotsIcon />
+                                </button>
                             )}
                         </div>
                     );
@@ -376,6 +390,25 @@ const ViewsTabs = ({ t }) => {
                     <span className="text-[16px] leading-none">+</span> New View
                 </button>
             </div>
+
+            {/* PORTALLED 3-dot menu — rendered into document.body so it is never
+                clipped by the tab strip's overflow-x-auto container, and always
+                sits above other z-50 layers (filter panel, add-column dropdown). */}
+            {menuId && menuView && createPortal(
+                <div ref={menuRef}
+                    style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 1000 }}
+                    className="w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+                    onClick={(e) => e.stopPropagation()}>
+                    <ViewMenuItem icon={<PencilIcon />} label="Rename"
+                        onClick={() => { setRenameId(menuView.id); setRenameValue(menuView.label); setMenuId(null); }} />
+                    <ViewMenuItem icon={<CopyIcon />} label="Duplicate"
+                        onClick={() => { t.duplicateView(menuView.id); setMenuId(null); }} />
+                    <div className="border-t border-[#F0EDE8] my-0.5" />
+                    <ViewMenuItem icon={<TrashIcon />} label="Delete view" danger
+                        onClick={() => { t.deleteView(menuView.id); setMenuId(null); }} />
+                </div>,
+                document.body
+            )}
 
             {/* save/update bar — shows when dirty OR saving */}
             {(t.viewIsDirty || saveMode) && (
