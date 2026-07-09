@@ -111,6 +111,8 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
     /* ──────────── FILTERS ──────────── */
     // { columnKey: Set([value, ...]) }
     const [filters, setFilters] = useState({});
+    // Date range filters: { columnKey: { from: "YYYY-MM-DD", to: "YYYY-MM-DD" } }
+    const [dateFilters, setDateFiltersState] = useState({});
 
     const setColumnFilter = (key, values) => {
         setFilters((prev) => {
@@ -120,22 +122,48 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
             return next;
         });
     };
-    const clearAllFilters   = () => { setFilters({}); setSearch(""); };
-    const hasActiveFilters  = Object.keys(filters).length > 0 || search.trim().length > 0;
-    const activeFilterCount = Object.keys(filters).length + (search.trim() ? 1 : 0);
+
+    const setDateFilter = (key, from, to) => {
+        setDateFiltersState((prev) => {
+            const next = { ...prev };
+            if (!from && !to) delete next[key];
+            else next[key] = { from: from || "", to: to || "" };
+            return next;
+        });
+    };
+
+    const clearDateFilter = (key) => {
+        setDateFiltersState((prev) => {
+            const next = { ...prev };
+            delete next[key];
+            return next;
+        });
+    };
+
+    const clearAllFilters   = () => { setFilters({}); setDateFiltersState({}); setSearch(""); };
+    const hasActiveFilters  = Object.keys(filters).length > 0 || Object.keys(dateFilters).length > 0 || search.trim().length > 0;
+    const activeFilterCount = Object.keys(filters).length + Object.keys(dateFilters).length + (search.trim() ? 1 : 0);
 
     const columnDistinctValues = useMemo(() => {
-        const SKIP_TYPES = new Set(["sno", "toggle", "date", "location", "chips"]);
+        const ALWAYS_SKIP = new Set(["sno", "toggle"]);
         const map = {};
         registry.forEach((col) => {
-            if (SKIP_TYPES.has(col.type)) return;
+            if (ALWAYS_SKIP.has(col.type)) return;
             const set = new Set();
             data.forEach((row) => {
                 const v = row[col.key];
-                if (v != null && v !== "") set.add(String(v));
+                if (v == null || v === "") return;
+                if (col.type === "chips") {
+                    // Split comma-separated into individual values
+                    String(v).split(",").map((s) => s.trim()).filter(Boolean).forEach((s) => set.add(s));
+                } else if (col.type === "location") {
+                    // Use the city sub-field
+                    const city = row[col.cityKey || "city"];
+                    if (city) set.add(String(city));
+                } else {
+                    set.add(String(v));
+                }
             });
-            // Always include the column — empty array means "no values yet"
-            // so the filter panel can still list it, just with an empty state.
             map[col.key] = Array.from(set).sort();
         });
         return map;
@@ -152,8 +180,35 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
     /* ──────────── PROCESS DATA ──────────── */
     const processedData = useMemo(() => {
         let rows = [...data];
+        // Checkbox filters (text, status, chips etc.)
         Object.entries(filters).forEach(([key, vals]) => {
-            rows = rows.filter((r) => vals.has(String(r[key])));
+            const col = registry.find((c) => c.key === key);
+            if (col?.type === "chips") {
+                // chips: row matches if any of its comma-split values is in the selected set
+                rows = rows.filter((r) => {
+                    const raw = String(r[key] || "");
+                    const chips = raw.split(",").map((s) => s.trim()).filter(Boolean);
+                    return chips.some((chip) => vals.has(chip));
+                });
+            } else {
+                rows = rows.filter((r) => vals.has(String(r[key])));
+            }
+        });
+        // Date range filters
+        Object.entries(dateFilters).forEach(([key, { from, to }]) => {
+            rows = rows.filter((r) => {
+                const raw = r[key];
+                if (!raw) return false;
+                const d = new Date(raw);
+                if (isNaN(d)) return false;
+                if (from && d < new Date(from)) return false;
+                if (to) {
+                    const toEnd = new Date(to);
+                    toEnd.setHours(23, 59, 59, 999);
+                    if (d > toEnd) return false;
+                }
+                return true;
+            });
         });
         if (search.trim()) {
             const q = search.toLowerCase();
@@ -243,6 +298,7 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
             if (arr.length) restoredFilters[k] = new Set(arr);
         });
         setFilters(restoredFilters);
+        setDateFiltersState(view.dateFilters || {});
         setSearch(view.search || "");
         setSort(view.sort || { key: null, dir: null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -252,10 +308,11 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
 
     // Serialise current live state for dirty check
     const liveState = useMemo(() => ({
-        filters: serialiseFilters(filters),
-        search:  search.trim(),
+        filters:     serialiseFilters(filters),
+        dateFilters: JSON.stringify(dateFilters),
+        search:      search.trim(),
         sort,
-    }), [filters, search, sort]);
+    }), [filters, dateFilters, search, sort]);
 
     const savedState = useMemo(() => {
         if (!activeView) return null;
@@ -263,6 +320,7 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
             filters: Object.fromEntries(
                 Object.entries(activeView.filters || {}).map(([k, v]) => [k, Array.isArray(v) ? [...v].sort() : v])
             ),
+            dateFilters: JSON.stringify(activeView.dateFilters || {}),
             search: (activeView.search || "").trim(),
             sort:   activeView.sort || { key: null, dir: null },
         };
@@ -279,6 +337,7 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
             if (arr.length) restoredFilters[k] = new Set(arr);
         });
         setFilters(restoredFilters);
+        setDateFiltersState(view.dateFilters || {});
         setSearch(view.search || "");
         setSort(view.sort || { key: null, dir: null });
         setPage(1);
@@ -286,10 +345,11 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
 
     // Capture current state as a view payload
     const captureCurrentState = useCallback(() => ({
-        filters: serialiseFilters(filters),
-        search:  search.trim(),
+        filters:     serialiseFilters(filters),
+        dateFilters: dateFilters,
+        search:      search.trim(),
         sort,
-    }), [filters, search, sort]);
+    }), [filters, dateFilters, search, sort]);
 
     // Save current state as a new view
     const saveAsNewView = useCallback((label) => {
@@ -352,6 +412,7 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
         sort, toggleSort,
         // filters
         filters, setColumnFilter, clearAllFilters, hasActiveFilters, activeFilterCount, columnDistinctValues,
+        dateFilters, setDateFilter, clearDateFilter,
         // pagination
         page: safePage, setPage, pageSize, setPageSize, totalRows, totalPages, pagedData,
         // selection
