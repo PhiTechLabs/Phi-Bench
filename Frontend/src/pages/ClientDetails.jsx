@@ -284,7 +284,7 @@ const ClientDetails = () => {
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[#F1F5F9]">
                                     <SummaryCell label="Industry"       value={client.industry} />
-                                    <SummaryCell label="Account Manager" value={client.accountManager} />
+                                    <SummaryCell label="POC Name" value={client.pocs?.[0] ? `${client.pocs[0].firstName} ${client.pocs[0].lastName}`.trim() : "—"} />
                                     <SummaryCell label="Source"         value={client.source} />
                                     <SummaryCell label="Parent Client"  value={client.parentClient} />
                                 </div>
@@ -306,7 +306,7 @@ const ClientDetails = () => {
                                         link={client.website} />
                                     <KVField icon={icons.brief}    label="Industry"        value={client.industry} />
                                     <KVField icon={icons.source}   label="Source"          value={client.source} />
-                                    <KVField icon={icons.user}     label="Account Manager" value={client.accountManager} />
+                                    <KVField icon={icons.user}     label="POC Name"       value={client.pocs?.[0] ? `${client.pocs[0].firstName} ${client.pocs[0].lastName}`.trim() : "—"} />
                                     {client.linkedin && (
                                         <KVField icon={icons.linkedin} label="LinkedIn"
                                             value="View LinkedIn"
