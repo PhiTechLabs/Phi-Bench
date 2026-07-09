@@ -125,14 +125,17 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
     const activeFilterCount = Object.keys(filters).length + (search.trim() ? 1 : 0);
 
     const columnDistinctValues = useMemo(() => {
+        const SKIP_TYPES = new Set(["sno", "toggle", "date", "location", "chips"]);
         const map = {};
         registry.forEach((col) => {
-            if (!col.filterable) return;
+            if (SKIP_TYPES.has(col.type)) return;
             const set = new Set();
             data.forEach((row) => {
                 const v = row[col.key];
                 if (v != null && v !== "") set.add(String(v));
             });
+            // Always include the column — empty array means "no values yet"
+            // so the filter panel can still list it, just with an empty state.
             map[col.key] = Array.from(set).sort();
         });
         return map;
