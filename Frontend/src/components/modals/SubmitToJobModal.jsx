@@ -101,8 +101,8 @@ const SubmitToJobModal = ({ candidate, onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-20">
-            <div className="flex w-full max-w-lg flex-col rounded-xl bg-white shadow-2xl overflow-hidden" style={{ maxHeight: "calc(100vh - 10rem)" }}>
+        <div className="fixed inset-0 z-[65] flex items-start justify-center bg-black/50 px-4 pt-20 pb-6">
+            <div className="flex w-full max-w-lg flex-col rounded-xl bg-white shadow-2xl overflow-hidden" style={{ maxHeight: "calc(100vh - 6.5rem)" }}>
 
                 {/* ── Header ── sticky, never scrolls */}
                 <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-6 py-4">
