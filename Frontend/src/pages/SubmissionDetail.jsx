@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { getSubmission, updateSubmission } from "../api/submissionsApi";
 import { getCandidateInterviews } from "../api/interviewsApi";
 import InterviewFeedbackModal from "../components/modals/InterviewFeedbackModal";
@@ -420,10 +420,10 @@ const SubmissionDetail = () => {
         <div className="flex min-h-screen items-center justify-center bg-[#F4F6F9] p-4">
             <div className="rounded-xl border border-[#E2E8F0] bg-white px-8 py-6 text-center shadow-sm">
                 <p className="text-[15px] font-semibold text-[#1E293B] mb-1">{error || "Submission not found"}</p>
-                <button onClick={() => navigate(`${roleBase}/submissions`)}
-                    className="mt-3 rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
+                <Link to={`${roleBase}/submissions`}
+                    className="mt-3 inline-block rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
                     Back to Submissions
-                </button>
+                </Link>
             </div>
         </div>
     );
@@ -454,10 +454,10 @@ const SubmissionDetail = () => {
 
                 {/* row 1 — back + candidate info + action */}
                 <div className="flex items-center gap-4 px-6 py-3 border-b border-[#F1F5F9]">
-                    <button onClick={() => navigate(`${roleBase}/submissions`)}
+                    <Link to={`${roleBase}/submissions`}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F8FAFC] transition shrink-0">
                         <Icon d={icons.back} size={15} />
-                    </button>
+                    </Link>
 
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="h-11 w-11 shrink-0 rounded-full bg-linear-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white text-[15px] font-bold shadow">
@@ -472,11 +472,11 @@ const SubmissionDetail = () => {
                             </div>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                 {submission.jobTitle && (
-                                    <button onClick={() => navigate(`${roleBase}/jobs/${jobId}`)}
+                                    <Link to={`${roleBase}/jobs/${jobId}`}
                                         className="flex items-center gap-1 text-[11.5px] text-[#64748B] hover:text-[#2563EB] transition">
                                         <Icon d={icons.brief} size={11} className="text-[#94A3B8]" />
                                         {submission.jobTitle}
-                                    </button>
+                                    </Link>
                                 )}
                                 {submission.jobTitle && submission.clientName && (
                                     <span className="text-[#D1D5DB] text-[10px]">·</span>
@@ -617,14 +617,14 @@ const SubmissionDetail = () => {
                                     <KV label="Created By"   value={submission.createdBy?.username || "—"} />
                                 </div>
                                 <div className="mt-5 pt-4 border-t border-[#F1F5F9] flex gap-2">
-                                    <button onClick={() => navigate(`${roleBase}/candidates/${candidateId}`)}
+                                    <Link to={`${roleBase}/candidates/${candidateId}`}
                                         className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition">
                                         <Icon d={icons.user} size={13} /> Candidate Profile
-                                    </button>
-                                    <button onClick={() => navigate(`${roleBase}/jobs/${jobId}`)}
+                                    </Link>
+                                    <Link to={`${roleBase}/jobs/${jobId}`}
                                         className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition">
                                         <Icon d={icons.brief} size={13} /> View Job
-                                    </button>
+                                    </Link>
                                 </div>
                             </CeipalCard>
 

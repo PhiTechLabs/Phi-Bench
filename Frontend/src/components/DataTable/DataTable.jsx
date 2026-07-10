@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDataTable } from "./useDataTable";
 import { renderCell } from "./cellRenderers";
 import PermissionGuard from "../PermissionGuard";
@@ -33,6 +34,7 @@ const DataTable = ({
     data,
     storageKey,
     onRowClick,
+    getRowHref,
     onDelete,
     onBulkDelete,
     bulkActions = [],
@@ -45,6 +47,7 @@ const DataTable = ({
     const defaultVisibleKeys = defaultVisible || registry.filter((c) => c.defaultVisible).map((c) => c.key);
     const scopedKey = getUserScopedKey(storageKey);
     const t = useDataTable({ registry, defaultVisibleKeys, storageKey: scopedKey, data });
+    const navigate = useNavigate();
 
     const [showAddColumn,   setShowAddColumn]   = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -206,21 +209,35 @@ const DataTable = ({
                             ) : (
                                 t.pagedData.map((row, rowIdx) => {
                                     const isSel = t.selectedIds.has(row.id);
+                                    const rowHref = getRowHref?.(row);
                                     return (
                                         <tr key={row.id}
-                                            className={`group border-b border-[#F0EDE8] transition-colors ${isSel ? "bg-[#F0F5FF]" : "hover:bg-[#FAFAFD]"} ${onRowClick ? "cursor-pointer" : ""}`}
-                                            onClick={() => onRowClick?.(row)}>
+                                            className={`group border-b border-[#F0EDE8] transition-colors ${isSel ? "bg-[#F0F5FF]" : "hover:bg-[#FAFAFD]"} ${(onRowClick || rowHref) ? "cursor-pointer" : ""}`}
+                                            onClick={() => { if (rowHref) navigate(rowHref); else onRowClick?.(row); }}>
                                             <td style={{ width: 40, minWidth: 40 }} className="bg-[#FAFAF8] px-3 py-2 text-center align-middle" onClick={(e) => e.stopPropagation()}>
                                                 <Checkbox checked={isSel} onChange={() => t.toggleRow(row.id)} />
                                             </td>
-                                            {t.columns.map((col, colIdx) => (
-                                                <td key={col.key} style={{ width: col.width, minWidth: col.width }}
-                                                    className={`overflow-visible px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18]
-                                                        ${col.type === "sno" ? "bg-[#FAFAF8] text-center font-medium text-[#6B6860]" : ""}
-                                                        ${colIdx !== t.columns.length - 1 ? "border-r border-[#F5F4F0]" : ""}`}>
-                                                    {renderCell({ column: col, row, rowIndex: rowIdx, pageStart: (t.page - 1) * t.pageSize })}
-                                                </td>
-                                            ))}
+                                            {t.columns.map((col, colIdx) => {
+                                                // Interactive cell types (status pickers, toggles, custom
+                                                // renders like StatusChanger) manage their own clicks via
+                                                // stopPropagation — don't lay a navigation anchor over them.
+                                                // Everything else gets a real <a> so right-click "open in
+                                                // new tab" / Ctrl+click work directly on the cell content,
+                                                // not just via the JS-only row onClick above.
+                                                const isInteractive = col.type === "status" || col.type === "toggle" || typeof col.render === "function";
+                                                const showLink = rowHref && !isInteractive;
+                                                return (
+                                                    <td key={col.key} style={{ width: col.width, minWidth: col.width }}
+                                                        className={`relative overflow-visible px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18]
+                                                            ${col.type === "sno" ? "bg-[#FAFAF8] text-center font-medium text-[#6B6860]" : ""}
+                                                            ${colIdx !== t.columns.length - 1 ? "border-r border-[#F5F4F0]" : ""}`}>
+                                                        {renderCell({ column: col, row, rowIndex: rowIdx, pageStart: (t.page - 1) * t.pageSize })}
+                                                        {showLink && (
+                                                            <Link to={rowHref} className="absolute inset-0 z-0" tabIndex={-1} aria-hidden="true" />
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
                                             {onDelete && (
                                                 <PermissionGuard module={deletePermission?.module} action={deletePermission?.action}>
                                                     <td style={{ width: 44, minWidth: 44 }} className="px-2 py-2 text-right align-middle" onClick={(e) => e.stopPropagation()}>

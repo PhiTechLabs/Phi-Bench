@@ -307,16 +307,11 @@ console.log(
   };
 
   /* ──────────────────── ROW CLICK ──────────────────── */
-
-  const handleRowClick = (row) => {
-
-    if (!canView) return;
-
-    const path =
-      `${roleBase}/candidates/${row.id}`;
-
-    navigate(path);
-  };
+  // Returns undefined (no link, no navigation) when the user lacks view
+  // permission — DataTable renders no anchor and the row simply isn't
+  // clickable in that case.
+  const getCandidateRowHref = (row) =>
+    canView ? `${roleBase}/candidates/${row.id}` : undefined;
 
   /* ──────────────────── COLUMNS ──────────────────── */
 
@@ -605,7 +600,7 @@ console.log(
           columns={columns}
           data={candidates}
           storageKey="candidates_table"
-          onRowClick={handleRowClick}
+          getRowHref={getCandidateRowHref}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search name, skill, company…"

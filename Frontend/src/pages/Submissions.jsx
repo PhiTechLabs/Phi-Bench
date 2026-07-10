@@ -224,7 +224,7 @@ const Submissions = () => {
           columns={columns}
           data={submissions}
           storageKey="submissions_table_v2"
-          onRowClick={(row) => navigate(`${roleBase}/submissions/${row.id}`)}
+          getRowHref={(row) => `${roleBase}/submissions/${row.id}`}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, client…"

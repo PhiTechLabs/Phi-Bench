@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { listSubmissions }  from "../api/submissionsApi";
 import { getStatusStyle, INTERVIEW_STATUS_STYLES } from "../utils/submissionStatuses";
 import PermissionGuard from "../components/PermissionGuard";
@@ -418,10 +418,10 @@ const Home = () => {
                 {actionNeeded.length > 0 && `${actionNeeded.length} submission${actionNeeded.length > 1 ? "s" : ""} waiting for action.`}
               </p>
             </div>
-            <button onClick={() => navigate("/bench")}
-              className="shrink-0 rounded-lg bg-[#DC2626] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#B91C1C] transition">
+            <Link to="/bench"
+              className="inline-block shrink-0 rounded-lg bg-[#DC2626] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#B91C1C] transition">
               View Bench
-            </button>
+            </Link>
           </div>
         )}
 
@@ -523,9 +523,9 @@ const Home = () => {
               )
             )
           .map((kpi) => (
-            <div key={kpi.label}
-              onClick={() => navigate(kpi.route)}
-              className="cursor-pointer rounded-xl border border-[#E8E6E0] bg-white p-4 hover:border-[#1C4ED8]/40 hover:shadow-sm transition group">
+            <Link key={kpi.label}
+              to={kpi.route}
+              className="block cursor-pointer rounded-xl border border-[#E8E6E0] bg-white p-4 hover:border-[#1C4ED8]/40 hover:shadow-sm transition group">
               <div className="mb-2.5 flex items-center justify-between">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg"
                   style={{ background: kpi.color + "18", color: kpi.color }}>
@@ -543,7 +543,7 @@ const Home = () => {
               <p className="text-[23px] font-bold leading-none text-[#1C1B18]">{kpi.value}</p>
               <p className="mt-1 text-[11px] font-semibold text-[#6B6860]">{kpi.label}</p>
               <p className="mt-0.5 text-[10.5px] text-[#9B9890] truncate">{kpi.sub}</p>
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -570,9 +570,9 @@ const Home = () => {
           {/* Stage funnel */}
           <div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-[#F0EDE8]">
             {pipelineCounts.map((stage, i) => (
-              <div key={stage.key}
-                onClick={() => navigate("/submissions")}
-                className="cursor-pointer p-4 text-center hover:bg-[#FAFAF8] transition group">
+              <Link key={stage.key}
+                to="/submissions"
+                className="block cursor-pointer p-4 text-center hover:bg-[#FAFAF8] transition group">
                 <p className="text-[28px] font-bold leading-none" style={{ color: stage.color }}>
                   {stage.count}
                 </p>
@@ -592,7 +592,7 @@ const Home = () => {
                 <p className="mt-1 text-[9.5px] text-[#9B9890]">
                   {totalSubmissions > 0 ? `${Math.round((stage.count / totalSubmissions) * 100)}%` : "0%"}
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -635,8 +635,8 @@ const Home = () => {
                           todayInterviews.map((iv) => {
                             const ivStyle = INTERVIEW_STATUS_STYLES[iv.status] || {};
                             return (
-                              <div key={iv.id || iv._id}
-                                onClick={() => navigate("/interviews")}
+                              <Link key={iv.id || iv._id}
+                                to="/interviews"
                                 className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                                 <Avatar name={iv.candidateName} size={34} />
                                 <div className="min-w-0 flex-1">
@@ -652,7 +652,7 @@ const Home = () => {
                                     {iv.status}
                                   </span>
                                 </div>
-                              </div>
+                              </Link>
                             );
                           })
                         )}
@@ -695,8 +695,8 @@ const Home = () => {
                 actionNeeded.map((sub) => {
                   const s = getStatusStyle(sub.status);
                   return (
-                    <div key={sub.id || sub._id}
-                      onClick={() => navigate("/submissions")}
+                    <Link key={sub.id || sub._id}
+                      to="/submissions"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                       <Avatar name={sub.candidateName} size={34} />
                       <div className="min-w-0 flex-1">
@@ -708,7 +708,7 @@ const Home = () => {
                         <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: s.dot }} />
                         {sub.status}
                       </span>
-                    </div>
+                    </Link>
                   );
                 })
               )}
@@ -741,10 +741,10 @@ const Home = () => {
                   </p>
                 </div>
               </div>
-              <button onClick={() => navigate("/bench")}
+              <Link to="/bench"
                 className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">
                 View bench →
-              </button>
+              </Link>
             </div>
 
             {benchCandidates.length === 0 ? (
@@ -780,14 +780,14 @@ const Home = () => {
                       {band.candidates.length > 0 && (
                         <div className="mt-1.5 flex gap-1 flex-wrap">
                           {band.candidates.slice(0, 3).map((c) => (
-                            <button key={c.id || c._id}
-                              onClick={() => navigate(`/candidates/${c.id || c._id}`)}
+                            <Link key={c.id || c._id}
+                              to={`/candidates/${c.id || c._id}`}
                               className="flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium hover:opacity-80 transition"
                               style={{ background: band.bg, borderColor: band.border, color: band.color }}>
                               <Avatar name={c.name || `${c.firstName} ${c.lastName}`} size={14} />
                               {c.name || `${c.firstName} ${c.lastName}`.trim()}
                               <span className="text-[9px] opacity-70">· {daysAgo(c.createdAt)}d</span>
-                            </button>
+                            </Link>
                           ))}
                           {band.candidates.length > 3 && (
                             <span className="rounded-full border border-[#E0DDD6] bg-[#F5F4F0] px-2 py-0.5 text-[10px] text-[#6B6860]">
@@ -823,16 +823,16 @@ const Home = () => {
                             <p className="text-[10.5px] text-[#9B9890]">Scheduled interviews next 7 days</p>
                           </div>
                         </div>
-                        <button onClick={() => navigate("/interviews")}
-                          className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</button>
+                        <Link to="/interviews"
+                          className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</Link>
                       </div>
                       <div className="divide-y divide-[#F5F4F0] max-h-82.5 overflow-y-auto">
                         {upcomingInterviews.length === 0 ? (
                           <EmptyBlock msg="No interviews scheduled this week" />
                         ) : (
                           upcomingInterviews.map((iv) => (
-                            <div key={iv.id || iv._id}
-                              onClick={() => navigate("/interviews")}
+                            <Link key={iv.id || iv._id}
+                              to="/interviews"
                               className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                               <Avatar name={iv.candidateName} size={32} />
                               <div className="min-w-0 flex-1">
@@ -849,7 +849,7 @@ const Home = () => {
                                   {iv.interviewRound}
                                 </span>
                               </div>
-                            </div>
+                            </Link>
                           ))
                         )}
                       </div>
@@ -879,8 +879,8 @@ const Home = () => {
                   <p className="text-[10.5px] text-[#9B9890]">Sorted by days open — needs filling soonest</p>
                 </div>
               </div>
-              <button onClick={() => navigate("/jobs")}
-                className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</button>
+              <Link to="/jobs"
+                className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</Link>
             </div>
             <div className="p-4 space-y-3">
               {urgentJobs.length === 0 ? (
@@ -890,9 +890,9 @@ const Home = () => {
                   const pct   = Math.max(6, (j.daysOpen / maxDays) * 100);
                   const color = j.daysOpen >= 30 ? "#DC2626" : j.daysOpen >= 14 ? "#D97706" : "#2563EB";
                   return (
-                    <div key={j.id}
-                      onClick={() => navigate(`/jobs/${j.id || j._id}`)}
-                      className="cursor-pointer group">
+                    <Link key={j.id}
+                      to={`/jobs/${j.id || j._id}`}
+                      className="block cursor-pointer group">
                       <div className="mb-1 flex items-center justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <span className="text-[12px] font-semibold text-[#1C1B18] group-hover:text-[#1C4ED8] transition truncate block">
@@ -909,7 +909,7 @@ const Home = () => {
                         <div className="h-full rounded-full transition-all"
                           style={{ width: `${pct}%`, background: color }} />
                       </div>
-                    </div>
+                    </Link>
                   );
                 })
               )}
@@ -936,16 +936,16 @@ const Home = () => {
                   <p className="text-[10.5px] text-[#9B9890]">By open job requirements</p>
                 </div>
               </div>
-              <button onClick={() => navigate("/client-list")}
-                className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</button>
+              <Link to="/client-list"
+                className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</Link>
             </div>
             <div className="divide-y divide-[#F5F4F0]">
               {topClients.length === 0 ? (
                 <EmptyBlock msg="No clients with open jobs" />
               ) : (
                 topClients.map(([clientName, stats]) => (
-                  <div key={clientName}
-                    onClick={() => navigate("/client-list")}
+                  <Link key={clientName}
+                    to="/client-list"
                     className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                     <Avatar name={clientName} size={34} />
                     <div className="min-w-0 flex-1">
@@ -962,7 +962,7 @@ const Home = () => {
                         </span>
                       )}
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>
@@ -997,8 +997,8 @@ const Home = () => {
                       {recentActivity.map((act, i) => {
                         const s = getStatusStyle(act.status);
                         return (
-                          <div key={act.id + i}
-                            onClick={() => navigate("/submissions")}
+                          <Link key={act.id + i}
+                            to="/submissions"
                             className="flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                             {/* timeline dot */}
                             <div className="flex flex-col items-center shrink-0">
@@ -1026,7 +1026,7 @@ const Home = () => {
                               </span>
                               <span className="text-[10px] text-[#9B9890]">{fmtDate(act.changedAt)}</span>
                             </div>
-                          </div>
+                          </Link>
                         );
                       })}
                     </div>
