@@ -96,7 +96,7 @@ const Bench = () => {
           columns={columns}
           data={list}
           storageKey="bench_table"
-          onRowClick={(row) => navigate(`${roleBase}/candidates/${row.id}`)}
+          getRowHref={(row) => `${roleBase}/candidates/${row.id}`}
           onDelete={handleRemove}
           onBulkDelete={handleBulkRemove}
           searchPlaceholder="Search name, skill, company…"

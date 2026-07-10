@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import DataTable from "../components/DataTable/DataTable";
 import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
 import useRoleBase from "../hooks/useRoleBase";
@@ -129,7 +129,7 @@ const canDelete = hasPermission(
           columns={columns}
           data={clients}
           storageKey="clients_table"
-          onRowClick={(row) => navigate(`${roleBase}/client-list/${row.id}`)}
+          getRowHref={(row) => `${roleBase}/client-list/${row.id}`}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search company, contact, manager…"
@@ -138,12 +138,12 @@ const canDelete = hasPermission(
             hint: "Click + Add Client to get started",
           }}
           actions={
-            <button
-              onClick={() => navigate(`${roleBase}/add-client`)}
+            <Link
+              to={`${roleBase}/add-client`}
               className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm transition-all hover:bg-[#1741B6]"
             >
               <span className="text-[14px] leading-none">+</span> Add Client
-            </button>
+            </Link>
           }
         />
       </div>

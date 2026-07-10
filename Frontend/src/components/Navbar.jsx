@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import {
   FaTachometerAlt,
@@ -110,14 +110,6 @@ const Navbar = () => {
     return () => clearTimeout(debounceRef.current);
   }, [searchQuery]);
 
-  const handleResultClick = (result) => {
-    const route = getSearchResultRoute(result);
-    setSearchOpen(false);
-    setSearchQuery("");
-    setSearchResults([]);
-    if (route) navigate(route);
-  };
-
   const handleLogout = async () => {
     try {
       await axiosInstance.post("/auth/logout");
@@ -127,12 +119,6 @@ const Navbar = () => {
     // while remaining invisible to other users who log in on the same device.
     localStorage.removeItem("user");
     navigate("/");
-  };
-
-  // My Account — navigate to /setup (works for all roles)
-  const handleMyAccount = () => {
-    setProfileOpen(false);
-    navigate("/setup");
   };
 
   const allPrimaryMenu = [
@@ -233,18 +219,18 @@ const Navbar = () => {
           <FaBars />
         </button>
 
-        <div
-          onClick={() => navigate("/home")}
+        <Link
+          to="/home"
           className="flex items-center cursor-pointer mr-8 shrink-0 h-full py-0"
         >
           <img src={phiBenchLogo} alt="PhiBench" className="h-full py-2 w-auto object-contain" />
-        </div>
+        </Link>
 
         <div className="hidden md:flex items-center gap-2 flex-1">
           {primaryMenu.map((item) => (
-            <button
+            <Link
               key={item.name}
-              onClick={() => navigate(item.path)}
+              to={item.path}
               className={`relative px-5 py-2 text-base font-medium transition-all group
                 ${isActive(item.path) ? "text-white" : "text-blue-200 hover:text-white"}`}
             >
@@ -253,7 +239,7 @@ const Navbar = () => {
                 className={`absolute left-1/2 -translate-x-1/2 bottom-0 h-0.5 bg-white transition-all duration-300
                   ${isActive(item.path) ? "w-3/4" : "w-0 group-hover:w-3/4"}`}
               />
-            </button>
+            </Link>
           ))}
 
           <div className="relative" ref={dropdownRef}>
@@ -273,15 +259,16 @@ const Navbar = () => {
             {dropdownOpen && (
               <div className="absolute top-full mt-2 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-[70] border border-gray-100">
                 {filteredSecondaryMenu.map((item) => (
-                  <button
+                  <Link
                     key={item.name}
-                    onClick={() => { navigate(item.path); setDropdownOpen(false); }}
+                    to={item.path}
+                    onClick={() => setDropdownOpen(false)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-blue-50 transition
                       ${isActive(item.path) ? "text-blue-700 font-semibold bg-blue-50" : "text-gray-700"}`}
                   >
                     <span className="text-blue-600">{item.icon}</span>
                     {item.name}
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}
@@ -322,10 +309,15 @@ const Navbar = () => {
                     {!searchLoading &&
                       !searchError &&
                       searchResults.map((result) => (
-                        <button
+                        <Link
                           key={`${result.entityType}-${result.id}`}
-                          type="button"
-                          onClick={() => handleResultClick(result)}
+                          to={getSearchResultRoute(result) || "#"}
+                          onClick={(e) => {
+                            if (!getSearchResultRoute(result)) { e.preventDefault(); return; }
+                            setSearchOpen(false);
+                            setSearchQuery("");
+                            setSearchResults([]);
+                          }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-blue-50 transition border-b border-gray-50 last:border-0"
                         >
                           <span className="text-blue-600 shrink-0">
@@ -348,7 +340,7 @@ const Navbar = () => {
                               </div>
                             )}
                           </div>
-                        </button>
+                        </Link>
                       ))}
                   </div>
                 )}
@@ -367,8 +359,8 @@ const Navbar = () => {
             PERMISSIONS.SETTINGS_VIEW.module,
             PERMISSIONS.SETTINGS_VIEW.action
         ) && (
-            <button
-                onClick={() => navigate("/settings")}
+            <Link
+                to="/settings"
                 className={`p-2 rounded-lg text-lg transition
                     ${
                         isActive("/settings")
@@ -377,7 +369,7 @@ const Navbar = () => {
                     }`}
             >
                 <FaCog />
-            </button>
+            </Link>
         )}
 
           <button
@@ -401,14 +393,16 @@ const Navbar = () => {
             </div>
             <ul className="space-y-1 flex-1">
               {fullMenu.map((item) => (
-                <li
-                  key={item.name}
-                  onClick={() => { navigate(item.path); setMobileOpen(false); }}
-                  className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition text-sm
-                    ${isActive(item.path) ? "bg-blue-700 text-white" : "hover:bg-blue-800 text-blue-100"}`}
-                >
-                  <span>{item.icon}</span>
-                  {item.name}
+                <li key={item.name}>
+                  <Link
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition text-sm
+                      ${isActive(item.path) ? "bg-blue-700 text-white" : "hover:bg-blue-800 text-blue-100"}`}
+                  >
+                    <span>{item.icon}</span>
+                    {item.name}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -443,13 +437,14 @@ const Navbar = () => {
                 </div>
               </div>
 
-              {/* ✅ My Account button — now navigates to /setup */}
-              <button
-                onClick={handleMyAccount}
-                className="mt-4 w-full text-sm bg-white/20 hover:bg-white/30 text-white py-2 rounded-lg transition font-medium"
+              {/* My Account — links to /setup (works for all roles) */}
+              <Link
+                to="/setup"
+                onClick={() => setProfileOpen(false)}
+                className="mt-4 block w-full text-center text-sm bg-white/20 hover:bg-white/30 text-white py-2 rounded-lg transition font-medium"
               >
                 My Account
-              </button>
+              </Link>
             </div>
 
             <div className="p-6 space-y-4">

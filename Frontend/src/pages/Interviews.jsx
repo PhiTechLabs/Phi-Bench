@@ -396,7 +396,7 @@ const Interviews = () => {
           columns={columns}
           data={interviews}
           storageKey="interviews_table"
-          onRowClick={(row) => navigate(`${roleBase}/submissions/${row.submission}`)}
+          getRowHref={(row) => `${roleBase}/submissions/${row.submission}`}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, interviewer…"
