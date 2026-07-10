@@ -210,10 +210,18 @@ const DataTable = ({
                                 t.pagedData.map((row, rowIdx) => {
                                     const isSel = t.selectedIds.has(row.id);
                                     const rowHref = getRowHref?.(row);
+                                    // When a rowHref exists, the per-cell <Link> overlays below fully own
+                                    // click-to-navigate (plain click, Ctrl/Cmd+click, middle-click, right-
+                                    // click all work correctly via real <a> semantics). Link deliberately
+                                    // doesn't stopPropagation, so this handler must NOT also call navigate()
+                                    // here — doing so double-fires navigation on every click (one from the
+                                    // Link, one from here), which is what caused a plain click to both
+                                    // change the current tab AND pop a second tab open. Only fall back to
+                                    // the legacy onRowClick callback when no rowHref/Link is in play at all.
                                     return (
                                         <tr key={row.id}
                                             className={`group border-b border-[#F0EDE8] transition-colors ${isSel ? "bg-[#F0F5FF]" : "hover:bg-[#FAFAFD]"} ${(onRowClick || rowHref) ? "cursor-pointer" : ""}`}
-                                            onClick={() => { if (rowHref) navigate(rowHref); else onRowClick?.(row); }}>
+                                            onClick={() => { if (!rowHref) onRowClick?.(row); }}>
                                             <td style={{ width: 40, minWidth: 40 }} className="bg-[#FAFAF8] px-3 py-2 text-center align-middle" onClick={(e) => e.stopPropagation()}>
                                                 <Checkbox checked={isSel} onChange={() => t.toggleRow(row.id)} />
                                             </td>
