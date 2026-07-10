@@ -132,7 +132,7 @@ const SubmitToCandidateModal = ({ job, existingSubmissions = [], onClose, onSucc
     };
 
     return (
-        <div className="fixed inset-0 z-[65] flex items-start justify-center bg-black/50 px-4 pt-20 pb-6">
+        <div className="fixed inset-0 z-65 flex items-start justify-center bg-black/50 px-4 pt-20 pb-6">
             <div className="flex w-full max-w-lg flex-col rounded-xl bg-white shadow-2xl overflow-hidden" style={{ maxHeight: "calc(100vh - 6.5rem)" }}>
 
                 {/* ── Header ── */}
@@ -143,7 +143,7 @@ const SubmitToCandidateModal = ({ job, existingSubmissions = [], onClose, onSucc
                         </div>
                         <div>
                             <h2 className="text-[15px] font-bold text-[#1E293B]">Submit Candidate</h2>
-                            <p className="text-[12px] text-[#94A3B8] truncate max-w-[260px]">
+                            <p className="text-[12px] text-[#94A3B8] truncate max-w-65">
                                 {job.title}
                                 {job.client ? ` · ${job.client}` : ""}
                             </p>
@@ -192,7 +192,7 @@ const SubmitToCandidateModal = ({ job, existingSubmissions = [], onClose, onSucc
                             <p className="text-[11px] font-semibold uppercase tracking-widest text-[#94A3B8]">
                                 Select a candidate ({filtered.length})
                             </p>
-                            <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
+                            <div className="space-y-1.5 max-h-70 overflow-y-auto pr-1">
                                 {filtered.map((c) => (
                                     <button
                                         key={c.id}
