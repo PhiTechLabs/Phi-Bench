@@ -138,7 +138,7 @@ const JobOpenings = () => {
           columns={columns}
           data={jobs}
           storageKey="jobs_table"
-          onRowClick={(row) => navigate(`${roleBase}/jobs/${row.id}`)}
+          getRowHref={(row) => `${roleBase}/jobs/${row.id}`}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search title, client, skills…"

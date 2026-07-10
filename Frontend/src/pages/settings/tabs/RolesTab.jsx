@@ -10,7 +10,7 @@ import {
     FaUserFriends,
 } from "react-icons/fa";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import BackButton from "../../../reusable/BackButton";
 
 import axiosInstance from "../../../api/axiosInstance";
@@ -650,18 +650,14 @@ export default function RolesTab() {
                                         {/* PRIVILEGES */}
                                         <td className="px-4 py-4 text-center border-r border-gray-200">
 
-                                            <button
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/settings/permissions`
-                                                    )
-                                                }
+                                            <Link
+                                                to="/settings/permissions"
                                                 className="text-blue-600 hover:text-sky-500 text-sm font-semibold transition"
                                             >
 
                                                 Edit Permissions
 
-                                            </button>
+                                            </Link>
 
                                         </td>
 

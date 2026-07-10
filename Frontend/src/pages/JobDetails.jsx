@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { getJobById, deleteJob, updateJob } from "../api/jobsApi";
 import { getJobSubmissions, updateSubmission } from "../api/submissionsApi";
 import { getJobInterviews } from "../api/interviewsApi";
@@ -144,10 +144,10 @@ const JobDetails = () => {
         <div className="flex min-h-screen items-center justify-center bg-[#F4F6F9] p-4">
             <div className="rounded-xl border border-red-200 bg-white px-8 py-6 text-center shadow-sm">
                 <p className="text-[15px] font-semibold text-red-600 mb-3">{error}</p>
-                <button onClick={() => navigate(`${roleBase}/jobs`)}
-                    className="rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
+                <Link to={`${roleBase}/jobs`}
+                    className="inline-block rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
                     Back to Jobs
-                </button>
+                </Link>
             </div>
         </div>
     );
@@ -157,10 +157,10 @@ const JobDetails = () => {
             <div className="rounded-xl border border-[#E2E8F0] bg-white px-8 py-6 text-center shadow-sm">
                 <p className="text-[15px] font-semibold text-[#1E293B] mb-1">Job not found</p>
                 <p className="text-[13px] text-[#94A3B8] mb-4">This job doesn't exist or was deleted.</p>
-                <button onClick={() => navigate(`${roleBase}/jobs`)}
-                    className="rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
+                <Link to={`${roleBase}/jobs`}
+                    className="inline-block rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
                     Back to Jobs
-                </button>
+                </Link>
             </div>
         </div>
     );
@@ -184,10 +184,10 @@ const JobDetails = () => {
 
                 {/* Row 1: back + identity + actions */}
                 <div className="flex items-center gap-4 px-6 py-3 border-b border-[#F1F5F9]">
-                    <button onClick={() => navigate(`${roleBase}/jobs`)}
+                    <Link to={`${roleBase}/jobs`}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F8FAFC] transition shrink-0">
                         <Icon d={icons.back} size={15} />
-                    </button>
+                    </Link>
 
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#2563EB]">
@@ -219,10 +219,10 @@ const JobDetails = () => {
                         >
                             <Icon d={icons.submit} size={13} /> Submit Candidate
                         </button>
-                        <button onClick={() => navigate(`${roleBase}/jobs/edit/${id}`)}
+                        <Link to={`${roleBase}/jobs/edit/${id}`}
                             className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
                             <Icon d={icons.edit} size={13} /> Edit
-                        </button>
+                        </Link>
                         <button onClick={handleDelete}
                             className="flex items-center gap-1.5 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition">
                             <Icon d={icons.trash} size={13} /> Delete
@@ -539,7 +539,7 @@ const SubmissionsTab = ({ submissions, roleBase, navigate, onChangeStatus }) => 
                 submissions={submissions}
                 context="job"
                 onChangeStatus={onChangeStatus}
-                onRowClick={(row) => navigate(`${roleBase}/candidates/${row.candidate?._id || row.candidate}`)}
+                getRowHref={(row) => `${roleBase}/candidates/${row.candidate?._id || row.candidate}`}
             />
         </div>
     );
@@ -570,7 +570,7 @@ const InterviewsTab = ({ interviews, roleBase, navigate, onFeedback }) => {
                 interviews={interviews}
                 context="job"
                 onFeedback={onFeedback}
-                onRowClick={(row) => navigate(`${roleBase}/candidates/${row.candidate?._id || row.candidate}`)}
+                getRowHref={(row) => `${roleBase}/candidates/${row.candidate?._id || row.candidate}`}
             />
         </div>
     );
