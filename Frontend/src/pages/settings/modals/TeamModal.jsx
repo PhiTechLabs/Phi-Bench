@@ -1,6 +1,7 @@
 import React, {
     useEffect,
     useState,
+    useRef,
 } from "react";
 
 import axiosInstance from "../../../api/axiosInstance";
@@ -46,6 +47,14 @@ export default function TeamModal({
             teamLead: "",
             members: [],
         });
+
+    const [leadSearch, setLeadSearch] = useState("");
+    const [leadDropdownOpen, setLeadDropdownOpen] = useState(false);
+    const leadDropdownRef = useRef(null);
+
+    const [branchSearch, setBranchSearch] = useState("");
+    const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
+    const branchDropdownRef = useRef(null);
 
     useEffect(() => {
 
@@ -118,6 +127,43 @@ export default function TeamModal({
         });
 
     }, [open, team]);
+
+    useEffect(() => {
+
+        const handleClickOutside = (e) => {
+
+            if (
+                leadDropdownRef.current &&
+                !leadDropdownRef.current.contains(e.target)
+            ) {
+                setLeadDropdownOpen(false);
+            }
+
+            if (
+                branchDropdownRef.current &&
+                !branchDropdownRef.current.contains(e.target)
+            ) {
+                setBranchDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+
+    }, []);
+
+    useEffect(() => {
+
+        if (!open) {
+            setLeadSearch("");
+            setLeadDropdownOpen(false);
+            setBranchSearch("");
+            setBranchDropdownOpen(false);
+        }
+
+    }, [open]);
 
     const handleMemberChange =
         (userId) => {
@@ -456,7 +502,7 @@ export default function TeamModal({
 
                     {/* Branch */}
 
-                    <div>
+                    <div ref={branchDropdownRef}>
 
                         <label
                             className="
@@ -472,79 +518,140 @@ export default function TeamModal({
 
                         <div className="relative">
 
-                            <FiMapPin
-                                className="
-                                    absolute
-                                    left-3
-                                    top-1/2
-                                    -translate-y-1/2
-                                    text-gray-400
-                                "
-                                size={16}
-                            />
+                            {/* CLOSED CONTROL / SEARCH INPUT */}
+                            <div className="relative">
 
-                            <select
-                                value={
-                                    form.branchId
-                                }
-                                onChange={(e) =>
-                                    setForm(
-                                        (prev) => ({
-                                            ...prev,
-                                            branchId:
-                                                e.target.value,
-                                        })
-                                    )
-                                }
-                                className="
-                                    w-full
-                                    border
-                                    border-gray-200
-                                    rounded-xl
-                                    pl-10
-                                    pr-3
-                                    py-2.5
-                                    text-sm
-                                    outline-none
-                                    focus:border-blue-500
-                                    focus:ring-1
-                                    focus:ring-blue-500
-                                    transition-colors
-                                    appearance-none
-                                    bg-white
-                                "
-                            >
+                                <FiMapPin
+                                    className="
+                                        absolute
+                                        left-3
+                                        top-1/2
+                                        -translate-y-1/2
+                                        text-gray-400
+                                        z-10
+                                    "
+                                    size={16}
+                                />
 
-                                <option value="">
-                                    Select Branch
-                                </option>
+                                <input
+                                    type="text"
+                                    value={
+                                        branchDropdownOpen
+                                            ? branchSearch
+                                            : (branches.find(
+                                                (b) => b._id === form.branchId
+                                            )?.name || "")
+                                    }
+                                    onFocus={() => {
+                                        setBranchDropdownOpen(true);
+                                        setBranchSearch("");
+                                    }}
+                                    onChange={(e) =>
+                                        setBranchSearch(e.target.value)
+                                    }
+                                    placeholder="Select Branch"
+                                    className="
+                                        w-full
+                                        border
+                                        border-gray-200
+                                        rounded-xl
+                                        pl-10
+                                        pr-3
+                                        py-2.5
+                                        text-sm
+                                        outline-none
+                                        focus:border-blue-500
+                                        focus:ring-1
+                                        focus:ring-blue-500
+                                        transition-colors
+                                        bg-white
+                                        cursor-pointer
+                                    "
+                                />
 
-                                {branches.map(
-                                    (branch) => (
-                                        <option
-                                            key={
-                                                branch._id
-                                            }
-                                            value={
-                                                branch._id
-                                            }
-                                        >
-                                            {
-                                                branch.name
-                                            }
-                                        </option>
-                                    )
-                                )}
+                            </div>
 
-                            </select>
+                            {/* DROPDOWN LIST */}
+                            {branchDropdownOpen && (
+
+                                <div
+                                    className="
+                                        absolute
+                                        z-20
+                                        mt-1.5
+                                        w-full
+                                        bg-white
+                                        border
+                                        border-gray-200
+                                        rounded-xl
+                                        shadow-lg
+                                        max-h-48
+                                        overflow-y-auto
+                                        py-1
+                                    "
+                                >
+
+                                    {branches
+                                        .filter((branch) =>
+                                            branch.name
+                                                ?.toLowerCase()
+                                                .includes(
+                                                    branchSearch.toLowerCase()
+                                                )
+                                        )
+                                        .map((branch) => (
+
+                                            <div
+                                                key={branch._id}
+                                                onClick={() => {
+                                                    setForm((prev) => ({
+                                                        ...prev,
+                                                        branchId: branch._id,
+                                                    }));
+                                                    setBranchDropdownOpen(false);
+                                                    setBranchSearch("");
+                                                }}
+                                                className={`
+                                                    px-3.5
+                                                    py-2
+                                                    text-sm
+                                                    cursor-pointer
+                                                    transition-colors
+                                                    hover:bg-blue-50
+                                                    ${
+                                                        form.branchId === branch._id
+                                                            ? "bg-blue-50 text-blue-700 font-medium"
+                                                            : "text-gray-700"
+                                                    }
+                                                `}
+                                            >
+                                                {branch.name}
+                                            </div>
+                                        ))}
+
+                                    {branches.filter((branch) =>
+                                        branch.name
+                                            ?.toLowerCase()
+                                            .includes(branchSearch.toLowerCase())
+                                    ).length === 0 && (
+
+                                        <div className="px-3.5 py-2 text-sm text-gray-400">
+                                            No branches found
+                                        </div>
+                                    )}
+
+                                </div>
+                            )}
 
                         </div>
 
                     </div>
 
+
                     {/* Team Lead */}
 
-                    <div>
+
+                    <div ref={leadDropdownRef}>
 
                         <label
                             className="
@@ -560,71 +667,130 @@ export default function TeamModal({
 
                         <div className="relative">
 
-                            <FiUserCheck
-                                className="
-                                    absolute
-                                    left-3
-                                    top-1/2
-                                    -translate-y-1/2
-                                    text-gray-400
-                                "
-                                size={16}
-                            />
+                            {/* CLOSED CONTROL / SEARCH INPUT */}
+                            <div className="relative">
 
-                            <select
-                                value={
-                                    form.teamLead
-                                }
-                                onChange={(e) =>
-                                    setForm(
-                                        (prev) => ({
-                                            ...prev,
-                                            teamLead:
-                                                e.target.value,
-                                        })
-                                    )
-                                }
-                                className="
-                                    w-full
-                                    border
-                                    border-gray-200
-                                    rounded-xl
-                                    pl-10
-                                    pr-3
-                                    py-2.5
-                                    text-sm
-                                    outline-none
-                                    focus:border-blue-500
-                                    focus:ring-1
-                                    focus:ring-blue-500
-                                    transition-colors
-                                    appearance-none
-                                    bg-white
-                                "
-                            >
+                                <FiUserCheck
+                                    className="
+                                        absolute
+                                        left-3
+                                        top-1/2
+                                        -translate-y-1/2
+                                        text-gray-400
+                                        z-10
+                                    "
+                                    size={16}
+                                />
 
-                                <option value="">
-                                    Select Lead
-                                </option>
+                                <input
+                                    type="text"
+                                    value={
+                                        leadDropdownOpen
+                                            ? leadSearch
+                                            : (users.find(
+                                                (u) => u._id === form.teamLead
+                                            )?.username || "")
+                                    }
+                                    onFocus={() => {
+                                        setLeadDropdownOpen(true);
+                                        setLeadSearch("");
+                                    }}
+                                    onChange={(e) =>
+                                        setLeadSearch(e.target.value)
+                                    }
+                                    placeholder="Select team leader"
+                                    className="
+                                        w-full
+                                        border
+                                        border-gray-200
+                                        rounded-xl
+                                        pl-10
+                                        pr-3
+                                        py-2.5
+                                        text-sm
+                                        outline-none
+                                        focus:border-blue-500
+                                        focus:ring-1
+                                        focus:ring-blue-500
+                                        transition-colors
+                                        bg-white
+                                        cursor-pointer
+                                    "
+                                />
 
-                                {users.map(
-                                    (user) => (
-                                        <option
-                                            key={
-                                                user._id
-                                            }
-                                            value={
-                                                user._id
-                                            }
-                                        >
-                                            {
-                                                user.username
-                                            }
-                                        </option>
-                                    )
-                                )}
+                            </div>
 
-                            </select>
+                            {/* DROPDOWN LIST */}
+                            {leadDropdownOpen && (
+
+                                <div
+                                    className="
+                                        absolute
+                                        z-20
+                                        mt-1.5
+                                        w-full
+                                        bg-white
+                                        border
+                                        border-gray-200
+                                        rounded-xl
+                                        shadow-lg
+                                        max-h-48
+                                        overflow-y-auto
+                                        py-1
+                                    "
+                                >
+
+                                    {users
+                                        .filter((user) =>
+                                            user.username
+                                                ?.toLowerCase()
+                                                .includes(
+                                                    leadSearch.toLowerCase()
+                                                )
+                                        )
+                                        .map((user) => (
+
+                                            <div
+                                                key={user._id}
+                                                onClick={() => {
+                                                    setForm((prev) => ({
+                                                        ...prev,
+                                                        teamLead: user._id,
+                                                    }));
+                                                    setLeadDropdownOpen(false);
+                                                    setLeadSearch("");
+                                                }}
+                                                className={`
+                                                    px-3.5
+                                                    py-2
+                                                    text-sm
+                                                    cursor-pointer
+                                                    transition-colors
+                                                    hover:bg-blue-50
+                                                    ${
+                                                        form.teamLead === user._id
+                                                            ? "bg-blue-50 text-blue-700 font-medium"
+                                                            : "text-gray-700"
+                                                    }
+                                                `}
+                                            >
+                                                {user.username}
+                                            </div>
+                                        ))}
+
+                                    {users.filter((user) =>
+                                        user.username
+                                            ?.toLowerCase()
+                                            .includes(leadSearch.toLowerCase())
+                                    ).length === 0 && (
+
+                                        <div className="px-3.5 py-2 text-sm text-gray-400">
+                                            No users found
+                                        </div>
+                                    )}
+
+                                </div>
+                            )}
 
                         </div>
 
