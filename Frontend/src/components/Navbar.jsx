@@ -26,6 +26,7 @@ import {hasPermission} from "../utils/hasPermission";
 import { getCurrentUser } from "../utils/auth";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 import { globalSearch, getSearchResultRoute } from "../api/searchApi";
+import useInactivityLogout from "../hooks/useInactivityLogout";
 
 // Small icon per entity type, reusing the same icons already used in the
 // nav menu so search results feel visually consistent with the rest of the app.
@@ -120,6 +121,12 @@ const Navbar = () => {
     localStorage.removeItem("user");
     navigate("/");
   };
+
+  // Auto-logout after 3 hours with no mouse/keyboard/touch activity anywhere
+  // in the app. Navbar wraps every authenticated route (see App.jsx), so
+  // mounting the hook here covers the whole app from one place. Reuses the
+  // same handleLogout as the manual "Logout" button in the profile drawer.
+  useInactivityLogout(handleLogout);
 
   const allPrimaryMenu = [
   {
