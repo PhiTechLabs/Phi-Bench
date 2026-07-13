@@ -222,7 +222,8 @@ const SubmitToCandidateModal = ({ job, existingSubmissions = [], onClose, onSucc
                                             <Avatar candidate={c} />
 
                                             {/* Info */}
-                                            <div className="min-w-0 flex-1">
+                                            <div c
+                                            lassName="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <p className="text-[13px] font-semibold text-[#1E293B] truncate">
                                                         {c.name}
