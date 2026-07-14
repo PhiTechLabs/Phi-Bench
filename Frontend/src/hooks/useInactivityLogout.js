@@ -30,7 +30,7 @@ const ACTIVITY_EVENTS     = ["mousemove", "mousedown", "keydown", "wheel", "scro
 
 // onTimeout: called once the user has been idle past the limit. Should log
 // the user out (clear session, redirect to login) — the hook itself only
-// decides *when*, not *how*.
+// decides *when*, not *how*.         
 export default function useInactivityLogout(onTimeout) {
     const onTimeoutRef = useRef(onTimeout);
     onTimeoutRef.current = onTimeout;
