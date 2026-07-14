@@ -180,13 +180,16 @@ const DataTable = ({
                     </div>
                 </div>
 
-                {/* table */}
-                <div className="overflow-x-auto overflow-y-visible">
+                {/* table — bounded height with a sticky header row, so the
+                    column titles and the horizontal scrollbar both stay
+                    reachable no matter how many rows are loaded; only the
+                    row data scrolls vertically in between. */}
+                <div className="max-h-[70vh] overflow-auto">
                     <table className="w-full table-fixed border-collapse text-[12.5px]"
                         style={{ minWidth: t.columns.reduce((s, c) => s + c.width, 0) + 88 }}>
                         <thead>
                             <tr className="bg-[#FAFAF8]">
-                                <th style={{ width: 40, minWidth: 40 }} className="border-b border-[#E8E6E0] bg-[#F5F4F0] px-3 py-2 text-center">
+                                <th style={{ width: 40, minWidth: 40 }} className="sticky top-0 z-10 border-b border-[#E8E6E0] bg-[#F5F4F0] px-3 py-2 text-center">
                                     <Checkbox checked={t.allOnPageSelected} indeterminate={!t.allOnPageSelected && t.someOnPageSelected} onChange={t.togglePageAll} />
                                 </th>
                                 {t.columns.map((col, idx) => (
@@ -198,7 +201,7 @@ const DataTable = ({
                                         t={t}
                                     />
                                 ))}
-                                {onDelete && <th style={{ width: 44, minWidth: 44 }} className="border-b border-[#E8E6E0] px-2 py-2" />}
+                                {onDelete && <th style={{ width: 44, minWidth: 44 }} className="sticky top-0 z-10 border-b border-[#E8E6E0] bg-[#FAFAF8] px-2 py-2" />}
                             </tr>
                         </thead>
                         <tbody>
@@ -798,24 +801,59 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
 };
 
 const InlineFilterBtn = ({ active, open, onToggle, options, selected, onChange, onClose }) => {
-    const ref = useRef();
+    const btnWrapRef = useRef();
+    const menuRef = useRef();
+    const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+
+    // Rendered through a portal (same pattern as StatusCell's dropdown and
+    // ViewsTabs' 3-dot menu) so it always escapes the table's own
+    // scroll/clip box — the header cell it hangs off is now sticky inside
+    // a bounded, overflow:auto scroll container, and a plain
+    // position:absolute popup would get clipped at that container's edge.
     useEffect(() => {
         if (!open) return;
-        const fn = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-        document.addEventListener("mousedown", fn);
-        return () => document.removeEventListener("mousedown", fn);
+
+        const rect = btnWrapRef.current?.getBoundingClientRect();
+        if (rect) {
+            setMenuPos({ top: rect.bottom + 4, left: Math.max(8, rect.right - 192) }); // 192px = w-48
+        }
+
+        const clickAway = (e) => {
+            if (
+                btnWrapRef.current && !btnWrapRef.current.contains(e.target) &&
+                menuRef.current && !menuRef.current.contains(e.target)
+            ) {
+                onClose();
+            }
+        };
+        // Close on scroll/resize rather than tracking position live — simplest
+        // way to avoid the popup drifting away from its trigger.
+        const close = () => onClose();
+
+        document.addEventListener("mousedown", clickAway);
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
+        return () => {
+            document.removeEventListener("mousedown", clickAway);
+            window.removeEventListener("scroll", close, true);
+            window.removeEventListener("resize", close);
+        };
     }, [open, onClose]);
+
     const toggle = (v) => selected.includes(v) ? onChange(selected.filter((x) => x !== v)) : onChange([...selected, v]);
     return (
-        <div className="relative" ref={ref}>
+        <div className="relative" ref={btnWrapRef}>
             <button onClick={(e) => { e.stopPropagation(); onToggle(); }}
                 className={`flex h-4 w-4 shrink-0 items-center justify-center rounded transition-all ${
                     active ? "text-[#1C4ED8] opacity-100" : "text-[#C8C5BD] opacity-0 hover:bg-[#F0F5FF] hover:text-[#1C4ED8] group-hover:opacity-100"
                 }`}>
                 <FilterIcon size={10} />
             </button>
-            {open && (
-                <div className="absolute right-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]" onClick={(e) => e.stopPropagation()}>
+            {open && createPortal(
+                <div ref={menuRef}
+                    style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 1000 }}
+                    className="w-48 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                    onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-between border-b border-[#F0EDE8] bg-[#FAFAF8] px-2.5 py-1.5">
                         <span className="text-[9.5px] font-semibold uppercase tracking-widest text-[#9B9890]">Filter</span>
                         {selected.length > 0 && <button onClick={() => onChange([])} className="text-[10px] font-medium text-[#1C4ED8] hover:underline">Clear</button>}
@@ -828,7 +866,8 @@ const InlineFilterBtn = ({ active, open, onToggle, options, selected, onChange, 
                             </label>
                         ))}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
@@ -918,8 +957,8 @@ const ColumnHeader = ({ col, isLast, t }) => {
             onDrop={(e) => t.onHeaderDrop(e, col)}
             onDragEnd={t.resetDrag}
             style={{ width: col.width, minWidth: col.width }}
-            className={`group relative select-none border-b border-[#E8E6E0] px-3 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#6B6860] transition-colors
-                ${col.fixed ? "cursor-default bg-[#F5F4F0]" : "cursor-grab hover:bg-[#F5F4F0] active:cursor-grabbing"}
+            className={`group sticky top-0 z-10 select-none border-b border-[#E8E6E0] px-3 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#6B6860] transition-colors
+                ${col.fixed ? "cursor-default bg-[#F5F4F0]" : "cursor-grab bg-[#FAFAF8] hover:bg-[#F5F4F0] active:cursor-grabbing"}
                 ${isDragging ? "opacity-40" : ""}
                 ${!isLast ? "border-r border-[#F0EDE8]" : ""}`}>
 
