@@ -352,7 +352,7 @@ const Home = () => {
   // RENDER
   // ══════════════════════════════════════════════════════════════════════════
   if (loading) return (
-    <div className="min-h-screen bg-[#F5F4F0] flex items-center justify-center">
+    <div className="min-h-screen bg-[#EEF1F6] flex items-center justify-center">
       <div className="text-center space-y-3">
         <div className="h-10 w-10 mx-auto animate-spin rounded-full border-4 border-[#E0DDD6] border-t-[#1C4ED8]" />
         <p className="text-[13px] text-[#9B9890]">Loading dashboard…</p>
@@ -361,7 +361,7 @@ const Home = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F4F0] font-sans">
+    <div className="min-h-screen bg-[#EEF1F6] font-sans">
       <div className="w-full px-4 py-5 sm:px-6 lg:px-8 2xl:px-12 space-y-5">
 
         {/* ══════════ HEADER ══════════ */}
@@ -393,7 +393,7 @@ const Home = () => {
           !can("interview", "view") &&
           !can("submissions", "view") &&
           !can("bench", "view") && (
-            <div className="rounded-xl border border-[#E8E6E0] bg-white p-8 text-center">
+            <div className="rounded-xl border border-[#D7DEE8] bg-white p-8 text-center shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
               <h2 className="text-lg font-semibold text-[#1C1B18]">
                 Welcome
               </h2>
@@ -403,27 +403,6 @@ const Home = () => {
             </div>
           )
         }
-
-        {/* ══════════ ALERT BANNER — critical bench / action needed ══════════ */}
-        {(
-            (can("bench", "view") && criticalBench > 0) ||
-            (can("submissions", "view") && actionNeeded.length > 0)
-          ) && (
-          <div className="rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-3 flex flex-wrap items-center gap-4">
-            <Ico d={I.alert} size={18} className="text-[#DC2626] shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-bold text-[#991B1B]">Attention Required</p>
-              <p className="text-[11.5px] text-[#B91C1C] mt-0.5">
-                {criticalBench > 0 && `${criticalBench} bench candidate${criticalBench > 1 ? "s" : ""} idle 60+ days. `}
-                {actionNeeded.length > 0 && `${actionNeeded.length} submission${actionNeeded.length > 1 ? "s" : ""} waiting for action.`}
-              </p>
-            </div>
-            <Link to="/bench"
-              className="inline-block shrink-0 rounded-lg bg-[#DC2626] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#B91C1C] transition">
-              View Bench
-            </Link>
-          </div>
-        )}
 
         {/* ══════════ KPI ROW ══════════ */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
@@ -525,7 +504,7 @@ const Home = () => {
           .map((kpi) => (
             <Link key={kpi.label}
               to={kpi.route}
-              className="block cursor-pointer rounded-xl border border-[#E8E6E0] bg-white p-4 hover:border-[#1C4ED8]/40 hover:shadow-sm transition group">
+              className="block cursor-pointer rounded-xl border border-[#D7DEE8] bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,0.06)] hover:border-[#1C4ED8]/40 hover:shadow-md transition group">
               <div className="mb-2.5 flex items-center justify-between">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg"
                   style={{ background: kpi.color + "18", color: kpi.color }}>
@@ -553,7 +532,7 @@ const Home = () => {
           module="submissions"
           action="view"
         >
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+          <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
           <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
             <div>
               <h2 className="text-[13.5px] font-bold text-[#1C1B18]">Submission Pipeline</h2>
@@ -609,7 +588,7 @@ const Home = () => {
             module="interview"
             action="view"
           >
-            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+            <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
                       <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#2563EB]">
@@ -628,7 +607,7 @@ const Home = () => {
                           </span>
                         )}
                       </div>
-                      <div className="divide-y divide-[#F5F4F0] max-h-75 overflow-y-auto">
+                      <div className="divide-y divide-[#EEF1F6] max-h-75 overflow-y-auto">
                         {todayInterviews.length === 0 ? (
                           <EmptyBlock msg="No interviews scheduled for today" />
                         ) : (
@@ -668,7 +647,7 @@ const Home = () => {
             module="submissions"
             action="view"
           >
-            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+            <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF9C3] text-[#CA8A04]">
@@ -685,7 +664,7 @@ const Home = () => {
                 </span>
               )}
             </div>
-            <div className="divide-y divide-[#F5F4F0] max-h-75 overflow-y-auto">
+            <div className="divide-y divide-[#EEF1F6] max-h-75 overflow-y-auto">
               {actionNeeded.length === 0 ? (
                 <div className="py-8 text-center">
                   <Ico d={I.check} size={24} className="mx-auto text-[#10B981] mb-2" />
@@ -728,7 +707,7 @@ const Home = () => {
             module="bench"
             action="view"
           >
-            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+            <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FFF7ED] text-[#D97706]">
@@ -790,7 +769,7 @@ const Home = () => {
                             </Link>
                           ))}
                           {band.candidates.length > 3 && (
-                            <span className="rounded-full border border-[#E0DDD6] bg-[#F5F4F0] px-2 py-0.5 text-[10px] text-[#6B6860]">
+                            <span className="rounded-full border border-[#E0DDD6] bg-[#EEF1F6] px-2 py-0.5 text-[10px] text-[#6B6860]">
                               +{band.candidates.length - 3} more
                             </span>
                           )}
@@ -812,7 +791,7 @@ const Home = () => {
             module="interview"
             action="view"
           >
-            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+            <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
                       <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F5F3FF] text-[#7C3AED]">
@@ -826,7 +805,7 @@ const Home = () => {
                         <Link to="/interviews"
                           className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</Link>
                       </div>
-                      <div className="divide-y divide-[#F5F4F0] max-h-82.5 overflow-y-auto">
+                      <div className="divide-y divide-[#EEF1F6] max-h-82.5 overflow-y-auto">
                         {upcomingInterviews.length === 0 ? (
                           <EmptyBlock msg="No interviews scheduled this week" />
                         ) : (
@@ -868,7 +847,7 @@ const Home = () => {
             module="job"
             action="view"
           >
-            <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+            <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF2F2] text-[#DC2626]">
@@ -925,7 +904,7 @@ const Home = () => {
           module="clients"
           action="view"
         >
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+          <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
             <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#ECFDF5] text-[#059669]">
@@ -939,7 +918,7 @@ const Home = () => {
               <Link to="/client-list"
                 className="text-[11px] font-semibold text-[#1C4ED8] hover:underline">View all →</Link>
             </div>
-            <div className="divide-y divide-[#F5F4F0]">
+            <div className="divide-y divide-[#EEF1F6]">
               {topClients.length === 0 ? (
                 <EmptyBlock msg="No clients with open jobs" />
               ) : (
@@ -978,10 +957,10 @@ const Home = () => {
           module="submissions"
           action="view"
         >
-          <div className="rounded-xl border border-[#E8E6E0] bg-white overflow-hidden">
+          <div className="rounded-xl border border-[#D7DEE8] bg-white overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.06)]">
                   <div className="bg-[#FAFAF8] border-b border-[#F0EDE8] px-5 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F5F4F0] text-[#6B6860]">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EEF1F6] text-[#6B6860]">
                         <Ico d={I.activity} size={14} />
                       </div>
                       <div>
@@ -993,7 +972,7 @@ const Home = () => {
                   {recentActivity.length === 0 ? (
                     <EmptyBlock msg="No recent activity" />
                   ) : (
-                    <div className="divide-y divide-[#F5F4F0]">
+                    <div className="divide-y divide-[#EEF1F6]">
                       {recentActivity.map((act, i) => {
                         const s = getStatusStyle(act.status);
                         return (
