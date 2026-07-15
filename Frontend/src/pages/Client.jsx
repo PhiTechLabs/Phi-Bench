@@ -39,6 +39,7 @@ const shapeClient = (c) => {
 
 const Client = () => {
   const [clients, setClients]       = useState([]);
+  const [loading, setLoading]       = useState(true);
   const [confirmDel, setConfirmDel] = useState(null);
   const navigate = useNavigate();
   
@@ -70,9 +71,13 @@ const canDelete = hasPermission(
   }
 
   const refresh = useCallback(async () => {
-    const data = await getAllClients();
-    const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
-    setClients(list.map(shapeClient));
+    try {
+      const data = await getAllClients();
+      const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
+      setClients(list.map(shapeClient));
+    } finally {
+      setLoading(false);
+    }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -133,6 +138,8 @@ const canDelete = hasPermission(
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search company, contact, manager…"
+          loading={loading}
+          loadingLabel="Loading clients…"
           emptyState={{
             title: "No clients yet",
             hint: "Click + Add Client to get started",
