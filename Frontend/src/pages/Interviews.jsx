@@ -82,6 +82,7 @@ const MODE_OPTIONS = [
 const Interviews = () => {
   const [showForm, setShowForm] = useState(false);
   const [interviews, setInterviews] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [confirmDel, setConfirmDel] = useState(null);
 
   const navigate = useNavigate();
@@ -101,6 +102,8 @@ const Interviews = () => {
       setInterviews(normalized);
     } catch (err) {
       console.error("Failed to fetch interviews:", err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -400,6 +403,8 @@ const Interviews = () => {
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, interviewer…"
+          loading={loading}
+          loadingLabel="Loading interviews…"
           emptyState={{
             title: "No interviews scheduled",
             hint: "Interviews are scheduled from the Submission detail page",

@@ -40,6 +40,8 @@ const DataTable = ({
     bulkActions = [],
     searchPlaceholder = "Search…",
     emptyState = { title: "No records yet", hint: "" },
+    loading = false,
+    loadingLabel = "Loading…",
     actions,
     deletePermission,
     bulkDeletePermission,
@@ -205,7 +207,11 @@ const DataTable = ({
                             </tr>
                         </thead>
                         <tbody>
-                            {t.pagedData.length === 0 ? (
+                            {loading ? (
+                                <tr><td colSpan={t.columns.length + 1 + (onDelete ? 1 : 0)} className="px-4 py-16 text-center">
+                                    <LoadingStateBlock label={loadingLabel} />
+                                </td></tr>
+                            ) : t.pagedData.length === 0 ? (
                                 <tr><td colSpan={t.columns.length + 1 + (onDelete ? 1 : 0)} className="px-4 py-16 text-center">
                                     <EmptyStateBlock {...emptyState} />
                                 </td></tr>
@@ -1005,6 +1011,13 @@ const ColumnHeader = ({ col, isLast, t }) => {
         </th>
     );
 };
+
+const LoadingStateBlock = ({ label }) => (
+    <div className="flex flex-col items-center gap-2.5">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E8E6E0] border-t-[#1C4ED8]" />
+        <div className="text-[12.5px] font-medium text-[#9B9890]">{label}</div>
+    </div>
+);
 
 const EmptyStateBlock = ({ title, hint, action }) => (
     <div className="flex flex-col items-center gap-2.5">
