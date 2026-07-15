@@ -165,6 +165,7 @@ const Home = () => {
   };
 
   const [refreshing, setRefreshing] = useState(false);
+  const [justRefreshed, setJustRefreshed] = useState(false);
 
   // ── state ──
   const [jobs,        setJobs]        = useState([]);
@@ -222,6 +223,29 @@ const Home = () => {
   setLastUpdated(new Date());
   setLoading(false);
 }, []);
+
+  // Manual refresh, wired to the header button. Wraps fetchAll with a
+  // deliberate animation sequence — spin for at least MIN_SPIN_MS (so a
+  // fast/cached response doesn't just flicker), then a brief "Updated"
+  // success state — so clicking it actually feels like something happened.
+  const MIN_SPIN_MS = 700;
+  const handleRefreshClick = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setJustRefreshed(false);
+    const startedAt = Date.now();
+    try {
+      await fetchAll();
+    } finally {
+      const remaining = MIN_SPIN_MS - (Date.now() - startedAt);
+      setTimeout(() => {
+        if (!mounted.current) return;
+        setRefreshing(false);
+        setJustRefreshed(true);
+        setTimeout(() => { if (mounted.current) setJustRefreshed(false); }, 1300);
+      }, Math.max(0, remaining));
+    }
+  };
 
   useEffect(() => {
     mounted.current = true;
@@ -379,11 +403,37 @@ const Home = () => {
               )}
             </p>
           </div>
-          <button onClick={fetchAll} disabled={refreshing}
-            className="flex items-center gap-2 rounded-lg border border-[#E0DDD6] bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#FAFAF8] transition shadow-sm">
-            <Ico d={I.refresh} size={13}  />
-            Refresh
+          <button onClick={handleRefreshClick} disabled={refreshing}
+            className={`relative flex items-center gap-2 overflow-hidden rounded-lg border px-3 py-1.5 text-[11.5px] font-medium shadow-sm transition-all duration-300 ${
+              justRefreshed
+                ? "border-[#A7F3D0] bg-[#ECFDF5] text-[#059669]"
+                : refreshing
+                  ? "border-[#BFD3FF] bg-[#F0F5FF] text-[#1C4ED8]"
+                  : "border-[#E0DDD6] bg-white text-[#4A4845] hover:bg-[#FAFAF8]"
+            } ${justRefreshed ? "scale-[1.04]" : "scale-100"}`}>
+            {/* outward-pulsing glow ring, fired once per click */}
+            {refreshing && (
+              <span className="pointer-events-none absolute inset-0 rounded-lg border-2 border-[#1C4ED8]/40 animate-refresh-ring" />
+            )}
+            <span className={justRefreshed ? "animate-refresh-pop" : refreshing ? "animate-spin" : ""}>
+              <Ico d={justRefreshed ? I.check : I.refresh} size={13} />
+            </span>
+            {justRefreshed ? "Updated" : refreshing ? "Refreshing…" : "Refresh"}
           </button>
+          <style>{`
+            @keyframes refresh-ring {
+              0%   { transform: scale(0.85); opacity: 0.9; }
+              100% { transform: scale(1.6); opacity: 0; }
+            }
+            .animate-refresh-ring { animation: refresh-ring 0.85s ease-out infinite; }
+
+            @keyframes refresh-pop {
+              0%   { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+              55%  { transform: scale(1.25) rotate(8deg); opacity: 1; }
+              100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            }
+            .animate-refresh-pop { display: inline-flex; animation: refresh-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+          `}</style>
         </div>
 
         {
