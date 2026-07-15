@@ -30,6 +30,7 @@ const STATUS_OPTIONS = [
 const JobOpenings = () => {
   const [showForm, setShowForm]     = useState(false);
   const [jobs, setJobs]             = useState([]);
+  const [loading, setLoading]       = useState(true);
   const [confirmDel, setConfirmDel] = useState(null);
   const [formError, setFormError]   = useState(null);
   const navigate = useNavigate();
@@ -46,6 +47,8 @@ const JobOpenings = () => {
     } catch (err) {
       console.warn("Failed to load jobs:", err?.response?.data || err);
       alert(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -142,6 +145,8 @@ const JobOpenings = () => {
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search title, client, skills…"
+          loading={loading}
+          loadingLabel="Loading jobs…"
           emptyState={{
             title: "No job openings yet",
             hint: "Click + Add Job to create your first opening",

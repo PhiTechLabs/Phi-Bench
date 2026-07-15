@@ -138,12 +138,17 @@ const StatusChanger = ({ row, onStatusChanged }) => {
 // ─── SUBMISSIONS PAGE ─────────────────────────────────────────────────────────
 const Submissions = () => {
   const [submissions,  setSubmissions]  = useState([]);
+  const [loading,      setLoading]      = useState(true);
   const [confirmDel,   setConfirmDel]   = useState(null);
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
   const refresh = useCallback(async () => {
-    setSubmissions(await listSubmissions());
+    try {
+      setSubmissions(await listSubmissions());
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -228,6 +233,8 @@ const Submissions = () => {
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search candidate, position, client…"
+          loading={loading}
+          loadingLabel="Loading submissions…"
           emptyState={{ title: "No submissions yet", hint: "Submit a candidate from a Job or Candidate detail page to get started" }}
         />
       </div>
