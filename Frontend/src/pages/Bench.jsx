@@ -26,12 +26,17 @@ const STATUS_OPTIONS = [
 
 const Bench = () => {
   const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [confirmRemove, setConfirmRemove] = useState(null);
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
   const refresh = useCallback(async () => {
-    setList(await listBench());
+    try {
+      setList(await listBench());
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -100,6 +105,8 @@ const Bench = () => {
           onDelete={handleRemove}
           onBulkDelete={handleBulkRemove}
           searchPlaceholder="Search name, skill, company…"
+          loading={loading}
+          loadingLabel="Loading bench…"
           emptyState={{
             title: "No candidates on bench",
             hint: "Toggle the bench switch on any candidate to add them here",
