@@ -72,6 +72,20 @@ const DataTable = ({
         [highlightKey] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
+    // Arriving here via a highlighted link (e.g. from the Home dashboard)
+    // means the user wants to see one specific row — but if a custom saved
+    // view happened to be active (with its own filters/sort left over from
+    // a previous visit), that row might be filtered out or just not where
+    // they'd expect, and it would look like the highlight silently failed.
+    // Snap back to the built-in "all data" view first so the target row is
+    // guaranteed visible, same as the reset already used by "+ New View".
+    useEffect(() => {
+        if (!highlightKey) return;
+        const allDataView = t.views.find((v) => v.builtIn);
+        if (allDataView && t.activeViewId !== allDataView.id) t.applyView(allDataView);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [highlightKey]);
+
     // Starts the highlight and its 2-minute fade timer as soon as
     // highlightIds shows up — independent of whether the rows have
     // actually rendered yet.
@@ -406,6 +420,19 @@ const ViewsTabs = ({ t }) => {
         setSaveLabel("");
     };
 
+    // "+ New View" should start every new view from a clean slate — no
+    // leftover filters/search/sort from whichever view the user happened
+    // to be on. Re-applying the built-in "all data" view is the same
+    // mechanism already used when switching tabs, so it resets everything
+    // (filters, date filters, search, sort) in one consistent step rather
+    // than trying to clear each piece of state by hand.
+    const startNewView = () => {
+        const allDataView = t.views.find((v) => v.builtIn) || t.views[0];
+        if (allDataView) t.applyView(allDataView);
+        setSaveMode("new");
+        setSaveLabel("");
+    };
+
     const commitRename = () => {
         if (renameValue.trim()) t.renameView(renameId, renameValue.trim());
         setRenameId(null);
@@ -421,7 +448,10 @@ const ViewsTabs = ({ t }) => {
             <div className="flex items-end gap-0 overflow-x-auto border-b border-[#E8E6E0]"
                 style={{ scrollbarWidth: "none" }}>
                 {t.views.map((view) => {
-                    const isActive = view.id === t.activeViewId;
+                    // While composing a brand-new view (saveMode === "new"),
+                    // no existing tab should show as active — the underline
+                    // belongs on "+ New View" itself until the name is saved.
+                    const isActive = view.id === t.activeViewId && saveMode !== "new";
                     const isDirty  = isActive && t.viewIsDirty;
                     return (
                         <div key={view.id}
@@ -472,9 +502,14 @@ const ViewsTabs = ({ t }) => {
                     );
                 })}
 
-                {/* + New View */}
-                <button onClick={() => { setSaveMode("new"); setSaveLabel(""); }}
-                    className="flex shrink-0 items-center gap-1 border-b-2 border-transparent px-3 py-2.5 text-[12px] font-medium text-[#9B9890] hover:text-[#1C4ED8] hover:bg-[#F0F5FF] transition rounded-t-lg">
+                {/* + New View — takes on the active/underlined look itself
+                    while a new view is being composed (see startNewView) */}
+                <button onClick={startNewView}
+                    className={`flex shrink-0 items-center gap-1 border-b-2 px-3 py-2.5 text-[12px] font-medium transition rounded-t-lg ${
+                        saveMode === "new"
+                            ? "border-[#1C4ED8] text-[#1C4ED8] bg-[#F0F5FF]"
+                            : "border-transparent text-[#9B9890] hover:text-[#1C4ED8] hover:bg-[#F0F5FF]"
+                    }`}>
                     <span className="text-[16px] leading-none">+</span> New View
                 </button>
             </div>
@@ -1154,3 +1189,5 @@ const CopyIcon = () => (
         <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
     </svg>
 );
+
+export default DataTable;
