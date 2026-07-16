@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import DataTable from "../components/DataTable/DataTable";
 import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
 import useRoleBase from "../hooks/useRoleBase";
@@ -42,7 +42,9 @@ const Client = () => {
   const [loading, setLoading]       = useState(true);
   const [confirmDel, setConfirmDel] = useState(null);
   const navigate = useNavigate();
-  
+  const location = useLocation();
+  const highlightIds = location.state?.highlightIds;
+
   const roleBase = useRoleBase();
 
   const user = getCurrentUser();
@@ -140,6 +142,7 @@ const canDelete = hasPermission(
           searchPlaceholder="Search company, contact, manager…"
           loading={loading}
           loadingLabel="Loading clients…"
+          highlightIds={highlightIds}
           emptyState={{
             title: "No clients yet",
             hint: "Click + Add Client to get started",

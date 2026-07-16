@@ -285,17 +285,26 @@ const Home = () => {
   const placementRate = totalSubmissions > 0 ? Math.round((placedSubs / totalSubmissions) * 100) : 0;
 
   // ── Submission pipeline counts ──
+  // "Interviewing" is the one stage that lives on a different table
+  // (Interviews, not Submissions) — count is still based on submission
+  // status like the others, but the ids/route it links to have to be the
+  // matching *interview* records (correlated via each interview's
+  // `submission` field), otherwise clicking it would send you to
+  // Submissions and try to highlight ids that don't even exist there.
   const pipelineCounts = SUBMISSION_PIPELINE.map((stage) => {
-    let count;
     if (stage.key === "interview") {
-      count = submissions.filter((s) => s.status && (
+      const matchedSubs = submissions.filter((s) => s.status && (
         s.status.includes("Schedule") || s.status.includes("Scheduled") ||
         s.status.includes("Feedback") || s.status.includes("Rescheduled")
-      )).length;
-    } else {
-      count = submissions.filter((s) => s.status === stage.key).length;
+      ));
+      const matchedSubIds = new Set(matchedSubs.map((s) => s.id));
+      const matchedInterviewIds = interviews
+        .filter((iv) => matchedSubIds.has(iv.submission))
+        .map((iv) => iv.id || iv._id);
+      return { ...stage, count: matchedSubs.length, ids: matchedInterviewIds, route: "/interviews" };
     }
-    return { ...stage, count };
+    const matched = submissions.filter((s) => s.status === stage.key);
+    return { ...stage, count: matched.length, ids: matched.map((s) => s.id), route: "/submissions" };
   });
 
   // ── Submissions needing action ──
@@ -344,6 +353,15 @@ const Home = () => {
   const topClients = Object.entries(clientJobMap)
     .sort((a, b) => b[1].open - a[1].open)
     .slice(0, 5);
+
+  // Name → id lookup, used so clicking a client name below can highlight
+  // that exact row on the Clients table (the pipeline above only tracks
+  // client names via the job records, not ids).
+  const clientIdByName = {};
+  clients.forEach((c) => {
+    const cid = c._id || c.id;
+    if (c.clientName && cid) clientIdByName[c.clientName] = cid;
+  });
 
   // ── Recent activity (last 5 submission status changes) ──
   const recentActivity = [...submissions]
@@ -600,7 +618,8 @@ const Home = () => {
           <div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-[#F0EDE8]">
             {pipelineCounts.map((stage, i) => (
               <Link key={stage.key}
-                to="/submissions"
+                to={stage.route}
+                state={{ highlightIds: stage.ids }}
                 className="block cursor-pointer p-4 text-center hover:bg-[#FAFAF8] transition group">
                 <p className="text-[28px] font-bold leading-none" style={{ color: stage.color }}>
                   {stage.count}
@@ -627,7 +646,7 @@ const Home = () => {
         </div>
         </PermissionGuard>
 
-        
+
 
         {/* ══════════ ROW: Today's Interviews + Action Needed ══════════ */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -666,6 +685,7 @@ const Home = () => {
                             return (
                               <Link key={iv.id || iv._id}
                                 to="/interviews"
+                                state={{ highlightIds: [iv.id || iv._id] }}
                                 className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                                 <Avatar name={iv.candidateName} size={34} />
                                 <div className="min-w-0 flex-1">
@@ -689,7 +709,7 @@ const Home = () => {
                     </div>
           </PermissionGuard>
 
-          
+
 
           {/* SUBMISSIONS NEEDING ACTION */}
 
@@ -726,6 +746,7 @@ const Home = () => {
                   return (
                     <Link key={sub.id || sub._id}
                       to="/submissions"
+                      state={{ highlightIds: [sub.id || sub._id] }}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                       <Avatar name={sub.candidateName} size={34} />
                       <div className="min-w-0 flex-1">
@@ -745,7 +766,7 @@ const Home = () => {
           </div>
           </PermissionGuard>
 
-          
+
         </div>
 
         {/* ══════════ ROW: Bench Aging + Upcoming Interviews ══════════ */}
@@ -833,7 +854,7 @@ const Home = () => {
           </div>
           </PermissionGuard>
 
-          
+
 
           {/* UPCOMING INTERVIEWS THIS WEEK */}
 
@@ -862,6 +883,7 @@ const Home = () => {
                           upcomingInterviews.map((iv) => (
                             <Link key={iv.id || iv._id}
                               to="/interviews"
+                              state={{ highlightIds: [iv.id || iv._id] }}
                               className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                               <Avatar name={iv.candidateName} size={32} />
                               <div className="min-w-0 flex-1">
@@ -885,7 +907,7 @@ const Home = () => {
                     </div>
           </PermissionGuard>
 
-          
+
         </div>
 
         {/* ══════════ ROW: Urgent Jobs + Top Clients ══════════ */}
@@ -946,7 +968,7 @@ const Home = () => {
           </div>
           </PermissionGuard>
 
-          
+
 
           {/* TOP CLIENTS BY OPEN REQUIREMENTS */}
 
@@ -975,6 +997,7 @@ const Home = () => {
                 topClients.map(([clientName, stats]) => (
                   <Link key={clientName}
                     to="/client-list"
+                    state={{ highlightIds: clientIdByName[clientName] ? [clientIdByName[clientName]] : [] }}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                     <Avatar name={clientName} size={34} />
                     <div className="min-w-0 flex-1">
@@ -998,7 +1021,7 @@ const Home = () => {
           </div>
         </PermissionGuard>
 
-          
+
         </div>
 
         {/* ══════════ RECENT ACTIVITY FEED ══════════ */}
@@ -1028,6 +1051,7 @@ const Home = () => {
                         return (
                           <Link key={act.id + i}
                             to="/submissions"
+                            state={{ highlightIds: [act.id] }}
                             className="flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAF8] cursor-pointer transition">
                             {/* timeline dot */}
                             <div className="flex flex-col items-center shrink-0">
@@ -1063,7 +1087,7 @@ const Home = () => {
                 </div>
         </PermissionGuard>
 
-        
+
 
       </div>
     </div>

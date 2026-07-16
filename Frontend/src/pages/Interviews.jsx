@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import InterviewForm from "./InterviewForm";
 import DataTable from "../components/DataTable/DataTable";
 import {
@@ -58,6 +58,15 @@ const ROUND_OPTIONS = [
   },
 ];
 
+// Interview records store the scheduled date and time as two separate
+// fields (scheduledDate, scheduledTime) — there's no single "dateTime"
+// field on the record itself, so the table column formats them together.
+const fmtDateTime = (d, t) => {
+  if (!d) return "—";
+  const base = new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return t ? `${base} · ${t}` : base;
+};
+
 const MODE_OPTIONS = [
   {
     value: "Video",
@@ -86,6 +95,8 @@ const Interviews = () => {
   const [confirmDel, setConfirmDel] = useState(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const highlightIds = location.state?.highlightIds;
   const roleBase = useRoleBase();
 
   /* ──────────────────── FETCH ──────────────────── */
@@ -97,6 +108,10 @@ const Interviews = () => {
       const normalized = data.map((item) => ({
         ...item,
         id: item.id || item._id,
+        // Real, sortable value backing the "Date & Time" column — the
+        // display text itself is built from scheduledDate/scheduledTime
+        // via the column's render function below.
+        dateTime: item.scheduledDate || null,
       }));
 
       setInterviews(normalized);
@@ -120,6 +135,7 @@ const Interviews = () => {
       const normalized = {
         ...newInterview,
         id: newInterview.id || newInterview._id,
+        dateTime: newInterview.scheduledDate || null,
       };
 
       setInterviews((prev) => [normalized, ...prev]);
@@ -291,10 +307,10 @@ const Interviews = () => {
         key: "dateTime",
         label: "Date & Time",
         width: 160,
-        type: "date",
         defaultVisible: true,
         sortable: true,
         sortType: "date",
+        render: (row) => fmtDateTime(row.scheduledDate, row.scheduledTime),
       },
       {
         key: "interviewer",
@@ -405,6 +421,7 @@ const Interviews = () => {
           searchPlaceholder="Search candidate, position, interviewer…"
           loading={loading}
           loadingLabel="Loading interviews…"
+          highlightIds={highlightIds}
           emptyState={{
             title: "No interviews scheduled",
             hint: "Interviews are scheduled from the Submission detail page",
