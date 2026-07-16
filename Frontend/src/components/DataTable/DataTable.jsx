@@ -42,6 +42,7 @@ const DataTable = ({
     emptyState = { title: "No records yet", hint: "" },
     loading = false,
     loadingLabel = "Loading…",
+    highlightIds,
     actions,
     deletePermission,
     bulkDeletePermission,
@@ -53,6 +54,48 @@ const DataTable = ({
 
     const [showAddColumn,   setShowAddColumn]   = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
+
+    // ── ROW HIGHLIGHT ────────────────────────────────────────────────────
+    // Rows arriving here via a link from another page (e.g. clicking a name
+    // on the Home dashboard) can carry a set of ids to spotlight — a soft
+    // amber flash plus an auto-scroll to the first match, so the user
+    // lands exactly on what they clicked instead of having to hunt for it
+    // in a long table. Stays lit for as long as the user remains on this
+    // page (up to HIGHLIGHT_DURATION_MS) and disappears immediately if they
+    // navigate away, since that unmounts this component and its state/timers
+    // along with it — there's nothing to explicitly "cancel" on route change.
+    const HIGHLIGHT_DURATION_MS = 2 * 60 * 1000; // 2 minutes
+    const [highlightActive, setHighlightActive] = useState(false);
+    const highlightKey = highlightIds && highlightIds.length ? highlightIds.join(",") : "";
+    const highlightSet = React.useMemo(
+        () => new Set(highlightIds || []),
+        [highlightKey] // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
+    // Starts the highlight and its 2-minute fade timer as soon as
+    // highlightIds shows up — independent of whether the rows have
+    // actually rendered yet.
+    useEffect(() => {
+        if (!highlightKey) return;
+        setHighlightActive(true);
+        const fadeTimer = setTimeout(() => setHighlightActive(false), HIGHLIGHT_DURATION_MS);
+        return () => clearTimeout(fadeTimer);
+    }, [highlightKey]);
+
+    // The scroll-to-row needs the actual DOM row to exist first. If the
+    // page is still fetching data when this mounts (loading=true, no rows
+    // rendered yet), a one-shot scroll attempt on mount would silently find
+    // nothing. Re-running this whenever the visible page of rows changes
+    // means it naturally fires again once the real rows land.
+    useEffect(() => {
+        if (!highlightKey || t.pagedData.length === 0) return;
+        const firstId = highlightKey.split(",")[0];
+        const scrollTimer = setTimeout(() => {
+            document.querySelector(`[data-row-id="${CSS.escape(firstId)}"]`)
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 80);
+        return () => clearTimeout(scrollTimer);
+    }, [highlightKey, t.pagedData]);
 
     return (
         <div className="w-full">
@@ -218,6 +261,7 @@ const DataTable = ({
                             ) : (
                                 t.pagedData.map((row, rowIdx) => {
                                     const isSel = t.selectedIds.has(row.id);
+                                    const isHighlighted = highlightActive && highlightSet.has(row.id);
                                     const rowHref = getRowHref?.(row);
                                     // When a rowHref exists, the per-cell <Link> overlays below fully own
                                     // click-to-navigate (plain click, Ctrl/Cmd+click, middle-click, right-
@@ -229,9 +273,12 @@ const DataTable = ({
                                     // the legacy onRowClick callback when no rowHref/Link is in play at all.
                                     return (
                                         <tr key={row.id}
-                                            className={`group border-b border-[#F0EDE8] transition-colors ${isSel ? "bg-[#F0F5FF]" : "hover:bg-[#FAFAFD]"} ${(onRowClick || rowHref) ? "cursor-pointer" : ""}`}
+                                            data-row-id={row.id}
+                                            className={`group border-b border-[#F0EDE8] ${
+                                                isHighlighted ? "bg-[#E4ECFF]" : isSel ? "bg-[#F0F5FF]" : "hover:bg-[#FAFAFD]"
+                                            } ${(onRowClick || rowHref) ? "cursor-pointer" : ""}`}
                                             onClick={() => { if (!rowHref) onRowClick?.(row); }}>
-                                            <td style={{ width: 40, minWidth: 40 }} className="bg-[#FAFAF8] px-3 py-2 text-center align-middle" onClick={(e) => e.stopPropagation()}>
+                                            <td style={{ width: 40, minWidth: 40 }} className={`px-3 py-2 text-center align-middle ${isHighlighted ? "bg-[#E4ECFF]" : "bg-[#FAFAF8]"}`} onClick={(e) => e.stopPropagation()}>
                                                 <Checkbox checked={isSel} onChange={() => t.toggleRow(row.id)} />
                                             </td>
                                             {t.columns.map((col, colIdx) => {
@@ -246,7 +293,7 @@ const DataTable = ({
                                                 return (
                                                     <td key={col.key} style={{ width: col.width, minWidth: col.width }}
                                                         className={`relative overflow-visible px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18]
-                                                            ${col.type === "sno" ? "bg-[#FAFAF8] text-center font-medium text-[#6B6860]" : ""}
+                                                            ${col.type === "sno" ? `${isHighlighted ? "bg-[#E4ECFF]" : "bg-[#FAFAF8]"} text-center font-medium text-[#6B6860]` : ""}
                                                             ${colIdx !== t.columns.length - 1 ? "border-r border-[#F5F4F0]" : ""}`}>
                                                         {renderCell({ column: col, row, rowIndex: rowIdx, pageStart: (t.page - 1) * t.pageSize })}
                                                         {showLink && (
