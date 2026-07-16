@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../components/DataTable/DataTable";
 import {
   listSubmissions,
@@ -141,6 +141,8 @@ const Submissions = () => {
   const [loading,      setLoading]      = useState(true);
   const [confirmDel,   setConfirmDel]   = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const highlightIds = location.state?.highlightIds;
   const roleBase = useRoleBase();
 
   const refresh = useCallback(async () => {
@@ -235,6 +237,7 @@ const Submissions = () => {
           searchPlaceholder="Search candidate, position, client…"
           loading={loading}
           loadingLabel="Loading submissions…"
+          highlightIds={highlightIds}
           emptyState={{ title: "No submissions yet", hint: "Submit a candidate from a Job or Candidate detail page to get started" }}
         />
       </div>
