@@ -9,13 +9,18 @@ import Personal from "../pages/settings/component/personalSettings";
 import Company from "../pages/settings/component/companyDetails";
 import Email from "../pages/settings/component/emailPage";
 import Notifications from "../pages/settings/component/notificaionsSettings";
+import Landing_Page from "../Landing_Pages/Landing_Page"; // Import the Landing_Page component
 
 function App() {
     return (
         <Router>
             <Routes>
+
+                {/* LANDING PAGE */}
+                <Route path="/" element={<Landing_Page />} />
+
                 {/* LOGIN */}
-                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
 
                 {/* SETUP — accessible by all roles, outside Navbar layout */}
                 <Route path="/setup" element={<Setup />} />
