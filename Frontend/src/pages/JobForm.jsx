@@ -374,7 +374,7 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
           {/* SECTION 2: LOCATION */}
           <Section title="Location & Posting" subtitle="Where is this role based and how it will be listed">
             <Row>
-              <Field label="City"    name="city"    value={formData.city    || ""} placeholder="e.g. Austin"         onChange={handleChange} />
+              <Field label="City"    name="city"    value={formData.city    || ""} placeholder="e.g. Kanpur Nagar"         onChange={handleChange} />
               <SelectField
                 label="Country"
                 name="country"
