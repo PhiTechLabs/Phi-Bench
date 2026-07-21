@@ -220,7 +220,7 @@ const Navbar = () => {
     <div className="flex flex-col min-h-screen bg-gray-100">
 
       {/* ── TOP NAVBAR ── */}
-      <nav className="bg-blue-900 text-white h-16 flex items-center px-4 md:px-6 shadow-md fixed top-0 left-0 right-0 z-60">
+      <nav className="bg-blue-900 text-white h-16 flex items-center px-4 md:px-6 shadow-md fixed top-0 left-0 right-0 z-[60]">
 
         <button onClick={() => setMobileOpen(true)} className="md:hidden text-xl mr-3 text-white">
           <FaBars />
@@ -264,7 +264,7 @@ const Navbar = () => {
             </button>
 
             {dropdownOpen && (
-              <div className="absolute top-full mt-2 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-70 border border-gray-100">
+              <div className="absolute top-full mt-2 left-0 bg-white text-gray-800 rounded-xl shadow-xl w-48 py-1.5 z-[70] border border-gray-100">
                 {filteredSecondaryMenu.map((item) => (
                   <Link
                     key={item.name}
@@ -285,7 +285,7 @@ const Navbar = () => {
         <div className="flex items-center gap-1 ml-auto">
           <div className="relative flex items-center" ref={searchBoxRef}>
             {searchOpen && (
-              <div className="fixed top-16 right-6 md:right-8 w-80 z-70">
+              <div className="fixed top-16 right-6 md:right-8 w-80 z-[70]">
                 <input
                   autoFocus
                   type="text"
@@ -390,7 +390,7 @@ const Navbar = () => {
 
       {/* ── MOBILE SIDEBAR ── */}
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-65 md:hidden">
+        <div className="fixed inset-0 bg-black/50 z-[65] md:hidden">
           <div className="bg-blue-900 w-56 h-full p-5 text-white relative flex flex-col">
             <button onClick={() => setMobileOpen(false)} className="absolute top-5 right-5 text-2xl">
               <RxCross2 />
@@ -421,10 +421,10 @@ const Navbar = () => {
       {profileOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-65"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[65]"
             onClick={() => setProfileOpen(false)}
           />
-          <div className="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-65">
+          <div className="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-[65]">
             <div className="bg-blue-900 text-white p-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Profile</h2>
@@ -474,7 +474,7 @@ const Navbar = () => {
           </div>
 
           {showLogoutConfirm && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-75">
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-[75]">
               <div className="bg-white rounded-xl shadow-xl p-6 w-72 text-center">
                 <h3 className="text-md font-semibold mb-4">Are you sure you want to logout?</h3>
                 <div className="flex justify-center gap-4">
