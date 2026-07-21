@@ -446,7 +446,7 @@ const CandidateForm = ({ setShowForm, onSave, initialData = null, isEdit = false
                 label="Pincode"
                 name="pincode"
                 value={formData.pincode || ""}
-                placeholder="Postal / Zip code"
+                placeholder="PIN Code"
                 onChange={handleChange}
               />
             </Row>
