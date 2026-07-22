@@ -5,14 +5,14 @@ function Landing_Navbar() {
     const navigate = useNavigate();
 
     return (
-        <nav className="w-full h-15 bg-[#1A3989] flex items-center justify-between px-5 md:px-8">
+        <nav className="w-full h-16 bg-[#1A3989] flex items-center justify-between px-5  md:px-6">
 
             {/* Logo */}
             <div className="flex items-center">
                 <img
                     src={phiBenchLogo}
                     alt="PhiBench Logo"
-                    className="h-11 w-auto object-contain"
+                    className="h-12 w-auto object-contain"
                 />
             </div>
 
@@ -20,25 +20,25 @@ function Landing_Navbar() {
             <div className="hidden md:flex items-center flex-justify-evenly space-x-18">
 
                 <button
-                    className="text-white text-sm font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
                 >
                     Home
                 </button>
 
                 <button
-                    className="text-white text-sm font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
                 >
                     Features
                 </button>
 
                 <button
-                    className="text-white text-sm font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
                 >
                     Industries
                 </button>
 
                 <button
-                    className="text-white text-sm font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
                 >
                     Contact
                 </button>
@@ -54,7 +54,7 @@ function Landing_Navbar() {
                     px-9
                     py-2
                     rounded-full
-                    text-sm
+                    text-md
                     font-medium
                     transition-all
                     duration-300
