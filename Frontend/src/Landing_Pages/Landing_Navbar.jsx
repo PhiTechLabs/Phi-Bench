@@ -5,14 +5,14 @@ function Landing_Navbar() {
     const navigate = useNavigate();
 
     return (
-        <nav className="w-full h-14 bg-[#1A3989] flex items-center justify-between px-5 md:px-8">
+        <nav className="w-full h-15 bg-[#1A3989] flex items-center justify-between px-5 md:px-8">
 
             {/* Logo */}
             <div className="flex items-center">
                 <img
                     src={phiBenchLogo}
                     alt="PhiBench Logo"
-                    className="h-10 w-auto object-contain"
+                    className="h-11 w-auto object-contain"
                 />
             </div>
 
@@ -44,6 +44,28 @@ function Landing_Navbar() {
                 </button>
 
             </div>
+
+{/* Login Button */}
+            <button
+                onClick={() => navigate("/login")}
+                className="
+                    bg-[#3153A0]
+                    text-white
+                    px-9
+                    py-2
+                    rounded-full
+                    text-sm
+                    font-medium
+                    transition-all
+                    duration-300
+                    hover:bg-white
+                    hover:text-[#1A3989]
+                    hover:scale-105
+                    cursor-pointer
+                "
+            >
+                Login
+            </button>
 
         </nav>
     );
