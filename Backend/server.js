@@ -28,6 +28,7 @@ import branchRoutes from "./routes/branchRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js"
 import searchRoutes from "./routes/searchRoutes.js"; // NEW
 import codePreviewRoutes from "./routes/codePreviewRoutes.js"; // NEW
+import tableViewRoutes from "./routes/tableViewRoutes.js"; // NEW — DataTable saved views/columns, synced per user
 
 dotenv.config();
 connectDB();
@@ -75,6 +76,7 @@ app.use("/api/roles", router); //  NEW
 app.use("/api/teams", teamRoutes);
 app.use("/api/search", searchRoutes); // NEW
 app.use("/api/code-preview", codePreviewRoutes); // NEW
+app.use("/api/table-views", tableViewRoutes); // NEW
 app.get("/", (req, res) => {
     res.send("API Running");
 });
