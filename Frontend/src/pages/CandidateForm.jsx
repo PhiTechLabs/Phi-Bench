@@ -222,18 +222,28 @@ const CandidateForm = ({ setShowForm, onSave, initialData = null, isEdit = false
   }, [isEdit]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const { name, value, type, checked } = e.target;
 
-    setFormData((prev) => ({
+  let updatedValue = type === "checkbox" ? checked : value;
+
+  // Allow only numeric characters for phone number
+  if (name === "phone") {
+    updatedValue = value.replace(/\D/g, "");
+  }
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: updatedValue,
+  }));
+
+  // Clear this field's inline error as soon as the user starts correcting it
+  if (fieldErrors[name]) {
+    setFieldErrors((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: undefined,
     }));
-
-    // Clear this field's inline error as soon as the user starts correcting it
-    if (fieldErrors[name]) {
-      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
+  }
+};
 
   const updateEducation = (i, key, value) => {
     const next = [...education];
@@ -406,6 +416,7 @@ const CandidateForm = ({ setShowForm, onSave, initialData = null, isEdit = false
 
               <Field
                 label="Phone Number"
+                type="tel"
                 name="phone"
                 value={formData.phone || ""}
                 placeholder="+91 9876543210"

@@ -114,7 +114,7 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
   const [clientsLoading, setClientsLoading] = useState(true);
   const [clientsError,   setClientsError]   = useState(false);
 
-  // ─── ALL USERS (for Account Manager picker) ───────────────────────────────
+  // ─── ALL USERS (for Account Manager / Assign Recruiter pickers) ───────────
   const [users, setUsers]               = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
 
@@ -327,7 +327,14 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
               />
             </Row>
             <Row>
-              <Field label="Assign Recruiter" name="recruiter" value={formData.recruiter || ""} placeholder="Recruiter name" onChange={handleChange} />
+              <UserSelect
+                label="Assign Recruiter"
+                users={users}
+                loading={usersLoading}
+                value={formData.recruiter || ""}
+                onSelect={(username) => setFormData((f) => ({ ...f, recruiter: username }))}
+                onClear={() => setFormData((f) => ({ ...f, recruiter: "" }))}
+              />
               <SelectField
                 label="Job Status"
                 name="status"
@@ -367,7 +374,7 @@ const JobForm = ({ setShowForm, onSave, initialData = null, isEdit = false }) =>
           {/* SECTION 2: LOCATION */}
           <Section title="Location & Posting" subtitle="Where is this role based and how it will be listed">
             <Row>
-              <Field label="City"    name="city"    value={formData.city    || ""} placeholder="e.g. Austin"         onChange={handleChange} />
+              <Field label="City"    name="city"    value={formData.city    || ""} placeholder="e.g. Kanpur Nagar"         onChange={handleChange} />
               <SelectField
                 label="Country"
                 name="country"

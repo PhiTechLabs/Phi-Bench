@@ -16,12 +16,10 @@ export default function ProtectedRoute({
 
     // console.log("USER:", user);
 
+// fix(auth): prevent ProtectedRoute from crashing when permission prop is omitted
+    if (!permission) return children;
 
-    const result = can(
-        permission.module,
-        permission.action
-    );
-
+const result = can(permission.module, permission.action);
     // console.log(
     //     "CHECK:",
     //     permission.module,

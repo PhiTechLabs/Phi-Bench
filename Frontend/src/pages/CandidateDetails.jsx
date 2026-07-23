@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-    import { useParams, useNavigate } from "react-router-dom";
+    import { useParams, useNavigate, Link } from "react-router-dom";
     import { getCandidate, toggleBench, deleteCandidate, updateCandidate } from "../api/candidatesApi";
     import { getCandidateSubmissions } from "../api/submissionsApi";
     import { getCandidateInterviews } from "../api/interviewsApi";
@@ -132,10 +132,10 @@ import React, { useEffect, useState } from "react";
         <div className="flex min-h-screen items-center justify-center bg-[#F4F6F9] p-4">
         <div className="rounded-xl border border-red-200 bg-white px-8 py-6 text-center shadow-sm">
             <div className="text-[15px] font-semibold text-red-600 mb-3">{error}</div>
-            <button onClick={() => navigate(`${roleBase}/candidates`)}
-            className="rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
+            <Link to={`${roleBase}/candidates`}
+            className="inline-block rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
             Back to Candidates
-            </button>
+            </Link>
         </div>
         </div>
     );
@@ -146,10 +146,10 @@ import React, { useEffect, useState } from "react";
         <div className="rounded-xl border border-[#E2E8F0] bg-white px-8 py-6 text-center shadow-sm">
             <div className="text-[15px] font-semibold text-[#1E293B] mb-1">Candidate not found</div>
             <p className="text-[13px] text-[#94A3B8] mb-4">This profile doesn't exist.</p>
-            <button onClick={() => navigate(`${roleBase}/candidates`)}
-            className="rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
+            <Link to={`${roleBase}/candidates`}
+            className="inline-block rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
             Back to Candidates
-            </button>
+            </Link>
         </div>
         </div>
     );
@@ -211,11 +211,11 @@ import React, { useEffect, useState } from "react";
                 <Icon d={icons.bench} size={13} />
                 {candidate.onBench ? "Remove from Bench" : "Add to Bench"}
                 </button>
-                <button onClick={() => navigate(`${roleBase}/candidates/edit/${id}`)}
+                <Link to={`${roleBase}/candidates/edit/${id}`}
                 className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
                 <Icon d={icons.edit} size={13} />
                 Edit
-                </button>
+                </Link>
                 <button onClick={handleDelete}
                 className="flex items-center gap-1.5 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition">
                 <Icon d={icons.trash} size={13} />

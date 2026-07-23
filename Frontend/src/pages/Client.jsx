@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import DataTable from "../components/DataTable/DataTable";
 import { getAllClients, deleteClient, updateClient } from "../api/clientApi";
 import useRoleBase from "../hooks/useRoleBase";
@@ -39,9 +39,12 @@ const shapeClient = (c) => {
 
 const Client = () => {
   const [clients, setClients]       = useState([]);
+  const [loading, setLoading]       = useState(true);
   const [confirmDel, setConfirmDel] = useState(null);
   const navigate = useNavigate();
-  
+  const location = useLocation();
+  const highlightIds = location.state?.highlightIds;
+
   const roleBase = useRoleBase();
 
   const user = getCurrentUser();
@@ -70,9 +73,13 @@ const canDelete = hasPermission(
   }
 
   const refresh = useCallback(async () => {
-    const data = await getAllClients();
-    const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
-    setClients(list.map(shapeClient));
+    try {
+      const data = await getAllClients();
+      const list = Array.isArray(data) ? data : (data?.data || data?.clients || []);
+      setClients(list.map(shapeClient));
+    } finally {
+      setLoading(false);
+    }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -129,21 +136,24 @@ const canDelete = hasPermission(
           columns={columns}
           data={clients}
           storageKey="clients_table"
-          onRowClick={(row) => navigate(`${roleBase}/client-list/${row.id}`)}
+          getRowHref={(row) => `${roleBase}/client-list/${row.id}`}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search company, contact, manager…"
+          loading={loading}
+          loadingLabel="Loading clients…"
+          highlightIds={highlightIds}
           emptyState={{
             title: "No clients yet",
             hint: "Click + Add Client to get started",
           }}
           actions={
-            <button
-              onClick={() => navigate(`${roleBase}/add-client`)}
+            <Link
+              to={`${roleBase}/add-client`}
               className="flex h-8 items-center gap-1 rounded-lg bg-[#1C4ED8] px-3 text-[11.5px] font-medium text-white shadow-sm transition-all hover:bg-[#1741B6]"
             >
               <span className="text-[14px] leading-none">+</span> Add Client
-            </button>
+            </Link>
           }
         />
       </div>

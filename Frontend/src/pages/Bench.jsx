@@ -26,12 +26,17 @@ const STATUS_OPTIONS = [
 
 const Bench = () => {
   const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [confirmRemove, setConfirmRemove] = useState(null);
   const navigate = useNavigate();
   const roleBase = useRoleBase();
 
   const refresh = useCallback(async () => {
-    setList(await listBench());
+    try {
+      setList(await listBench());
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -83,7 +88,10 @@ const Bench = () => {
     { key: "currentSalary", label: "Current Salary",width: 130, type: "money", sortable: true, sortType: "number" },
     { key: "country",       label: "Country",       width: 120, type: "text",  sortable: true, filterable: true },
     { key: "state",         label: "State",         width: 120, type: "text",  filterable: true },
-    { key: "createdAt",     label: "Date Added",    width: 120, type: "date",  sortable: true, sortType: "date" },
+    { key: "createdAt",     label: "Created On",   width: 120, type: "date",  sortable: true, sortType: "date" },
+    { key: "createdBy",     label: "Created By",   width: 130, type: "text",  sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
+    { key: "updatedAt",     label: "Updated On",   width: 120, type: "date",  sortable: true, sortType: "date",   defaultVisible: false },
+    { key: "updatedBy",     label: "Updated By",   width: 130, type: "text",  sortable: true, sortType: "string", searchable: true, filterable: true, defaultVisible: false },
   ];
 
   return (
@@ -93,10 +101,12 @@ const Bench = () => {
           columns={columns}
           data={list}
           storageKey="bench_table"
-          onRowClick={(row) => navigate(`${roleBase}/candidates/${row.id}`)}
+          getRowHref={(row) => `${roleBase}/candidates/${row.id}`}
           onDelete={handleRemove}
           onBulkDelete={handleBulkRemove}
           searchPlaceholder="Search name, skill, company…"
+          loading={loading}
+          loadingLabel="Loading bench…"
           emptyState={{
             title: "No candidates on bench",
             hint: "Toggle the bench switch on any candidate to add them here",

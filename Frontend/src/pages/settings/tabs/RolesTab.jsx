@@ -6,9 +6,11 @@ import {
     FaPlus,
     FaShieldAlt,
     FaArrowLeft,
+    FaTimes,
+    FaUserFriends,
 } from "react-icons/fa";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import BackButton from "../../../reusable/BackButton";
 
 import axiosInstance from "../../../api/axiosInstance";
@@ -35,6 +37,16 @@ export default function RolesTab() {
             roleId: null,
         });
 
+    // ───────────────── ROLE USERS POPUP ─────────────────
+    const [usersPopup, setUsersPopup] = useState({
+        open: false,
+        role: null,
+    });
+
+    const [allUsers, setAllUsers] = useState([]);
+    const [usersLoading, setUsersLoading] = useState(false);
+    const [usersLoaded, setUsersLoaded] = useState(false);
+
     // ───────────────── COLUMN WIDTHS ─────────────────
     const [columnWidths, setColumnWidths] = useState({
         roles: 22,
@@ -48,7 +60,6 @@ export default function RolesTab() {
 
     // ───────────────── FETCH ROLES ─────────────────
     const fetchRoles = async () => {
-
         try {
 
             setLoading(true);
@@ -72,6 +83,62 @@ export default function RolesTab() {
     useEffect(() => {
         fetchRoles();
     }, []);
+
+    // ───────────────── FETCH ALL USERS (lazy, once) ─────────────────
+    const fetchAllUsers = async () => {
+        try {
+
+            setUsersLoading(true);
+
+            const res = await axiosInstance.get(
+                "/auth/users"
+            );
+
+            setAllUsers(res.data.users || []);
+            setUsersLoaded(true);
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            setUsersLoading(false);
+        }
+    };
+
+    // ───────────────── OPEN / CLOSE ROLE USERS POPUP ─────────────────
+    const openUsersPopup = (role) => {
+
+        setUsersPopup({
+            open: true,
+            role,
+        });
+
+        if (!usersLoaded) {
+            fetchAllUsers();
+        }
+    };
+
+    const closeUsersPopup = () => {
+
+        setUsersPopup({
+            open: false,
+            role: null,
+        });
+    };
+
+    const usersForSelectedRole = usersPopup.role
+        ? allUsers.filter((u) => {
+
+            const roleIdOfUser =
+                u.roleId?._id || u.roleId;
+
+            return (
+                roleIdOfUser === usersPopup.role._id
+            );
+        })
+        : [];
 
     // ───────────────── OPEN DELETE POPUP ─────────────────
     const openDeletePopup = (roleId) => {
@@ -229,6 +296,108 @@ export default function RolesTab() {
                             >
                                 Delete
                             </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            )}
+
+            {/* ROLE USERS POPUP */}
+            {usersPopup.open && (
+
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+
+                    {/* BACKDROP */}
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-[3px]"
+                        onClick={closeUsersPopup}
+                    />
+
+                    {/* POPUP */}
+                    <div className="relative bg-white w-full max-w-md max-h-[80vh] rounded-3xl shadow-2xl border border-gray-200 flex flex-col animate-in fade-in zoom-in duration-200">
+
+                        {/* HEADER */}
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+
+                            <div className="flex items-center gap-3 min-w-0">
+
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                                    <FaUserFriends size={15} />
+                                </div>
+
+                                <div className="min-w-0">
+
+                                    <h3 className="text-base font-semibold text-gray-800 capitalize truncate">
+                                        {usersPopup.role?.name.replace(/_/g, " ")}
+                                    </h3>
+
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                        {usersForSelectedRole.length} user
+                                        {usersForSelectedRole.length !== 1 ? "s" : ""} assigned
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <button
+                                onClick={closeUsersPopup}
+                                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition shrink-0"
+                            >
+                                <FaTimes size={14} />
+                            </button>
+
+                        </div>
+
+                        {/* LIST */}
+                        <div className="overflow-y-auto px-3 py-3 flex-1">
+
+                            {usersLoading ? (
+
+                                <div className="text-center py-10 text-sm text-gray-400">
+                                    Loading users...
+                                </div>
+
+                            ) : usersForSelectedRole.length === 0 ? (
+
+                                <div className="text-center py-10 text-sm text-gray-400">
+                                    No users assigned to this role
+                                </div>
+
+                            ) : (
+
+                                <div className="flex flex-col gap-1">
+
+                                    {usersForSelectedRole.map((u) => (
+
+                                        <div
+                                            key={u._id}
+                                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition"
+                                        >
+
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                                {u.username?.charAt(0)?.toUpperCase()}
+                                            </div>
+
+                                            <div className="min-w-0">
+
+                                                <p className="text-sm font-medium text-gray-800 truncate leading-tight">
+                                                    {u.username}
+                                                </p>
+
+                                                <p className="text-xs text-gray-400 truncate leading-tight">
+                                                    {u.email || "—"}
+                                                </p>
+
+                                            </div>
+
+                                        </div>
+                                    ))}
+
+                                </div>
+                            )}
 
                         </div>
 
@@ -464,29 +633,31 @@ export default function RolesTab() {
                                         {/* USER COUNT */}
                                         <td className="px-4 py-4 text-center border-r border-gray-200">
 
-                                            <span className="text-blue-600 font-semibold text-sm">
+                                            <button
+                                                onClick={() =>
+                                                    openUsersPopup(role)
+                                                }
+                                                className="text-blue-600 font-semibold text-sm hover:text-blue-700 hover:underline transition hover:cursor-pointer"
+                                                title="View assigned users"
+                                            >
 
                                                 {role.userCount || 0}
 
-                                            </span>
+                                            </button>
 
                                         </td>
 
                                         {/* PRIVILEGES */}
                                         <td className="px-4 py-4 text-center border-r border-gray-200">
 
-                                            <button
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/settings/permissions`
-                                                    )
-                                                }
+                                            <Link
+                                                to="/settings/permissions"
                                                 className="text-blue-600 hover:text-sky-500 text-sm font-semibold transition"
                                             >
 
                                                 Edit Permissions
 
-                                            </button>
+                                            </Link>
 
                                         </td>
 

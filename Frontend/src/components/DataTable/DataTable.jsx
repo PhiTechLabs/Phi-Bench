@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDataTable } from "./useDataTable";
 import { renderCell } from "./cellRenderers";
 import PermissionGuard from "../PermissionGuard";
+
+const getUserScopedKey = (key) => {
+    try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const uid  = user?.id || user?._id || "shared";
+        return `${uid}_${key}`;
+    } catch {
+        return key;
+    }
+};
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  DataTable — with Saved Views + Advanced Filter Panel (ATS-grade)
@@ -22,20 +34,82 @@ const DataTable = ({
     data,
     storageKey,
     onRowClick,
+    getRowHref,
     onDelete,
     onBulkDelete,
     bulkActions = [],
     searchPlaceholder = "Search…",
     emptyState = { title: "No records yet", hint: "" },
+    loading = false,
+    loadingLabel = "Loading…",
+    highlightIds,
     actions,
     deletePermission,
     bulkDeletePermission,
 }) => {
     const defaultVisibleKeys = defaultVisible || registry.filter((c) => c.defaultVisible).map((c) => c.key);
-    const t = useDataTable({ registry, defaultVisibleKeys, storageKey, data });
+    const scopedKey = getUserScopedKey(storageKey);
+    const t = useDataTable({ registry, defaultVisibleKeys, storageKey: scopedKey, data });
+    const navigate = useNavigate();
 
     const [showAddColumn,   setShowAddColumn]   = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
+
+    // ── ROW HIGHLIGHT ────────────────────────────────────────────────────
+    // Rows arriving here via a link from another page (e.g. clicking a name
+    // on the Home dashboard) can carry a set of ids to spotlight — a soft
+    // amber flash plus an auto-scroll to the first match, so the user
+    // lands exactly on what they clicked instead of having to hunt for it
+    // in a long table. Stays lit for as long as the user remains on this
+    // page (up to HIGHLIGHT_DURATION_MS) and disappears immediately if they
+    // navigate away, since that unmounts this component and its state/timers
+    // along with it — there's nothing to explicitly "cancel" on route change.
+    const HIGHLIGHT_DURATION_MS = 2 * 60 * 1000; // 2 minutes
+    const [highlightActive, setHighlightActive] = useState(false);
+    const highlightKey = highlightIds && highlightIds.length ? highlightIds.join(",") : "";
+    const highlightSet = React.useMemo(
+        () => new Set(highlightIds || []),
+        [highlightKey] // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
+    // Arriving here via a highlighted link (e.g. from the Home dashboard)
+    // means the user wants to see one specific row — but if a custom saved
+    // view happened to be active (with its own filters/sort left over from
+    // a previous visit), that row might be filtered out or just not where
+    // they'd expect, and it would look like the highlight silently failed.
+    // Snap back to the built-in "all data" view first so the target row is
+    // guaranteed visible, same as the reset already used by "+ New View".
+    useEffect(() => {
+        if (!highlightKey) return;
+        const allDataView = t.views.find((v) => v.builtIn);
+        if (allDataView && t.activeViewId !== allDataView.id) t.applyView(allDataView);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [highlightKey]);
+
+    // Starts the highlight and its 2-minute fade timer as soon as
+    // highlightIds shows up — independent of whether the rows have
+    // actually rendered yet.
+    useEffect(() => {
+        if (!highlightKey) return;
+        setHighlightActive(true);
+        const fadeTimer = setTimeout(() => setHighlightActive(false), HIGHLIGHT_DURATION_MS);
+        return () => clearTimeout(fadeTimer);
+    }, [highlightKey]);
+
+    // The scroll-to-row needs the actual DOM row to exist first. If the
+    // page is still fetching data when this mounts (loading=true, no rows
+    // rendered yet), a one-shot scroll attempt on mount would silently find
+    // nothing. Re-running this whenever the visible page of rows changes
+    // means it naturally fires again once the real rows land.
+    useEffect(() => {
+        if (!highlightKey || t.pagedData.length === 0) return;
+        const firstId = highlightKey.split(",")[0];
+        const scrollTimer = setTimeout(() => {
+            document.querySelector(`[data-row-id="${CSS.escape(firstId)}"]`)
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 80);
+        return () => clearTimeout(scrollTimer);
+    }, [highlightKey, t.pagedData]);
 
     return (
         <div className="w-full">
@@ -165,13 +239,16 @@ const DataTable = ({
                     </div>
                 </div>
 
-                {/* table */}
-                <div className="overflow-x-auto overflow-y-visible">
+                {/* table — bounded height with a sticky header row, so the
+                    column titles and the horizontal scrollbar both stay
+                    reachable no matter how many rows are loaded; only the
+                    row data scrolls vertically in between. */}
+                <div className="max-h-[70vh] overflow-auto">
                     <table className="w-full table-fixed border-collapse text-[12.5px]"
                         style={{ minWidth: t.columns.reduce((s, c) => s + c.width, 0) + 88 }}>
                         <thead>
                             <tr className="bg-[#FAFAF8]">
-                                <th style={{ width: 40, minWidth: 40 }} className="border-b border-[#E8E6E0] bg-[#F5F4F0] px-3 py-2 text-center">
+                                <th style={{ width: 40, minWidth: 40 }} className="sticky top-0 z-10 border-b border-[#E8E6E0] bg-[#F5F4F0] px-3 py-2 text-center">
                                     <Checkbox checked={t.allOnPageSelected} indeterminate={!t.allOnPageSelected && t.someOnPageSelected} onChange={t.togglePageAll} />
                                 </th>
                                 {t.columns.map((col, idx) => (
@@ -183,32 +260,62 @@ const DataTable = ({
                                         t={t}
                                     />
                                 ))}
-                                {onDelete && <th style={{ width: 44, minWidth: 44 }} className="border-b border-[#E8E6E0] px-2 py-2" />}
+                                {onDelete && <th style={{ width: 44, minWidth: 44 }} className="sticky top-0 z-10 border-b border-[#E8E6E0] bg-[#FAFAF8] px-2 py-2" />}
                             </tr>
                         </thead>
                         <tbody>
-                            {t.pagedData.length === 0 ? (
+                            {loading ? (
+                                <tr><td colSpan={t.columns.length + 1 + (onDelete ? 1 : 0)} className="px-4 py-16 text-center">
+                                    <LoadingStateBlock label={loadingLabel} />
+                                </td></tr>
+                            ) : t.pagedData.length === 0 ? (
                                 <tr><td colSpan={t.columns.length + 1 + (onDelete ? 1 : 0)} className="px-4 py-16 text-center">
                                     <EmptyStateBlock {...emptyState} />
                                 </td></tr>
                             ) : (
                                 t.pagedData.map((row, rowIdx) => {
                                     const isSel = t.selectedIds.has(row.id);
+                                    const isHighlighted = highlightActive && highlightSet.has(row.id);
+                                    const rowHref = getRowHref?.(row);
+                                    // When a rowHref exists, the per-cell <Link> overlays below fully own
+                                    // click-to-navigate (plain click, Ctrl/Cmd+click, middle-click, right-
+                                    // click all work correctly via real <a> semantics). Link deliberately
+                                    // doesn't stopPropagation, so this handler must NOT also call navigate()
+                                    // here — doing so double-fires navigation on every click (one from the
+                                    // Link, one from here), which is what caused a plain click to both
+                                    // change the current tab AND pop a second tab open. Only fall back to
+                                    // the legacy onRowClick callback when no rowHref/Link is in play at all.
                                     return (
                                         <tr key={row.id}
-                                            className={`group border-b border-[#F0EDE8] transition-colors ${isSel ? "bg-[#F0F5FF]" : "hover:bg-[#FAFAFD]"} ${onRowClick ? "cursor-pointer" : ""}`}
-                                            onClick={() => onRowClick?.(row)}>
-                                            <td style={{ width: 40, minWidth: 40 }} className="bg-[#FAFAF8] px-3 py-2 text-center align-middle" onClick={(e) => e.stopPropagation()}>
+                                            data-row-id={row.id}
+                                            className={`group border-b border-[#F0EDE8] ${
+                                                isHighlighted ? "bg-[#E4ECFF]" : isSel ? "bg-[#F0F5FF]" : "hover:bg-[#FAFAFD]"
+                                            } ${(onRowClick || rowHref) ? "cursor-pointer" : ""}`}
+                                            onClick={() => { if (!rowHref) onRowClick?.(row); }}>
+                                            <td style={{ width: 40, minWidth: 40 }} className={`px-3 py-2 text-center align-middle ${isHighlighted ? "bg-[#E4ECFF]" : "bg-[#FAFAF8]"}`} onClick={(e) => e.stopPropagation()}>
                                                 <Checkbox checked={isSel} onChange={() => t.toggleRow(row.id)} />
                                             </td>
-                                            {t.columns.map((col, colIdx) => (
-                                                <td key={col.key} style={{ width: col.width, minWidth: col.width }}
-                                                    className={`overflow-visible px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18]
-                                                        ${col.type === "sno" ? "bg-[#FAFAF8] text-center font-medium text-[#6B6860]" : ""}
-                                                        ${colIdx !== t.columns.length - 1 ? "border-r border-[#F5F4F0]" : ""}`}>
-                                                    {renderCell({ column: col, row, rowIndex: rowIdx, pageStart: (t.page - 1) * t.pageSize })}
-                                                </td>
-                                            ))}
+                                            {t.columns.map((col, colIdx) => {
+                                                // Interactive cell types (status pickers, toggles, custom
+                                                // renders like StatusChanger) manage their own clicks via
+                                                // stopPropagation — don't lay a navigation anchor over them.
+                                                // Everything else gets a real <a> so right-click "open in
+                                                // new tab" / Ctrl+click work directly on the cell content,
+                                                // not just via the JS-only row onClick above.
+                                                const isInteractive = col.type === "status" || col.type === "toggle" || typeof col.render === "function";
+                                                const showLink = rowHref && !isInteractive;
+                                                return (
+                                                    <td key={col.key} style={{ width: col.width, minWidth: col.width }}
+                                                        className={`relative overflow-visible px-2.5 py-1.5 align-middle text-[12.5px] text-[#1C1B18]
+                                                            ${col.type === "sno" ? `${isHighlighted ? "bg-[#E4ECFF]" : "bg-[#FAFAF8]"} text-center font-medium text-[#6B6860]` : ""}
+                                                            ${colIdx !== t.columns.length - 1 ? "border-r border-[#F5F4F0]" : ""}`}>
+                                                        {renderCell({ column: col, row, rowIndex: rowIdx, pageStart: (t.page - 1) * t.pageSize })}
+                                                        {showLink && (
+                                                            <Link to={rowHref} className="absolute inset-0 z-0" tabIndex={-1} aria-hidden="true" />
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
                                             {onDelete && (
                                                 <PermissionGuard module={deletePermission?.module} action={deletePermission?.action}>
                                                     <td style={{ width: 44, minWidth: 44 }} className="px-2 py-2 text-right align-middle" onClick={(e) => e.stopPropagation()}>
@@ -241,6 +348,9 @@ const DataTable = ({
                     setColumnFilter={t.setColumnFilter}
                     clearAllFilters={t.clearAllFilters}
                     columnDistinctValues={t.columnDistinctValues}
+                    dateFilters={t.dateFilters}
+                    setDateFilter={t.setDateFilter}
+                    clearDateFilter={t.clearDateFilter}
                     totalRows={t.totalRows}
                     onClose={() => setShowFilterPanel(false)}
                 />
@@ -261,6 +371,7 @@ const ViewsTabs = ({ t }) => {
     const [renameId,     setRenameId]     = useState(null);
     const [renameValue,  setRenameValue]  = useState("");
     const [menuId,       setMenuId]       = useState(null);
+    const [menuPos,      setMenuPos]      = useState({ x: 0, y: 0 }); // fixed coords for 3-dot menu
     const saveLabelRef = useRef();
     const renameRef    = useRef();
     const menuRef      = useRef();
@@ -268,13 +379,35 @@ const ViewsTabs = ({ t }) => {
     useEffect(() => { if (saveMode) setTimeout(() => saveLabelRef.current?.focus(), 40); }, [saveMode]);
     useEffect(() => { if (renameId)  setTimeout(() => renameRef.current?.focus(), 40); }, [renameId]);
 
-    // Close menu on outside click
+    // Close menu on outside click (also handles clicks inside the portal,
+    // since menuRef is attached to the portalled node — refs work fine
+    // across portals because they stay in the same React tree).
     useEffect(() => {
         if (!menuId) return;
         const fn = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuId(null); };
         document.addEventListener("mousedown", fn);
         return () => document.removeEventListener("mousedown", fn);
     }, [menuId]);
+
+    // Close menu on scroll/resize so it doesn't float in the wrong place.
+    useEffect(() => {
+        if (!menuId) return;
+        const close = () => setMenuId(null);
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
+        return () => {
+            window.removeEventListener("scroll", close, true);
+            window.removeEventListener("resize", close);
+        };
+    }, [menuId]);
+
+    const openMenu = (e, viewId) => {
+        e.stopPropagation();
+        if (menuId === viewId) { setMenuId(null); return; }
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMenuPos({ top: rect.bottom + 4, left: rect.left });
+        setMenuId(viewId);
+    };
 
     const commitSave = () => {
         if (saveMode === "new") {
@@ -287,19 +420,38 @@ const ViewsTabs = ({ t }) => {
         setSaveLabel("");
     };
 
+    // "+ New View" should start every new view from a clean slate — no
+    // leftover filters/search/sort from whichever view the user happened
+    // to be on. Re-applying the built-in "all data" view is the same
+    // mechanism already used when switching tabs, so it resets everything
+    // (filters, date filters, search, sort) in one consistent step rather
+    // than trying to clear each piece of state by hand.
+    const startNewView = () => {
+        const allDataView = t.views.find((v) => v.builtIn) || t.views[0];
+        if (allDataView) t.applyView(allDataView);
+        setSaveMode("new");
+        setSaveLabel("");
+    };
+
     const commitRename = () => {
         if (renameValue.trim()) t.renameView(renameId, renameValue.trim());
         setRenameId(null);
     };
 
+    const menuView = t.views.find((v) => v.id === menuId);
+
     return (
+        <>
         <div className="mb-1">
 
             {/* views tab strip */}
             <div className="flex items-end gap-0 overflow-x-auto border-b border-[#E8E6E0]"
                 style={{ scrollbarWidth: "none" }}>
                 {t.views.map((view) => {
-                    const isActive = view.id === t.activeViewId;
+                    // While composing a brand-new view (saveMode === "new"),
+                    // no existing tab should show as active — the underline
+                    // belongs on "+ New View" itself until the name is saved.
+                    const isActive = view.id === t.activeViewId && saveMode !== "new";
                     const isDirty  = isActive && t.viewIsDirty;
                     return (
                         <div key={view.id}
@@ -327,39 +479,59 @@ const ViewsTabs = ({ t }) => {
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] shrink-0" title="Unsaved changes" />
                             )}
 
-                            {/* 3-dot menu — custom views only */}
+                            {/* 3-dot menu — custom views only. Menu itself renders via portal (below). */}
                             {!view.builtIn && (
                                 <div className="relative">
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); setMenuId((id) => id === view.id ? null : view.id); }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (menuId === view.id) {
+                                                setMenuId(null);
+                                            } else {
+                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                setMenuPos({ x: rect.left, y: rect.bottom + 4 });
+                                                setMenuId(view.id);
+                                            }
+                                        }}
                                         className={`flex h-5 w-5 items-center justify-center rounded opacity-0 transition hover:bg-[#E8EEFF] group-hover:opacity-60 hover:!opacity-100 ${isActive ? "!opacity-50" : ""}`}>
                                         <DotsIcon />
                                     </button>
-                                    {menuId === view.id && (
-                                        <div ref={menuRef}
-                                            className="absolute left-0 top-full z-50 mt-1 w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
-                                            onClick={(e) => e.stopPropagation()}>
-                                            <ViewMenuItem icon={<PencilIcon />} label="Rename"
-                                                onClick={() => { setRenameId(view.id); setRenameValue(view.label); setMenuId(null); }} />
-                                            <ViewMenuItem icon={<CopyIcon />} label="Duplicate"
-                                                onClick={() => { t.duplicateView(view.id); setMenuId(null); }} />
-                                            <div className="border-t border-[#F0EDE8] my-0.5" />
-                                            <ViewMenuItem icon={<TrashIcon />} label="Delete view" danger
-                                                onClick={() => { t.deleteView(view.id); setMenuId(null); }} />
-                                        </div>
-                                    )}
                                 </div>
                             )}
                         </div>
                     );
                 })}
 
-                {/* + New View */}
-                <button onClick={() => { setSaveMode("new"); setSaveLabel(""); }}
-                    className="flex shrink-0 items-center gap-1 border-b-2 border-transparent px-3 py-2.5 text-[12px] font-medium text-[#9B9890] hover:text-[#1C4ED8] hover:bg-[#F0F5FF] transition rounded-t-lg">
+                {/* + New View — takes on the active/underlined look itself
+                    while a new view is being composed (see startNewView) */}
+                <button onClick={startNewView}
+                    className={`flex shrink-0 items-center gap-1 border-b-2 px-3 py-2.5 text-[12px] font-medium transition rounded-t-lg ${
+                        saveMode === "new"
+                            ? "border-[#1C4ED8] text-[#1C4ED8] bg-[#F0F5FF]"
+                            : "border-transparent text-[#9B9890] hover:text-[#1C4ED8] hover:bg-[#F0F5FF]"
+                    }`}>
                     <span className="text-[16px] leading-none">+</span> New View
                 </button>
             </div>
+
+            {/* PORTALLED 3-dot menu — rendered into document.body so it is never
+                clipped by the tab strip's overflow-x-auto container, and always
+                sits above other z-50 layers (filter panel, add-column dropdown). */}
+            {menuId && menuView && createPortal(
+                <div ref={menuRef}
+                    style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 1000 }}
+                    className="w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+                    onClick={(e) => e.stopPropagation()}>
+                    <ViewMenuItem icon={<PencilIcon />} label="Rename"
+                        onClick={() => { setRenameId(menuView.id); setRenameValue(menuView.label); setMenuId(null); }} />
+                    <ViewMenuItem icon={<CopyIcon />} label="Duplicate"
+                        onClick={() => { t.duplicateView(menuView.id); setMenuId(null); }} />
+                    <div className="border-t border-[#F0EDE8] my-0.5" />
+                    <ViewMenuItem icon={<TrashIcon />} label="Delete view" danger
+                        onClick={() => { t.deleteView(menuView.id); setMenuId(null); }} />
+                </div>,
+                document.body
+            )}
 
             {/* save/update bar — shows when dirty OR saving */}
             {(t.viewIsDirty || saveMode) && (
@@ -402,7 +574,7 @@ const ViewsTabs = ({ t }) => {
                                     className="flex h-7 items-center gap-1.5 rounded-lg border border-[#E0DDD6] bg-white px-3 text-[11.5px] font-medium text-[#4A4845] hover:bg-[#F5F4F0] transition">
                                     Save as new view
                                 </button>
-                                <button onClick={() => { t.clearAllFilters(); setSaveMode(null); }}
+                                <button onClick={() => { t.applyView(t.activeView); setSaveMode(null); }}
                                     className="text-[11.5px] text-[#9B9890] hover:text-[#C2410C] transition">
                                     Discard
                                 </button>
@@ -412,6 +584,31 @@ const ViewsTabs = ({ t }) => {
                 </div>
             )}
         </div>
+
+            {/* 3-dot view menu — fixed portal so it escapes the
+                overflow-x-auto tab strip and is never clipped */}
+            {menuId && (
+                <>
+                    <div className="fixed inset-0 z-[60]" onClick={() => setMenuId(null)} />
+                    <div ref={menuRef}
+                        className="fixed z-[61] w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+                        style={{ left: menuPos.x, top: menuPos.y }}
+                        onClick={(e) => e.stopPropagation()}>
+                        <ViewMenuItem icon={<PencilIcon />} label="Rename"
+                            onClick={() => {
+                                const view = t.views.find((v) => v.id === menuId);
+                                if (view) { setRenameId(view.id); setRenameValue(view.label); }
+                                setMenuId(null);
+                            }} />
+                        <ViewMenuItem icon={<CopyIcon />} label="Duplicate"
+                            onClick={() => { t.duplicateView(menuId); setMenuId(null); }} />
+                        <div className="border-t border-[#F0EDE8] my-0.5" />
+                        <ViewMenuItem icon={<TrashIcon />} label="Delete view" danger
+                            onClick={() => { t.deleteView(menuId); setMenuId(null); }} />
+                    </div>
+                </>
+            )}
+        </>
     );
 };
 
@@ -427,18 +624,24 @@ const ViewMenuItem = ({ icon, label, danger, onClick }) => (
  *  FILTER PANEL — slide-in right drawer
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters, columnDistinctValues, totalRows, onClose }) => {
-    const filterableColumns = registry.filter((c) => c.filterable);
-    const [activeCol,     setActiveCol]     = useState(filterableColumns[0]?.key || null);
-    const [colSearch,     setColSearch]     = useState(""); // search within a column's values
-    const [panelSearch,   setPanelSearch]   = useState(""); // search across columns
+const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters, columnDistinctValues, dateFilters, setDateFilter, clearDateFilter, totalRows, onClose }) => {
+    // Show EVERY column except sno (row numbers) and toggle (boolean)
+    const ALWAYS_SKIP = new Set(["sno", "toggle"]);
+    const filterableColumns = registry.filter((c) => !ALWAYS_SKIP.has(c.type));
+
+    const [activeCol,   setActiveCol]   = useState(filterableColumns[0]?.key || null);
+    const [colSearch,   setColSearch]   = useState("");
+    const [panelSearch, setPanelSearch] = useState("");
 
     const activeColDef     = registry.find((c) => c.key === activeCol);
+    const isDateCol        = activeColDef?.type === "date";
     const activeDistincts  = (columnDistinctValues[activeCol] || []).filter((v) =>
         !colSearch.trim() || v.toLowerCase().includes(colSearch.toLowerCase())
     );
     const activeSelected   = activeCol && filters[activeCol] ? Array.from(filters[activeCol]) : [];
-    const totalActiveCount = Object.keys(filters).length;
+    const activeDateFilter = (activeCol && dateFilters[activeCol]) ? dateFilters[activeCol] : { from: "", to: "" };
+
+    const totalActiveCount = Object.keys(filters).length + Object.keys(dateFilters).length;
 
     const filteredColumns  = filterableColumns.filter((c) =>
         !panelSearch.trim() || c.label.toLowerCase().includes(panelSearch.toLowerCase())
@@ -451,7 +654,14 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
     };
 
     const selectAll   = () => setColumnFilter(activeCol, columnDistinctValues[activeCol] || []);
-    const clearColumn = () => setColumnFilter(activeCol, []);
+    const clearColumn = () => {
+        if (isDateCol) clearDateFilter(activeCol);
+        else setColumnFilter(activeCol, []);
+    };
+
+    const hasActiveOnCol = isDateCol
+        ? !!(dateFilters[activeCol]?.from || dateFilters[activeCol]?.to)
+        : activeSelected.length > 0;
 
     return (
         <>
@@ -478,7 +688,7 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                     </div>
                     <div className="flex items-center gap-2">
                         {totalActiveCount > 0 && (
-                            <button onClick={() => { clearAllFilters(); }}
+                            <button onClick={clearAllFilters}
                                 className="rounded-lg border border-[#FED7AA] bg-[#FFF7ED] px-3 py-1.5 text-[11.5px] font-medium text-[#C2410C] hover:bg-[#FFEDD5] transition">
                                 Clear all
                             </button>
@@ -490,10 +700,10 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                     </div>
                 </div>
 
-                {/* two-column layout: left = field list, right = values */}
+                {/* two-column layout: left = field list, right = values/picker */}
                 <div className="flex flex-1 min-h-0">
 
-                    {/* LEFT — filterable field list */}
+                    {/* LEFT — all columns */}
                     <div className="flex w-[180px] shrink-0 flex-col border-r border-[#F0EDE8]">
                         <div className="px-3 py-2.5 border-b border-[#F5F4F0]">
                             <input type="text" value={panelSearch} onChange={(e) => setPanelSearch(e.target.value)}
@@ -504,7 +714,11 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                         <div className="flex-1 overflow-y-auto py-1">
                             {filteredColumns.map((col) => {
                                 const isActive  = activeCol === col.key;
-                                const hasFilter = !!filters[col.key]?.size;
+                                const isDate    = col.type === "date";
+                                const hasFilter = isDate
+                                    ? !!(dateFilters[col.key]?.from || dateFilters[col.key]?.to)
+                                    : !!filters[col.key]?.size;
+                                const cnt = !isDate && filters[col.key]?.size;
                                 return (
                                     <button key={col.key}
                                         onClick={() => { setActiveCol(col.key); setColSearch(""); }}
@@ -512,18 +726,22 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                                             isActive ? "bg-[#EEF2FF] text-[#1C4ED8] font-semibold" : "text-[#1C1B18] hover:bg-[#F5F4F0]"
                                         }`}>
                                         <span className="truncate">{col.label}</span>
-                                        {hasFilter && (
-                                            <span className="ml-1 flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9px] font-bold text-white">
-                                                {filters[col.key].size}
-                                            </span>
-                                        )}
+                                        <span className="flex items-center gap-1 shrink-0 ml-1">
+                                            {isDate && <span className="text-[9px] text-[#9B9890]">📅</span>}
+                                            {hasFilter && cnt != null && (
+                                                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9px] font-bold text-white">{cnt}</span>
+                                            )}
+                                            {hasFilter && cnt == null && (
+                                                <span className="h-2 w-2 rounded-full bg-[#1C4ED8]" />
+                                            )}
+                                        </span>
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* RIGHT — values for selected field */}
+                    {/* RIGHT — date picker or checkbox list */}
                     <div className="flex flex-1 min-w-0 flex-col">
                         {activeColDef ? (
                             <>
@@ -532,74 +750,119 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                                     <div>
                                         <p className="text-[12.5px] font-bold text-[#1C1B18]">{activeColDef.label}</p>
                                         <p className="text-[10.5px] text-[#9B9890] mt-0.5">
-                                            {columnDistinctValues[activeCol]?.length || 0} options
+                                            {isDateCol ? "Date range" : `${columnDistinctValues[activeCol]?.length || 0} options`}
                                             {activeSelected.length > 0 && ` · ${activeSelected.length} selected`}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {activeSelected.length > 0 && (
+                                        {hasActiveOnCol && (
                                             <button onClick={clearColumn} className="text-[11px] font-medium text-[#C2410C] hover:underline transition">
                                                 Clear
                                             </button>
                                         )}
-                                        <button onClick={selectAll} className="text-[11px] font-medium text-[#1C4ED8] hover:underline transition">
-                                            Select all
-                                        </button>
+                                        {!isDateCol && (
+                                            <button onClick={selectAll} className="text-[11px] font-medium text-[#1C4ED8] hover:underline transition">
+                                                Select all
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* value search */}
-                                <div className="px-4 py-2.5 border-b border-[#F5F4F0]">
-                                    <div className="relative">
-                                        <SearchIcon />
-                                        <input type="text" value={colSearch} onChange={(e) => setColSearch(e.target.value)}
-                                            placeholder={`Search ${activeColDef.label.toLowerCase()}…`}
-                                            className="h-7 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] pl-7 pr-3 text-[12px] placeholder-[#9B9890] outline-none focus:border-[#93AEFF] transition"
-                                        />
-                                        {colSearch && <button onClick={() => setColSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9B9890]"><XIcon size={9} /></button>}
-                                    </div>
-                                </div>
-
-                                {/* values list */}
-                                <div className="flex-1 overflow-y-auto py-1">
-                                    {activeDistincts.length === 0 ? (
-                                        <div className="py-8 text-center text-[12px] text-[#9B9890]">
-                                            {colSearch ? "No matching values" : "No values available"}
+                                {/* DATE RANGE PICKER */}
+                                {isDateCol ? (
+                                    <div className="px-4 py-5 space-y-4">
+                                        <div>
+                                            <label className="block text-[11px] font-semibold uppercase tracking-widest text-[#9B9890] mb-1.5">From</label>
+                                            <input type="date"
+                                                value={activeDateFilter.from}
+                                                max={activeDateFilter.to || undefined}
+                                                onChange={(e) => setDateFilter(activeCol, e.target.value, activeDateFilter.to)}
+                                                className="h-9 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] px-3 text-[12.5px] text-[#1C1B18] outline-none focus:border-[#93AEFF] focus:ring-2 focus:ring-[#EEF2FF] transition"
+                                            />
                                         </div>
-                                    ) : (
-                                        activeDistincts.map((val) => {
-                                            const isChecked = activeSelected.includes(val);
-                                            const count     = data.filter((r) => String(r[activeCol]) === val).length;
-                                            return (
-                                                <label key={val}
-                                                    className={`flex cursor-pointer items-center gap-3 px-4 py-2 transition hover:bg-[#F5F4F0] ${isChecked ? "bg-[#F0F5FF]" : ""}`}>
-                                                    <input type="checkbox" checked={isChecked} onChange={() => toggleValue(val)}
-                                                        className="h-3.5 w-3.5 cursor-pointer accent-[#1C4ED8] shrink-0"
-                                                    />
-                                                    <span className={`flex-1 truncate text-[12.5px] ${isChecked ? "font-semibold text-[#1C4ED8]" : "text-[#1C1B18]"}`}>{val}</span>
-                                                    <span className="shrink-0 text-[11px] text-[#9B9890]">{count}</span>
-                                                </label>
-                                            );
-                                        })
-                                    )}
-                                </div>
-
-                                {/* active selections summary */}
-                                {activeSelected.length > 0 && (
-                                    <div className="border-t border-[#F0EDE8] bg-[#FAFAF8] px-4 py-3">
-                                        <p className="text-[10.5px] font-semibold uppercase tracking-widest text-[#9B9890] mb-2">Selected</p>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {activeSelected.map((v) => (
-                                                <span key={v}
-                                                    className="inline-flex items-center gap-1.5 rounded-full border border-[#BFD3FF] bg-[#F0F5FF] px-2.5 py-0.5 text-[11px] font-medium text-[#1C4ED8]">
-                                                    {v}
-                                                    <button onClick={() => toggleValue(v)} className="opacity-60 hover:opacity-100 transition">
-                                                        <XIcon size={8} />
-                                                    </button>
-                                                </span>
-                                            ))}
+                                        <div>
+                                            <label className="block text-[11px] font-semibold uppercase tracking-widest text-[#9B9890] mb-1.5">To</label>
+                                            <input type="date"
+                                                value={activeDateFilter.to}
+                                                min={activeDateFilter.from || undefined}
+                                                onChange={(e) => setDateFilter(activeCol, activeDateFilter.from, e.target.value)}
+                                                className="h-9 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] px-3 text-[12.5px] text-[#1C1B18] outline-none focus:border-[#93AEFF] focus:ring-2 focus:ring-[#EEF2FF] transition"
+                                            />
                                         </div>
+                                        {(activeDateFilter.from || activeDateFilter.to) && (
+                                            <div className="rounded-lg border border-[#BFD3FF] bg-[#F0F5FF] px-3 py-2.5">
+                                                <p className="text-[11.5px] text-[#1C4ED8] font-medium">
+                                                    {activeDateFilter.from && activeDateFilter.to
+                                                        ? `${activeDateFilter.from} → ${activeDateFilter.to}`
+                                                        : activeDateFilter.from
+                                                        ? `From ${activeDateFilter.from}`
+                                                        : `Until ${activeDateFilter.to}`}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
+                                ) : (
+                                    <>
+                                        {/* value search */}
+                                        <div className="px-4 py-2.5 border-b border-[#F5F4F0]">
+                                            <div className="relative">
+                                                <SearchIcon />
+                                                <input type="text" value={colSearch} onChange={(e) => setColSearch(e.target.value)}
+                                                    placeholder={`Search ${activeColDef.label.toLowerCase()}…`}
+                                                    className="h-7 w-full rounded-lg border border-[#E8E6E0] bg-[#FAFAF8] pl-7 pr-3 text-[12px] placeholder-[#9B9890] outline-none focus:border-[#93AEFF] transition"
+                                                />
+                                                {colSearch && <button onClick={() => setColSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9B9890]"><XIcon size={9} /></button>}
+                                            </div>
+                                        </div>
+
+                                        {/* values list */}
+                                        <div className="flex-1 overflow-y-auto py-1">
+                                            {activeDistincts.length === 0 ? (
+                                                <div className="py-8 text-center text-[12px] text-[#9B9890]">
+                                                    {colSearch ? "No matching values" : "No data in this column yet"}
+                                                </div>
+                                            ) : (
+                                                activeDistincts.map((val) => {
+                                                    const isChecked = activeSelected.includes(val);
+                                                    const count = data.filter((r) => {
+                                                        const rv = r[activeCol];
+                                                        if (activeColDef?.type === "chips") {
+                                                            return String(rv || "").split(",").map(s => s.trim()).includes(val);
+                                                        }
+                                                        return String(rv) === val;
+                                                    }).length;
+                                                    return (
+                                                        <label key={val}
+                                                            className={`flex cursor-pointer items-center gap-3 px-4 py-2 transition hover:bg-[#F5F4F0] ${isChecked ? "bg-[#F0F5FF]" : ""}`}>
+                                                            <input type="checkbox" checked={isChecked} onChange={() => toggleValue(val)}
+                                                                className="h-3.5 w-3.5 cursor-pointer accent-[#1C4ED8] shrink-0"
+                                                            />
+                                                            <span className={`flex-1 truncate text-[12.5px] ${isChecked ? "font-semibold text-[#1C4ED8]" : "text-[#1C1B18]"}`}>{val}</span>
+                                                            <span className="shrink-0 text-[11px] text-[#9B9890]">{count}</span>
+                                                        </label>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+
+                                        {/* selected summary */}
+                                        {activeSelected.length > 0 && (
+                                            <div className="border-t border-[#F0EDE8] bg-[#FAFAF8] px-4 py-3">
+                                                <p className="text-[10.5px] font-semibold uppercase tracking-widest text-[#9B9890] mb-2">Selected</p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {activeSelected.map((v) => (
+                                                        <span key={v}
+                                                            className="inline-flex items-center gap-1.5 rounded-full border border-[#BFD3FF] bg-[#F0F5FF] px-2.5 py-0.5 text-[11px] font-medium text-[#1C4ED8]">
+                                                            {v}
+                                                            <button onClick={() => toggleValue(v)} className="opacity-60 hover:opacity-100 transition">
+                                                                <XIcon size={8} />
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </>
                         ) : (
@@ -616,37 +879,69 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                         <span className="font-bold text-[#1C1B18]">{totalRows}</span> records match current filters
                     </p>
                     <button onClick={onClose}
-                        className="flex h-9 items-center gap-2 rounded-xl bg-[#1C4ED8] px-5 text-[13px] font-semibold text-white hover:bg-[#1741B6] transition shadow-sm">
+                        className="rounded-lg bg-[#1C1B18] px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-[#2D2C28] transition">
                         Done
                     </button>
                 </div>
             </div>
-            <style>{`@keyframes slideInRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}`}</style>
         </>
     );
 };
 
-/* ──────────────────── INLINE FILTER BTN (column header) ──────────────────── */
-
 const InlineFilterBtn = ({ active, open, onToggle, options, selected, onChange, onClose }) => {
-    const ref = useRef();
+    const btnWrapRef = useRef();
+    const menuRef = useRef();
+    const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+
+    // Rendered through a portal (same pattern as StatusCell's dropdown and
+    // ViewsTabs' 3-dot menu) so it always escapes the table's own
+    // scroll/clip box — the header cell it hangs off is now sticky inside
+    // a bounded, overflow:auto scroll container, and a plain
+    // position:absolute popup would get clipped at that container's edge.
     useEffect(() => {
         if (!open) return;
-        const fn = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-        document.addEventListener("mousedown", fn);
-        return () => document.removeEventListener("mousedown", fn);
+
+        const rect = btnWrapRef.current?.getBoundingClientRect();
+        if (rect) {
+            setMenuPos({ top: rect.bottom + 4, left: Math.max(8, rect.right - 192) }); // 192px = w-48
+        }
+
+        const clickAway = (e) => {
+            if (
+                btnWrapRef.current && !btnWrapRef.current.contains(e.target) &&
+                menuRef.current && !menuRef.current.contains(e.target)
+            ) {
+                onClose();
+            }
+        };
+        // Close on scroll/resize rather than tracking position live — simplest
+        // way to avoid the popup drifting away from its trigger.
+        const close = () => onClose();
+
+        document.addEventListener("mousedown", clickAway);
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
+        return () => {
+            document.removeEventListener("mousedown", clickAway);
+            window.removeEventListener("scroll", close, true);
+            window.removeEventListener("resize", close);
+        };
     }, [open, onClose]);
+
     const toggle = (v) => selected.includes(v) ? onChange(selected.filter((x) => x !== v)) : onChange([...selected, v]);
     return (
-        <div className="relative" ref={ref}>
+        <div className="relative" ref={btnWrapRef}>
             <button onClick={(e) => { e.stopPropagation(); onToggle(); }}
                 className={`flex h-4 w-4 shrink-0 items-center justify-center rounded transition-all ${
                     active ? "text-[#1C4ED8] opacity-100" : "text-[#C8C5BD] opacity-0 hover:bg-[#F0F5FF] hover:text-[#1C4ED8] group-hover:opacity-100"
                 }`}>
                 <FilterIcon size={10} />
             </button>
-            {open && (
-                <div className="absolute right-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]" onClick={(e) => e.stopPropagation()}>
+            {open && createPortal(
+                <div ref={menuRef}
+                    style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 1000 }}
+                    className="w-48 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                    onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-between border-b border-[#F0EDE8] bg-[#FAFAF8] px-2.5 py-1.5">
                         <span className="text-[9.5px] font-semibold uppercase tracking-widest text-[#9B9890]">Filter</span>
                         {selected.length > 0 && <button onClick={() => onChange([])} className="text-[10px] font-medium text-[#1C4ED8] hover:underline">Clear</button>}
@@ -659,7 +954,8 @@ const InlineFilterBtn = ({ active, open, onToggle, options, selected, onChange, 
                             </label>
                         ))}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
@@ -749,8 +1045,8 @@ const ColumnHeader = ({ col, isLast, t }) => {
             onDrop={(e) => t.onHeaderDrop(e, col)}
             onDragEnd={t.resetDrag}
             style={{ width: col.width, minWidth: col.width }}
-            className={`group relative select-none border-b border-[#E8E6E0] px-3 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#6B6860] transition-colors
-                ${col.fixed ? "cursor-default bg-[#F5F4F0]" : "cursor-grab hover:bg-[#F5F4F0] active:cursor-grabbing"}
+            className={`group sticky top-0 z-10 select-none border-b border-[#E8E6E0] px-3 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#6B6860] transition-colors
+                ${col.fixed ? "cursor-default bg-[#F5F4F0]" : "cursor-grab bg-[#FAFAF8] hover:bg-[#F5F4F0] active:cursor-grabbing"}
                 ${isDragging ? "opacity-40" : ""}
                 ${!isLast ? "border-r border-[#F0EDE8]" : ""}`}>
 
@@ -797,6 +1093,13 @@ const ColumnHeader = ({ col, isLast, t }) => {
         </th>
     );
 };
+
+const LoadingStateBlock = ({ label }) => (
+    <div className="flex flex-col items-center gap-2.5">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E8E6E0] border-t-[#1C4ED8]" />
+        <div className="text-[12.5px] font-medium text-[#9B9890]">{label}</div>
+    </div>
+);
 
 const EmptyStateBlock = ({ title, hint, action }) => (
     <div className="flex flex-col items-center gap-2.5">
@@ -886,3 +1189,5 @@ const CopyIcon = () => (
         <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
     </svg>
 );
+
+export default DataTable;

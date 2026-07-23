@@ -7,6 +7,7 @@ import {
     updateUser,
     deleteUser,
     getAllUsers,
+    getUsersPicker,
     refreshAccessToken,
 } from "../controllers/authController.js";
 
@@ -28,6 +29,14 @@ router.get(
     protect,
     requirePermission("users", "view"),
     getAllUsers
+);
+
+// Lightweight "picker" list — any authenticated user, no users:view gate.
+// Used by dropdowns like Job's Account Manager / Assign Recruiter fields.
+router.get(
+    "/users/picker",
+    protect,
+    getUsersPicker
 );
 
 router.post(

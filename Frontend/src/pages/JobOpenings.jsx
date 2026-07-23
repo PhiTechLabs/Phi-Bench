@@ -30,6 +30,7 @@ const STATUS_OPTIONS = [
 const JobOpenings = () => {
   const [showForm, setShowForm]     = useState(false);
   const [jobs, setJobs]             = useState([]);
+  const [loading, setLoading]       = useState(true);
   const [confirmDel, setConfirmDel] = useState(null);
   const [formError, setFormError]   = useState(null);
   const navigate = useNavigate();
@@ -46,6 +47,8 @@ const JobOpenings = () => {
     } catch (err) {
       console.warn("Failed to load jobs:", err?.response?.data || err);
       alert(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -114,6 +117,7 @@ const JobOpenings = () => {
       defaultVisible: true, sortable: true, filterable: true,
     },
     { key: "contact",    label: "Contact",       width: 150, type: "text", searchable: true },
+    { key: "contactPhone", label: "Contact No.", width: 130, type: "text", searchable: true },
     { key: "manager",    label: "Account Mgr.",  width: 150, type: "text", searchable: true, filterable: true },
     { key: "recruiter",  label: "Recruiter",     width: 150, type: "text", searchable: true, filterable: true },
     { key: "industry",   label: "Industry",      width: 140, type: "text", sortable: true, filterable: true },
@@ -137,10 +141,12 @@ const JobOpenings = () => {
           columns={columns}
           data={jobs}
           storageKey="jobs_table"
-          onRowClick={(row) => navigate(`${roleBase}/jobs/${row.id}`)}
+          getRowHref={(row) => `${roleBase}/jobs/${row.id}`}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           searchPlaceholder="Search title, client, skills…"
+          loading={loading}
+          loadingLabel="Loading jobs…"
           emptyState={{
             title: "No job openings yet",
             hint: "Click + Add Job to create your first opening",

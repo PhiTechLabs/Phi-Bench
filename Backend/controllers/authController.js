@@ -463,6 +463,44 @@ export const getAllUsers = async (
 };
 
 // ───────────────────────────────────────────────────────────
+// GET USERS PICKER (lightweight, any authenticated user)
+// ───────────────────────────────────────────────────────────
+// Powers "assign a person" dropdowns (Job's Account Manager / Recruiter
+// fields, etc.) where any logged-in user needs to pick a colleague. The
+// full getAllUsers endpoint is gated behind "users:view", which most
+// non-admin roles don't have — this intentionally skips that check and
+// returns only the minimal fields a picker needs (id, username, role).
+export const getUsersPicker = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const users = await User.find({ isActive: true })
+            .select("username roleId")
+            .populate("roleId", "name")
+            .sort({ username: 1 });
+
+        return res.status(200).json({
+
+            users: users.map((u) => ({
+                id: u._id,
+                username: u.username,
+                role: u.roleId?.name || "",
+            })),
+
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            error: error.message,
+        });
+    }
+};
+
+// ───────────────────────────────────────────────────────────
 // UPDATE USER
 // ───────────────────────────────────────────────────────────
 export const updateUser = async (

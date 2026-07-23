@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
     getClientById,
     deleteClient,
@@ -148,10 +148,10 @@ const ClientDetails = () => {
         <div className="flex min-h-screen items-center justify-center bg-[#F4F6F9] p-4">
             <div className="rounded-xl border border-red-200 bg-white px-8 py-6 text-center shadow-sm">
                 <p className="text-[15px] font-semibold text-red-600 mb-3">{error}</p>
-                <button onClick={() => navigate(`${roleBase}/client-list`)}
-                    className="rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
+                <Link to={`${roleBase}/client-list`}
+                    className="inline-block rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
                     Back to Clients
-                </button>
+                </Link>
             </div>
         </div>
     );
@@ -162,10 +162,10 @@ const ClientDetails = () => {
             <div className="rounded-xl border border-[#E2E8F0] bg-white px-8 py-6 text-center shadow-sm">
                 <p className="text-[15px] font-semibold text-[#1E293B] mb-1">Client not found</p>
                 <p className="text-[13px] text-[#94A3B8] mb-4">This client doesn't exist or was deleted.</p>
-                <button onClick={() => navigate(`${roleBase}/client-list`)}
-                    className="rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
+                <Link to={`${roleBase}/client-list`}
+                    className="inline-block rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8]">
                     Back to Clients
-                </button>
+                </Link>
             </div>
         </div>
     );
@@ -193,10 +193,10 @@ const ClientDetails = () => {
                 <div className="flex items-center gap-4 px-6 py-3 border-b border-[#F1F5F9]">
 
                     {/* Back */}
-                    <button onClick={() => navigate(`${roleBase}/client-list`)}
+                    <Link to={`${roleBase}/client-list`}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F8FAFC] transition shrink-0">
                         <Icon d={icons.back} size={15} />
-                    </button>
+                    </Link>
 
                     {/* Avatar + Name */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -233,10 +233,10 @@ const ClientDetails = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 shrink-0">
-                        <button onClick={() => navigate(`${roleBase}/client-list/edit/${id}`)}
+                        <Link to={`${roleBase}/client-list/edit/${id}`}
                             className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
                             <Icon d={icons.edit} size={13} /> Edit
-                        </button>
+                        </Link>
                         <button onClick={handleDelete}
                             className="flex items-center gap-1.5 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition">
                             <Icon d={icons.trash} size={13} /> Delete
@@ -284,7 +284,7 @@ const ClientDetails = () => {
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[#F1F5F9]">
                                     <SummaryCell label="Industry"       value={client.industry} />
-                                    <SummaryCell label="Account Manager" value={client.accountManager} />
+                                    <SummaryCell label="POC Name" value={client.pocs?.[0] ? `${client.pocs[0].firstName} ${client.pocs[0].lastName}`.trim() : "—"} />
                                     <SummaryCell label="Source"         value={client.source} />
                                     <SummaryCell label="Parent Client"  value={client.parentClient} />
                                 </div>
@@ -306,7 +306,7 @@ const ClientDetails = () => {
                                         link={client.website} />
                                     <KVField icon={icons.brief}    label="Industry"        value={client.industry} />
                                     <KVField icon={icons.source}   label="Source"          value={client.source} />
-                                    <KVField icon={icons.user}     label="Account Manager" value={client.accountManager} />
+                                    <KVField icon={icons.user}     label="POC Name"       value={client.pocs?.[0] ? `${client.pocs[0].firstName} ${client.pocs[0].lastName}`.trim() : "—"} />
                                     {client.linkedin && (
                                         <KVField icon={icons.linkedin} label="LinkedIn"
                                             value="View LinkedIn"
@@ -535,9 +535,9 @@ const JobsTab = ({ jobs, roleBase, navigate }) => {
             ) : (
                 <div className="space-y-3">
                     {filtered.map((job) => (
-                        <div key={job.id || job._id}
-                            className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm p-5 hover:shadow-md transition cursor-pointer"
-                            onClick={() => navigate(`${roleBase}/jobs/${job.id || job._id}`)}>
+                        <Link key={job.id || job._id}
+                            to={`${roleBase}/jobs/${job.id || job._id}`}
+                            className="block rounded-xl bg-white border border-[#E2E8F0] shadow-sm p-5 hover:shadow-md transition cursor-pointer">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
@@ -595,7 +595,7 @@ const JobsTab = ({ jobs, roleBase, navigate }) => {
                                     )}
                                 </div>
                             )}
-                        </div>
+                        </Link>
                     ))}
                 </div>
             )}

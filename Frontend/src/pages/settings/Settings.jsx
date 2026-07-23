@@ -1,5 +1,5 @@
-    import { useState } from "react";
-    import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+    import { Link } from "react-router-dom";
     import BackButton from "../../reusable/BackButton";
 
     // ============================================================
@@ -38,8 +38,6 @@
     // ============================================================
 
     export default function Settings() {
-    const navigate = useNavigate();
-
     const [search,   setSearch]   = useState("");
     const [activeId, setActiveId] = useState(null);
 
@@ -55,10 +53,10 @@
             .filter((section) => section.items.length > 0)
         : SETTINGS_SECTIONS;
 
-    // Navigate on click — add permission checks / API calls here if needed
+    // Track which item is "active" for styling — actual navigation now
+    // happens via the real <Link> rendered in SettingsItem below.
     const handleItemClick = (item) => {
         setActiveId(item.id);
-        navigate(`/settings/${item.route}`);
     };
 
     return (
@@ -223,7 +221,9 @@
 
     function SettingsItem({ item, isActive, onClick }) {
     return (
-        <li
+        <li>
+        <Link
+        to={`/settings/${item.route}`}
         onClick={onClick}
         className={`
             flex items-center gap-3 px-3 py-2.5 rounded-lg
@@ -253,6 +253,7 @@
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
 
+        </Link>
         </li>
     );
     }
