@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://REPLACE-WITH-YOUR-RAILWAY-URL.up.railway.app/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://phi-bench-production.up.railway.app/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
