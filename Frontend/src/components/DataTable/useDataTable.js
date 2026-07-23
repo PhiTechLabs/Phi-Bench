@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { fetchTableViews as apiFetchTableViews, saveTableViews as apiSaveTableViews } from "../../api/tableViewsApi";
 
 // ─── VIEWS STORAGE ────────────────────────────────────────────────────────────
 const VIEWS_KEY      = (s) => `${s}_views_v3`;
@@ -19,6 +20,11 @@ const serialiseFilters = (filters) =>
     Object.fromEntries(Object.entries(filters).map(([k, v]) => [k, v instanceof Set ? Array.from(v).sort() : v]));
 
 const filtersEqual = (a, b) => JSON.stringify(serialiseFilters(a)) === JSON.stringify(serialiseFilters(b));
+
+// Stable (key-sorted) stringify so comparing column widths doesn't false-flag
+// on insertion-order differences.
+const canonWidths = (w) =>
+    JSON.stringify(Object.fromEntries(Object.entries(w || {}).sort(([a], [b]) => a.localeCompare(b))));
 
 export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data }) => {
 
@@ -58,6 +64,22 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
         setVisibleKeys(visibleKeys.filter((k) => k !== key));
     };
     const resetColumns = () => setVisibleKeys(defaultVisibleKeys);
+
+    // Restores a view's column layout, falling back to defaults for views
+    // saved before column layout was part of the view (or the built-in
+    // "All Records" view) rather than leaving whatever was on screen.
+    const applyViewColumns = useCallback((view) => {
+        if (Array.isArray(view?.visibleKeys) && view.visibleKeys.length) {
+            const valid = view.visibleKeys.filter((k) => registry.find((c) => c.key === k));
+            registry.forEach((c) => { if (c.removable === false && !valid.includes(c.key)) valid.unshift(c.key); });
+            const fixed = registry.filter((c) => c.fixed && valid.includes(c.key)).map((c) => c.key);
+            setVisibleKeys([...fixed, ...valid.filter((k) => !fixed.includes(k))]);
+        } else {
+            setVisibleKeys(defaultVisibleKeys);
+        }
+        setColumnWidths(view?.columnWidths && typeof view.columnWidths === "object" ? { ...view.columnWidths } : {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [registry, defaultVisibleKeys]);
 
     /* ──────────── DRAG & DROP ──────────── */
     const [dragKey, setDragKey]   = useState(null);
@@ -271,9 +293,17 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
      *  VIEWS SYSTEM
      * ══════════════════════════════════════════════════════
      *
-     * A view stores: id, label, builtIn, filters (plain arrays), search, sort
-     * Applying a view restores all filter/search/sort state.
+     * A view stores: id, label, builtIn, filters (plain arrays), search, sort,
+     * visibleKeys (column order), columnWidths. Applying a view restores all
+     * of that state — including column layout, so rearranging/resizing
+     * columns while a view is active is just as much "part of the view" as
+     * its filters are.
+     *
      * "Dirty" = current state differs from the active view's saved state.
+     *
+     * Views live in localStorage for instant paint on load, and are also
+     * synced to the backend (per logged-in user, per table) so the same
+     * account sees the same saved views/columns on any device or browser.
      */
     const [views,        setViewsState]  = useState(() => loadViews(storageKey));
     const [activeViewId, setActiveViewId] = useState(() => localStorage.getItem(ACTIVE_KEY(storageKey)) || "__all__");
@@ -301,18 +331,79 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
         setDateFiltersState(view.dateFilters || {});
         setSearch(view.search || "");
         setSort(view.sort || { key: null, dir: null });
+        // Restore column layout too, if this view has one saved
+        if (view.visibleKeys || view.columnWidths) applyViewColumns(view);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // intentionally runs once on mount only
+
+    // ── SYNC VIEWS FROM BACKEND ON MOUNT ──────────────────────────────────────
+    // localStorage only ever lived on one browser/device. Pulling the user's
+    // saved views from the backend here makes "log in on another machine and
+    // see the same saved views/columns" actually true. Best-effort: if this
+    // fails (offline, not deployed yet, etc.) the localStorage-based state
+    // above just stays as-is.
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await apiFetchTableViews(storageKey);
+                if (cancelled || !Array.isArray(res?.views) || res.views.length === 0) return;
+
+                setViewsState(res.views);
+                saveViews(storageKey, res.views);
+
+                const targetId = res.activeViewId && res.views.some((v) => v.id === res.activeViewId)
+                    ? res.activeViewId
+                    : (res.views.find((v) => v.builtIn)?.id || res.views[0].id);
+                setActiveViewId(targetId);
+
+                const targetView = res.views.find((v) => v.id === targetId);
+                if (targetView && targetId !== "__all__") {
+                    const restoredFilters = {};
+                    Object.entries(targetView.filters || {}).forEach(([k, v]) => {
+                        const arr = Array.isArray(v) ? v : [];
+                        if (arr.length) restoredFilters[k] = new Set(arr);
+                    });
+                    setFilters(restoredFilters);
+                    setDateFiltersState(targetView.dateFilters || {});
+                    setSearch(targetView.search || "");
+                    setSort(targetView.sort || { key: null, dir: null });
+                    applyViewColumns(targetView);
+                }
+            } catch {
+                // No connectivity / not logged in yet / endpoint not deployed —
+                // localStorage remains the fallback source of truth.
+            }
+        })();
+        return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [storageKey]);
+
+    // ── PUSH VIEWS TO BACKEND ─────────────────────────────────────────────────
+    // Debounced so rapid-fire changes (dragging a column resize handle, typing
+    // a view name) don't fire a request per keystroke/pixel.
+    const didMountRef = useRef(false);
+    useEffect(() => {
+        if (!didMountRef.current) { didMountRef.current = true; return; }
+        const t = setTimeout(() => {
+            apiSaveTableViews(storageKey, { views, activeViewId }).catch(() => {
+                // Best-effort — the localStorage copy already saved synchronously above.
+            });
+        }, 600);
+        return () => clearTimeout(t);
+    }, [views, activeViewId, storageKey]);
 
     const activeView = views.find((v) => v.id === activeViewId) || views[0];
 
     // Serialise current live state for dirty check
     const liveState = useMemo(() => ({
-        filters:     serialiseFilters(filters),
-        dateFilters: JSON.stringify(dateFilters),
-        search:      search.trim(),
+        filters:      serialiseFilters(filters),
+        dateFilters:  JSON.stringify(dateFilters),
+        search:       search.trim(),
         sort,
-    }), [filters, dateFilters, search, sort]);
+        visibleKeys,
+        columnWidths: canonWidths(columnWidths),
+    }), [filters, dateFilters, search, sort, visibleKeys, columnWidths]);
 
     const savedState = useMemo(() => {
         if (!activeView) return null;
@@ -320,15 +411,19 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
             filters: Object.fromEntries(
                 Object.entries(activeView.filters || {}).map(([k, v]) => [k, Array.isArray(v) ? [...v].sort() : v])
             ),
-            dateFilters: JSON.stringify(activeView.dateFilters || {}),
-            search: (activeView.search || "").trim(),
-            sort:   activeView.sort || { key: null, dir: null },
+            dateFilters:  JSON.stringify(activeView.dateFilters || {}),
+            search:       (activeView.search || "").trim(),
+            sort:         activeView.sort || { key: null, dir: null },
+            visibleKeys:  Array.isArray(activeView.visibleKeys) && activeView.visibleKeys.length
+                ? activeView.visibleKeys
+                : defaultVisibleKeys,
+            columnWidths: canonWidths(activeView.columnWidths),
         };
-    }, [activeView]);
+    }, [activeView, defaultVisibleKeys]);
 
     const viewIsDirty = savedState ? JSON.stringify(liveState) !== JSON.stringify(savedState) : false;
 
-    // Apply a view — restore its state
+    // Apply a view — restore its state (filters, search, sort, AND columns)
     const applyView = useCallback((view) => {
         setActiveViewId(view.id);
         const restoredFilters = {};
@@ -340,16 +435,20 @@ export const useDataTable = ({ registry, defaultVisibleKeys, storageKey, data })
         setDateFiltersState(view.dateFilters || {});
         setSearch(view.search || "");
         setSort(view.sort || { key: null, dir: null });
+        applyViewColumns(view);
         setPage(1);
-    }, []);
+    }, [applyViewColumns]);
 
-    // Capture current state as a view payload
+    // Capture current state as a view payload — includes column order/width
+    // so "rearrange a column, then save/update the view" actually sticks.
     const captureCurrentState = useCallback(() => ({
-        filters:     serialiseFilters(filters),
-        dateFilters: dateFilters,
-        search:      search.trim(),
+        filters:      serialiseFilters(filters),
+        dateFilters:  dateFilters,
+        search:       search.trim(),
         sort,
-    }), [filters, dateFilters, search, sort]);
+        visibleKeys:  [...visibleKeys],
+        columnWidths: { ...columnWidths },
+    }), [filters, dateFilters, search, sort, visibleKeys, columnWidths]);
 
     // Save current state as a new view
     const saveAsNewView = useCallback((label) => {
