@@ -123,7 +123,7 @@ function LandingHome() {
                 <div className="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-white/20 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
 
                     {/* Stat 1 */}
-                    <div className="flex flex-col items-center justify-center px-6 py-78 text-center">
+                    <div className="flex flex-col items-center justify-center px-6 py-8 text-center">
 
                         <div className="flex items-center gap-2">
 
