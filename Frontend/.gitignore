@@ -19,4 +19,3 @@ build/
 .parcel-cache/
 .gitignore
 package-lock.json
-assets
