@@ -1,4 +1,4 @@
-import TableView from "../models/TableView.js";
+import TableView from "../models/Tableview.js";
 
 // ───────────────────────────────────────────────────────────
 // GET SAVED VIEWS FOR A TABLE (current user only)
