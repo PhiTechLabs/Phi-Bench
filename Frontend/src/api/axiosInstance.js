@@ -7,9 +7,16 @@ import axios from "axios";
 // whether you ran `parcel` (dev) or `parcel build` (production).
 //
 // Locally: .env.development with API_BASE_URL=http://localhost:5000/api
-// On Vercel: set API_BASE_URL as a project environment variable, pointing
-// at your real Railway backend URL, e.g.
-// https://phi-bench-backend.up.railway.app/api
+//
+// On Vercel: set API_BASE_URL to the relative path "/api" (NOT the raw
+// Railway URL). vercel.json (project root) rewrites /api/* to the real
+// Railway backend server-side, so from the browser's point of view every
+// request stays on the Vercel domain — no cross-site request at all.
+// That matters because the accessToken/refreshToken cookies the backend
+// sets only survive as first-party cookies this way; browsers (Incognito/
+// Private windows especially, but increasingly all browsing) block
+// third-party cookies outright, which is what made login "work" but the
+// very next request come back 401 and bounce you to a blank /login.
 //
 // The localhost fallback below only matters if no .env file exists at all —
 // once you add one, the value there always wins.
