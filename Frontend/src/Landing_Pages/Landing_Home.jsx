@@ -55,7 +55,7 @@ function LandingHome() {
             <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pt-16 text-center sm:px-10 lg:px-16">
 
                 {/* Heading */}
-                <h1 className="max-w-4xl text-2xl font-bold leading-tight text-white sm:text-5xl lg:text-4xl">
+                <h1 className="max-w-5xl text-2xl font-bold leading-tight text-white sm:text-5xl lg:text-5xl">
                     The Smart Bench Management Platform
                     <br />
                     for IT Businesses
@@ -63,7 +63,7 @@ function LandingHome() {
 
 
                 {/* Description */}
-                <p className="mt-5 max-w-4xl text-xs leading-relaxed text-white/90 sm:text-bsm">
+                <p className="mt-5 max-w-4xl text-xs leading-relaxed text-white/90 sm:text-base">
                     PhiBench helps IT staffing companies manage verified bench
                     resources, track resource availability, streamline
                     <br />
@@ -73,7 +73,7 @@ function LandingHome() {
 
 
                 {/* ================= IMAGE AREA ================= */}
-                <div className="relative mt-10 w-full max-w-5xl">
+                <div className="relative mt-10 w-full max-w-6xl">
 
                     {/* Main Image Card */}
                     <div className="relative z-10 mx-auto transition-transform duration-300 ease-out hover:-translate-y-2 sm:w-[65%] lg:w-[65%]">
@@ -123,7 +123,7 @@ function LandingHome() {
                 <div className="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-white/20 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
 
                     {/* Stat 1 */}
-                    <div className="flex flex-col items-center justify-center px-6 py-8 text-center">
+                    <div className="flex flex-col items-center justify-center px-6 py-78 text-center">
 
                         <div className="flex items-center gap-2">
 
