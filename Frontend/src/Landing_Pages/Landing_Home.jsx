@@ -46,6 +46,7 @@ function Counter({ target, suffix = "+", duration = 2000 }) {
 
 function LandingHome() {
     return (
+
         <section
             id="home"
             className="w-full overflow-hidden bg-linear-to-br from-[#3D41E7] to-[#1A3989]"
@@ -76,7 +77,7 @@ function LandingHome() {
                 <div className="relative mt-10 w-full max-w-6xl">
 
                     {/* Main Image Card */}
-                    <div className="relative z-10 mx-auto transition-transform duration-300 ease-out hover:-translate-y-2 sm:w-[65%] lg:w-[65%]">
+                    <div className="relative z-10 mx-auto transition-transform duration-300 ease-out hover:-translate-y-2 sm:w-[65%] lg:w-[70%]">
 
 
                         {/* Main Dashboard Image */}
@@ -90,7 +91,7 @@ function LandingHome() {
 
 
                     {/* Left Floating Image */}
-                    <div className="absolute left-0 top-[38%] z-20 w-[27%] -rotate-2 transition-transform duration-300 ease-out hover:rotate-0 sm:left-[4%] sm:w-[24%] lg:left-[8%] lg:w-[22%]">
+                    <div className="absolute left-0 top-[38%] z-20 w-[27%] -rotate-2 transition-transform duration-300 ease-out hover:rotate-0 sm:left-[4%] sm:w-[24%] lg:left-[8%] lg:w-[27%]">
 
                         <img
                             src={leftImage}
@@ -102,7 +103,7 @@ function LandingHome() {
 
 
                     {/* Right Floating Image */}
-                    <div className="absolute right-0 top-[22%] z-20 w-[27%] rotate-2 transition-transform duration-300 ease-out hover:rotate-0 sm:right-[4%] sm:w-[24%] lg:right-[8%] lg:w-[22%]">
+                    <div className="absolute right-0 top-[22%] z-20 w-[27%] rotate-2 transition-transform duration-300 ease-out hover:rotate-0 sm:right-[4%] sm:w-[24%] lg:right-[8%] lg:w-[27%]">
 
                         <img
                             src={rightImage}
