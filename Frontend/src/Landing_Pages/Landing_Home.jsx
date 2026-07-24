@@ -9,7 +9,7 @@ import icon3 from "url:../assets/icon3.png";
 
 // Counter Animation Component
 function Counter({ target, suffix = "+", duration = 2000 }) {
-    const [count, setCount] = useState(0);
+    const [count, setCount] = useState(0);  
 
     useEffect(() => {
         let start = 0;
@@ -119,7 +119,7 @@ function LandingHome() {
 
 
             {/* ================= STATISTICS SECTION ================= */}
-            <div className="mt-0 border-t border-white/20 bg-[#244493]">
+            <div className="-mt-16 sm:-mt-20 lg:-mt-16 border-t border-white/20 bg-[#244493]">
 
                 <div className="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-white/20 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
 

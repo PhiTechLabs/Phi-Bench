@@ -1,4 +1,4 @@
-    @import "tailwindcss";
+@import "tailwindcss";
 
     /* ───────────────────────────────────────── */
     /* STRONG VISIBLE FLOATING ANIMATION */
@@ -92,6 +92,10 @@
     }
     }
 
+    /* ───────────────────────────────────────── */
+    /* LANDING FEATURES — CARD SCROLL ANIMATION */
+    /* ───────────────────────────────────────── */
+
     /* ANIMATION CLASSES */
 
     .animate-float-1 {
@@ -109,3 +113,5 @@
     .animate-float-4 {
     animation: float4 9s infinite linear;
     }
+
+    

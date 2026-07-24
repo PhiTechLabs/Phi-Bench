@@ -1,5 +1,6 @@
 import Landing_Navbar from "./Landing_Navbar";
 import LandingHome from "./Landing_Home";
+import { LandingFeatures } from "./Landing_Features";
 
 function Landing_Page() {
     return (
@@ -7,7 +8,7 @@ function Landing_Page() {
 
             <Landing_Navbar />
             <LandingHome />
-
+            <LandingFeatures/>
             {/* Landing Page Content Will Come Here */}
 
         </div>
