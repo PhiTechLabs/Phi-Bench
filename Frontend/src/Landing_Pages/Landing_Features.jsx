@@ -96,7 +96,11 @@ import whiteGloveIconWhite from 'url:../assets/icons/whiteGloveIconWhite.png';
 
     // Extra breathing room so a scaled-up card isn't clipped by the viewport box.
     // Increase VERTICAL_BREATHING_ROOM if the top/bottom of the scaled card still looks cut off.
-    const VERTICAL_BREATHING_ROOM = 28; // px, added as top+bottom padding on the viewport
+    // This must also clear the card's drop shadow, not just the card box: shadow-2xl is
+    // 0 25px 50px -12px, which reaches ~38px below the card, and the active card's
+    // scale(1.05) adds ~6px more. Anything less and the shadow gets sliced off by the
+    // container's overflow-hidden, leaving a hard grey edge under the row.
+    const VERTICAL_BREATHING_ROOM = 64; // px, added as top+bottom padding on the viewport
 
     // ── Timing constants ──────────────────────────────────────────────
     const MOVE_DURATION = 800; // ms — how long the slide itself takes
@@ -169,7 +173,7 @@ import whiteGloveIconWhite from 'url:../assets/icons/whiteGloveIconWhite.png';
     }, [withTransition]);
 
     return (
-        <section className="py-20 bg-white overflow-hidden">
+        <section id="features" className="scroll-mt-16 min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 bg-white overflow-hidden">
         <div className="text-center mb-16 px-4">
             <h2 className="text-4xl font-bold text-gray-900 leading-snug">
             Get The Most Powerful and{' '}

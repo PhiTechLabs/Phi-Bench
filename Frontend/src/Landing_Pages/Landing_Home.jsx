@@ -49,7 +49,7 @@ function LandingHome() {
 
         <section
             id="home"
-            className="w-full overflow-hidden bg-linear-to-br from-[#3D41E7] to-[#1A3989]"
+            className="scroll-mt-16 min-h-[calc(100vh-4rem)] flex flex-col justify-center w-full overflow-hidden bg-linear-to-br from-[#3D41E7] to-[#1A3989]"
         >
 
             {/* ================= HERO SECTION ================= */}
