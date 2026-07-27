@@ -1,11 +1,26 @@
 import { useNavigate } from "react-router-dom";
 import phiBenchLogo from "url:../assets/phiBenchLogo.png"
 
+// Each label maps to the `id` on the section it should scroll to. Reviews/FAQ
+// sections exist on the page too, but intentionally have no nav entry — only
+// these 4 are ever shown in the navbar.
+const NAV_LINKS = [
+    { label: "Home", id: "home" },
+    { label: "Features", id: "features" },
+    { label: "Industries", id: "industries" },
+    { label: "Contact", id: "contact" },
+];
+
 function Landing_Navbar() {
     const navigate = useNavigate();
 
+    const scrollToSection = (id) => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
     return (
-        <nav className="w-full h-16 bg-[#1A3989] flex items-center justify-between px-5  md:px-6">
+        <nav className="sticky top-0 z-50 w-full h-16 bg-[#1A3989] flex items-center justify-between px-5  md:px-6">
 
             {/* Logo */}
             <div className="flex items-center">
@@ -19,29 +34,15 @@ function Landing_Navbar() {
             {/* Navigation Links */}
             <div className="hidden md:flex items-center flex-justify-evenly space-x-18">
 
-                <button
-                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
-                >
-                    Home
-                </button>
-
-                <button
-                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
-                >
-                    Features
-                </button>
-
-                <button
-                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
-                >
-                    Industries
-                </button>
-
-                <button
-                    className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
-                >
-                    Contact
-                </button>
+                {NAV_LINKS.map((link) => (
+                    <button
+                        key={link.id}
+                        onClick={() => scrollToSection(link.id)}
+                        className="text-white text-md font-medium transition-all duration-300 hover:scale-105 cursor-pointer"
+                    >
+                        {link.label}
+                    </button>
+                ))}
 
             </div>
 

@@ -1,6 +1,17 @@
 @import "tailwindcss";
 
     /* ───────────────────────────────────────── */
+    /* LANDING PAGE — INTER TYPOGRAPHY           */
+    /* ───────────────────────────────────────── */
+    /* Scoped to the landing page only (via the .landing-page wrapper) so the
+       rest of the app — dashboard, tables, forms — keeps its existing font
+       untouched. */
+    .landing-page,
+    .landing-page * {
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    /* ───────────────────────────────────────── */
     /* STRONG VISIBLE FLOATING ANIMATION */
     /* ───────────────────────────────────────── */
 
@@ -113,5 +124,3 @@
     .animate-float-4 {
     animation: float4 9s infinite linear;
     }
-
-    
