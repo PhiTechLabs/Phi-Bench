@@ -119,7 +119,12 @@ function LandingHome() {
 
 
             {/* ================= STATISTICS SECTION ================= */}
-            <div className="-mt-16 sm:-mt-20 lg:-mt-16 border-t border-white/20 bg-[#244493]">
+            {/* relative + z-30 puts this bar above the hero image (z-10) and the
+                floating cards (z-20), so they are occluded exactly at this top
+                border instead of painting over it. The negative margin keeps the
+                original compact composition; the hover lift now moves the card
+                up and away from the line, never across it. */}
+            <div className="relative z-30 -mt-16 sm:-mt-20 lg:-mt-16 border-t border-white/20 bg-[#244493]">
 
                 <div className="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-white/20 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
 
