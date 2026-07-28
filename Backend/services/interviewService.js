@@ -1,4 +1,5 @@
 import Interview, { ROUND_TO_STATUS } from "../models/Interview.js";
+import { buildScopeFilter } from "../utils/permissionScope.js";
 import Submission from "../models/Submission.js";
 import Candidate from "../models/Candidate.js";
 import Job from "../models/Job.js";
@@ -187,9 +188,12 @@ export const createInterviewService = async (payload, userId) => {
     return interview;
 };
 
-// ─── LIST ALL INTERVIEWS ──────────────────────────────────────────────────────
-export const listInterviewsService = async () => {
-    return await Interview.find()
+// ─── LIST ALL INTERVIEWS (scoped) ────────────────────────────────────────────
+export const listInterviewsService = async (currentUser) => {
+    const scopeFilter = await buildScopeFilter(currentUser, "interview");
+    if (scopeFilter === false) return [];
+    const query = scopeFilter ?? {};
+    return await Interview.find(query)
         .populate("candidate", "firstName lastName email jobTitle")
         .populate("job", "title client status")
         .populate("createdBy", "username")

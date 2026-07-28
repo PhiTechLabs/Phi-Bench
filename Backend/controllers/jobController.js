@@ -18,7 +18,7 @@ export const createJob = asyncHandler(async (req, res) => {
 
 // ─── GET ALL JOBS ─────────────────────────────────────────────────────────────
 export const getAllJobs = asyncHandler(async (req, res) => {
-    const jobs = await getAllJobsService();
+    const jobs = await getAllJobsService(req.user);
     res.json({ count: jobs.length, jobs });
 });
 

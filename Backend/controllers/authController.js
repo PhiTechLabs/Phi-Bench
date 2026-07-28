@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import { buildScopeFilter } from "../utils/permissionScope.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Role from "../models/role.js";
@@ -426,80 +427,101 @@ export const registerUser = async (
 };
 
 // ───────────────────────────────────────────────────────────
-// GET ALL USERS
+// GET ALL USERS (scoped by hierarchy)
 // ───────────────────────────────────────────────────────────
-export const getAllUsers = async (
-    req,
-    res
-) => {
-
+export const getAllUsers = async (req, res) => {
     try {
+        // A manager sees only users in their downward subtree.
+        // super_admin gets permission "all" → scopeFilter null → sees everyone.
+        const scopeFilter = await buildScopeFilter(req.user, "users");
 
-        const users = await User.find()
+        if (scopeFilter === false) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        // scopeFilter is { createdBy: { $in: [...ids] } } for scoped roles.
+        // Re-use the ids as an _id filter — we want to restrict WHICH users
+        // are shown, not who created them.
+        let query = {};
+        if (scopeFilter !== null) {
+            const ids = scopeFilter.createdBy?.$in ?? [];
+            query = { _id: { $in: ids } };
+        }
+
+        const users = await User.find(query)
             .select("-password")
             .sort({ createdAt: -1 })
             .populate("roleId")
             .populate("teamId", "name")
             .populate("branchId")
-            .populate(
-                "managerId",
-                "username email"
-            );
+            .populate("managerId", "username email");
 
-        return res.status(200).json({
-
-            count: users.length,
-
-            users,
-
-        });
+        return res.status(200).json({ count: users.length, users });
 
     } catch (error) {
-
-        return res.status(500).json({
-            error: error.message,
-        });
+        return res.status(500).json({ error: error.message });
     }
-};
-
+}
 // ───────────────────────────────────────────────────────────
-// GET USERS PICKER (lightweight, any authenticated user)
+// GET USERS PICKER (scoped: subtree + ancestors)
 // ───────────────────────────────────────────────────────────
-// Powers "assign a person" dropdowns (Job's Account Manager / Recruiter
-// fields, etc.) where any logged-in user needs to pick a colleague. The
-// full getAllUsers endpoint is gated behind "users:view", which most
-// non-admin roles don't have — this intentionally skips that check and
-// returns only the minimal fields a picker needs (id, username, role).
-export const getUsersPicker = async (
-    req,
-    res
-) => {
-
+// Powers "assign manager / recruiter" dropdowns. Needs to be broader than
+// the full users list so a recruiter can still pick their own manager.
+// Rule: return the user's own hierarchy subtree (who they manage) PLUS
+// their own ancestor chain (who manages them), so the dropdown always
+// contains at least their direct manager and all their reports.
+export const getUsersPicker = async (req, res) => {
     try {
+        const currentUser = req.user;
+        const scopeFilter = await buildScopeFilter(currentUser, "users");
 
-        const users = await User.find({ isActive: true })
+        // "all" scope (super_admin) — return everyone
+        if (scopeFilter === null) {
+            const users = await User.find({ isActive: true })
+                .select("username roleId")
+                .populate("roleId", "name")
+                .sort({ username: 1 });
+            return res.status(200).json({
+                users: users.map((u) => ({
+                    id: u._id, username: u.username, role: u.roleId?.name || "",
+                })),
+            });
+        }
+
+        // Start with the subtree ids resolved by buildScopeFilter
+        const subtreeIds = scopeFilter?.createdBy?.$in ?? [currentUser._id];
+
+        // Walk managerId upward to collect ancestor chain
+        const ancestorIds = [];
+        const seen = new Set(subtreeIds.map(String));
+        let cursor = currentUser.managerId;
+        while (cursor) {
+            const idStr = (cursor._id || cursor).toString();
+            if (seen.has(idStr)) break;
+            seen.add(idStr);
+            ancestorIds.push(cursor._id || cursor);
+            const parent = await User.findById(cursor._id || cursor).select("managerId").lean();
+            cursor = parent?.managerId ?? null;
+        }
+
+        const users = await User.find({
+            _id: { $in: [...subtreeIds, ...ancestorIds] },
+            isActive: true,
+        })
             .select("username roleId")
             .populate("roleId", "name")
             .sort({ username: 1 });
 
         return res.status(200).json({
-
             users: users.map((u) => ({
-                id: u._id,
-                username: u.username,
-                role: u.roleId?.name || "",
+                id: u._id, username: u.username, role: u.roleId?.name || "",
             })),
-
         });
 
     } catch (error) {
-
-        return res.status(500).json({
-            error: error.message,
-        });
+        return res.status(500).json({ error: error.message });
     }
-};
-
+}
 // ───────────────────────────────────────────────────────────
 // UPDATE USER
 // ───────────────────────────────────────────────────────────
