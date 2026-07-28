@@ -25,8 +25,19 @@ export const createClient = asyncHandler(async (req, res) => {
 
 // ─── GET ALL CLIENTS ──────────────────────────────────────────────────────────
 export const getAllClients = asyncHandler(async (req, res) => {
-    const clients = await getAllClientsService();
-    res.json({ count: clients.length, clients });
+    try {
+        const clients = await getAllClientsService(req.user);
+        res.json({ count: clients.length, clients });
+    } catch (err) {
+        // Temporary diagnostic catch — surfaces the real error message so we
+        // can identify what's throwing instead of seeing a generic 500.
+        // Remove once root cause is confirmed and fixed.
+        console.error("[getAllClients] REAL ERROR:", err.message, err.stack);
+        res.status(500).json({
+            message: err.message,
+            stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
+        });
+    }
 });
 
 // ─── GET CLIENT BY ID ─────────────────────────────────────────────────────────
@@ -45,7 +56,7 @@ export const updateClient = asyncHandler(async (req, res) => {
 export const deleteClient = asyncHandler(async (req, res) => {
     await deleteClientService(req.params.id);
     res.json({ message: "Client deleted successfully" });
-}); 
+});
 
 export const getClientDocumentUrl =
     asyncHandler(async (req, res) => {
