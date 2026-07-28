@@ -25,8 +25,19 @@ import { useEffect, useRef } from "react";
 // doesn't have to wait on the next lazy interval tick either.
 const INACTIVITY_LIMIT_MS = 3 * 60 * 60 * 1000; // 3 hours
 const CHECK_INTERVAL_MS   = 60 * 1000;           // poll the clock once a minute
-const ACTIVITY_KEY        = "lastActivityAt";
+export const ACTIVITY_KEY = "lastActivityAt";
 const ACTIVITY_EVENTS     = ["mousemove", "mousedown", "keydown", "wheel", "scroll", "touchstart"];
+
+// The idle clock belongs to ONE session and must never outlive it. If a stale
+// timestamp from a previous session is still in localStorage when a new one
+// starts, this hook mounts, sees an idle gap wider than the limit, and logs the
+// brand-new session straight back out. Call these two around the session
+// boundary so the clock always starts fresh.
+export const startInactivityClock = () =>
+    localStorage.setItem(ACTIVITY_KEY, String(Date.now()));
+
+export const clearInactivityClock = () =>
+    localStorage.removeItem(ACTIVITY_KEY);
 
 // onTimeout: called once the user has been idle past the limit. Should log
 // the user out (clear session, redirect to login) — the hook itself only
