@@ -23,7 +23,7 @@ export const createInterview = asyncHandler(async (req, res) => {
 
 // ─── LIST ALL INTERVIEWS ──────────────────────────────────────────────────────
 export const listInterviews = asyncHandler(async (req, res) => {
-    const interviews = await listInterviewsService();
+    const interviews = await listInterviewsService(req.user);
     res.json({ count: interviews.length, interviews });
 });
 

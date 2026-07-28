@@ -1,7 +1,7 @@
 import Candidate from "../models/Candidate.js";
     import User from "../models/User.js";
     import {
-    getAccessibleUserIds,
+    buildScopeFilter,
     } from "../utils/permissionScope.js";
 
     import {
@@ -150,40 +150,19 @@ import Candidate from "../models/Candidate.js";
     // round-trip to every candidate list load for no reason.
     export const listCandidatesService = async (currentUser) => {
 
-    const viewPermission =
-        currentUser.role?.modulePermissions?.candidate?.view;
+    // buildScopeFilter reads the role's candidate.view permission and
+    // returns the correct MongoDB filter for this user's scope:
+    //   false  → no view permission (return empty)
+    //   null   → "all" scope (no createdBy filter)
+    //   object → { createdBy: { $in: [...] } }
+    const scopeFilter = await buildScopeFilter(currentUser, "candidate");
+    if (scopeFilter === false) return [];
+    const query = scopeFilter ?? {};
 
-    if (
-        !viewPermission ||
-        viewPermission === "none"
-    ) {
-        return [];
-    }
-
-    if (viewPermission === "all") {
-
-        return Candidate.find()
+    return Candidate.find(query)
         .populate("createdBy", "username")
         .populate("updatedBy", "username")
         .sort({ createdAt: -1 });
-    }
-
-    const accessibleUsers =
-        await getAccessibleUserIds(
-        currentUser,
-        viewPermission
-        );
-
-    return Candidate.find({
-        createdBy: {
-        $in: accessibleUsers,
-        },
-    })
-    .populate("createdBy", "username")
-    .populate("updatedBy", "username")
-    .sort({
-        createdAt: -1,
-    });
     };
 
     // ─── GET BY ID ───────────────────────────────────────────────────────────────
