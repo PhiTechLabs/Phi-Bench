@@ -26,7 +26,7 @@ import {hasPermission} from "../utils/hasPermission";
 import { getCurrentUser } from "../utils/auth";
 import { PERMISSIONS } from "../pages/settings/constants/permissions";
 import { globalSearch, getSearchResultRoute } from "../api/searchApi";
-import useInactivityLogout from "../hooks/useInactivityLogout";
+import useInactivityLogout, { clearInactivityClock } from "../hooks/useInactivityLogout";
 
 // Small icon per entity type, reusing the same icons already used in the
 // nav menu so search results feel visually consistent with the rest of the app.
@@ -119,6 +119,9 @@ const Navbar = () => {
     // so they survive logout and are available when the user logs back in,
     // while remaining invisible to other users who log in on the same device.
     localStorage.removeItem("user");
+    // Retire this session's idle clock too — leaving it behind is what caused
+    // the next login to be immediately logged out again.
+    clearInactivityClock();
     navigate("/");
   };
 

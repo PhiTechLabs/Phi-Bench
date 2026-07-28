@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
+import { startInactivityClock } from "../hooks/useInactivityLogout";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaArrowRight } from "react-icons/fa";
 import logo from "url:../assets/phiBenchBlueLogo.png";
@@ -42,6 +43,13 @@ export default function Login() {
         }
 
         localStorage.setItem("user", JSON.stringify(user));
+
+        // Start the idle clock fresh for THIS session. Without this, a stale
+        // lastActivityAt left behind by the previous session makes the
+        // inactivity hook fire the moment the app mounts, logging the user
+        // straight back out on their first login attempt.
+        startInactivityClock();
+
         navigate("/home");
 
     } catch (error) {
