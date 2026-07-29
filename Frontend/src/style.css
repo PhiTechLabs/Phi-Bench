@@ -92,9 +92,6 @@
     }
     }
 
-    /* ───────────────────────────────────────── */
-    /* LANDING FEATURES — CARD SCROLL ANIMATION */
-    /* ───────────────────────────────────────── */
 
     /* ANIMATION CLASSES */
 
@@ -113,5 +110,3 @@
     .animate-float-4 {
     animation: float4 9s infinite linear;
     }
-
-    
