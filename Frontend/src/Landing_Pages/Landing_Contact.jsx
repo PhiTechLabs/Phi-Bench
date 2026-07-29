@@ -64,6 +64,11 @@ export const LandingContact = () => {
         setSubmitted(true);
     };
 
+    const handlePhoneChange = (e) => {
+        const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+        setForm((prev) => ({ ...prev, phoneNumber: digitsOnly }));
+    };
+
     // "Send another message" clears the previous entry as well as the panel,
     // so the returning form isn't pre-filled with what was just sent.
     const handleReset = () => {
@@ -80,34 +85,34 @@ export const LandingContact = () => {
     return (
         <>
             {/* ================= CONTACT CTA ================= */}
-            <section id="contact" className="scroll-mt-16 min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 bg-white">
-                <div className="max-w-6xl mx-auto px-6">
-                    <div className="rounded-[2rem] bg-linear-to-br from-[#3D41E7] to-[#1A3989] p-8 sm:p-12 lg:p-14">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <section id="contact" className="scroll-mt-16 min-h-[calc(100vh-4rem)] flex flex-col justify-center py-16 bg-white">
+                <div className="max-w-4xl mx-auto px-6">
+                    <div className="rounded-3xl bg-linear-to-br from-[#3D41E7] to-[#1A3989] p-6 sm:p-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
 
                             {/* Left copy */}
                             <div>
-                                <h2 className="text-3xl sm:text-4xl font-bold text-white leading-snug">
-                                    Start Managing Your Bench in Just 4 Minutes
+                                <h2 className="text-2xl sm:text-3xl font-bold text-white leading-snug">
+                                    Smarter way to manage your bench
                                 </h2>
-                                <p className="mt-5 text-sm text-white/80 leading-relaxed max-w-md">
-                                    Simple pricing. Powerful platform. Fill out the form and our
+                                <p className="mt-3 text-sm text-white/80 leading-relaxed max-w-xs">
+                                    Fill out the form and our
                                     team will get in touch with you with the best plan for your
                                     business.
                                 </p>
                             </div>
 
                             {/* Right form card */}
-                            <div className="rounded-2xl bg-white p-6 sm:p-8">
+                            <div className="rounded-2xl bg-white p-5 sm:p-6">
                                 {submitted ? (
                                     /* Success panel replaces the entire form — the min-height
-                                       keeps the card the same size as the filled-in form so
-                                       the surrounding layout doesn't jump on submit. */
-                                    <div className="flex min-h-[344px] flex-col items-center justify-center text-center">
-                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                                    keeps the card the same size as the filled-in form so
+                                    the surrounding layout doesn't jump on submit. */
+                                    <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+                                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
                                             <svg
                                                 viewBox="0 0 24 24"
-                                                className="h-8 w-8"
+                                                className="h-7 w-7"
                                                 fill="none"
                                                 stroke="#16A34A"
                                                 strokeWidth="2.5"
@@ -119,9 +124,9 @@ export const LandingContact = () => {
                                             </svg>
                                         </div>
 
-                                        <h3 className="mt-6 text-xl font-bold text-gray-900">Thank You!</h3>
+                                        <h3 className="mt-5 text-lg font-bold text-gray-900">Thank You!</h3>
 
-                                        <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-600">
+                                        <p className="mt-2 max-w-xs text-sm leading-relaxed text-gray-600">
                                             Thank you for your interest in PhiBench. One of our experts
                                             will contact you shortly to discuss your bench management
                                             requirements.
@@ -130,23 +135,24 @@ export const LandingContact = () => {
                                         <button
                                             type="button"
                                             onClick={handleReset}
-                                            className="mt-6 text-sm font-bold text-[#1A3989] transition-colors duration-300 hover:text-[#3D41E7] cursor-pointer"
+                                            className="mt-5 text-sm font-bold text-[#1A3989] transition-colors duration-300 hover:text-[#3D41E7] cursor-pointer"
                                         >
                                             Send another message
                                         </button>
                                     </div>
                                 ) : (
                                     <>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-5">Get in Touch</h3>
+                                        <h3 className="text-base font-bold text-gray-900 mb-4">Get in Touch</h3>
 
-                                        <form onSubmit={handleSubmit} className="space-y-4">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <form onSubmit={handleSubmit} className="space-y-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <input
                                                     type="text"
                                                     name="fullName"
                                                     placeholder="Full Name"
                                                     value={form.fullName}
                                                     onChange={handleChange}
+                                                    required
                                                     className={FIELD_CLASS}
                                                 />
                                                 <input
@@ -155,17 +161,19 @@ export const LandingContact = () => {
                                                     placeholder="Company Name"
                                                     value={form.companyName}
                                                     onChange={handleChange}
+                                                    required
                                                     className={FIELD_CLASS}
                                                 />
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <input
                                                     type="email"
                                                     name="workEmail"
                                                     placeholder="Work Email"
                                                     value={form.workEmail}
                                                     onChange={handleChange}
+                                                    required
                                                     className={FIELD_CLASS}
                                                 />
                                                 <input
@@ -173,7 +181,11 @@ export const LandingContact = () => {
                                                     name="phoneNumber"
                                                     placeholder="Phone Number"
                                                     value={form.phoneNumber}
-                                                    onChange={handleChange}
+                                                    onChange={handlePhoneChange}
+                                                    inputMode="numeric"
+                                                    pattern="[0-9]{10}"
+                                                    maxLength={10}
+                                                    required
                                                     className={FIELD_CLASS}
                                                 />
                                             </div>
@@ -181,15 +193,16 @@ export const LandingContact = () => {
                                             <textarea
                                                 name="message"
                                                 placeholder="Your Message"
-                                                rows={4}
+                                                rows={3}
                                                 value={form.message}
                                                 onChange={handleChange}
+                                                required
                                                 className={`${FIELD_CLASS} resize-none`}
                                             />
 
                                             <button
                                                 type="submit"
-                                                className="w-full rounded-xl border border-[#1A3989] bg-white py-3 text-sm font-bold text-[#1A3989] transition-all duration-300 hover:bg-[#1A3989] hover:text-white cursor-pointer"
+                                                className="w-full rounded-xl border border-[#1A3989] bg-white py-2.5 text-sm font-bold text-[#1A3989] transition-all duration-300 hover:bg-[#1A3989] hover:text-white cursor-pointer"
                                             >
                                                 Contact Us
                                             </button>
