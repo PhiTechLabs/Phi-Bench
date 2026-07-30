@@ -81,31 +81,6 @@ router.post(
     createCandidate
 );
 
-    router.post(
-    "/",
-    protect,
-    requirePermission("candidate", "add"),
-
-    upload.fields([
-        {
-        name: "resume",
-        maxCount: 1,
-        },
-        {
-        name: "formattedResume",
-        maxCount: 1,
-        },
-        {
-        name: "other",
-        maxCount: 1,
-        },
-    ]),
-
-    createCandidateRules,
-    validate,
-    createCandidate
-    );
-
 router.get(
     "/:id/resume",
     protect,
