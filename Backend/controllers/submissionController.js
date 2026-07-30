@@ -22,7 +22,7 @@ export const createSubmission = asyncHandler(async (req, res) => {
 
 // ─── LIST ALL SUBMISSIONS ─────────────────────────────────────────────────────
 export const listSubmissions = asyncHandler(async (req, res) => {
-    const submissions = await listSubmissionsService();
+    const submissions = await listSubmissionsService(req.user);
     res.json({ count: submissions.length, submissions });
 });
 

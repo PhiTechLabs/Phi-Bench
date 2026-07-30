@@ -1,4 +1,5 @@
 import Submission, { SUBMISSION_STATUS_TRANSITIONS } from "../models/Submission.js";
+import { buildScopeFilter } from "../utils/permissionScope.js";
 import Candidate from "../models/Candidate.js";
 import Job from "../models/Job.js";
 import { syncCandidateStatus } from "../utils/candidateStatusSync.js";
@@ -70,9 +71,12 @@ export const createSubmissionService = async (payload, userId) => {
     }
 };
 
-// ─── LIST ALL SUBMISSIONS ─────────────────────────────────────────────────────
-export const listSubmissionsService = async () => {
-    return await Submission.find()
+// ─── LIST ALL SUBMISSIONS (scoped) ──────────────────────────────────────────────
+export const listSubmissionsService = async (currentUser) => {
+    const scopeFilter = await buildScopeFilter(currentUser, "submissions");
+    if (scopeFilter === false) return [];
+    const query = scopeFilter ?? {};
+    return await Submission.find(query)
         .populate("candidate", "firstName lastName email jobTitle")
         .populate("job", "title client status")
         .populate("createdBy", "username")
