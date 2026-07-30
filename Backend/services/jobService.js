@@ -21,46 +21,6 @@ const resolveClient = async (clientId) => {
     return client;
 };
 
-// ─── HELPER: enforce record-level scope ───────────────────────────────────────
-// requirePermission (route middleware) only checks that the permission value
-// isn't "none" — it has no idea which record is being touched. This compares
-// a SPECIFIC job's createdBy against the caller's resolved scope (own / team /
-// hierarchy / all) for a given action ("view", "edit", "delete").
-//
-// Throws a 403 error if the record falls outside the caller's scope.
-// Does nothing (record allowed) if scope resolves to "all", or if the
-// record's owner is inside the allowed id list.
-
-// const ensureJobInScope = async (currentUser, action, job) => {
-//     const scopeFilter = await buildScopeFilter(currentUser, "job", action);
-
-//     // false → permission is "none"/unconfigured. requirePermission should
-//     // already have blocked this, but fail closed here too defensively.
-//     if (scopeFilter === false) {
-//         const err = new Error("Access denied");
-//         err.statusCode = 403;
-//         throw err;
-//     }
-
-//     // null → scope is "all", no restriction to apply
-//     if (scopeFilter === null) return;
-
-//     const allowedIds = scopeFilter.createdBy.$in.map((id) => id.toString());
-
-//     // job.createdBy may be a populated sub-document ({ _id, username })
-//     // or a bare ObjectId, depending on which service function called this
-//     // (getJobByIdService populates it; update/delete fetch it raw).
-//     // Normalize to a plain id string either way.
-//     const ownerId = (job.createdBy?._id ?? job.createdBy)?.toString();
-
-//     if (!ownerId || !allowedIds.includes(ownerId)) {
-//         const err = new Error("You do not have permission to modify this record");
-//         err.statusCode = 403;
-//         throw err;
-//     }
-// };
-
-
 
 // ─── HELPER: check if a record is in scope (non-throwing) ────────────────────
 // Same resolution as ensureJobInScope, but returns a boolean instead of
@@ -168,27 +128,6 @@ export const getAllJobsService = async (currentUser) => {
         .populate("updatedBy", "username")
         .sort({ createdAt: -1 });
 };
-
-// ─── GET JOB BY ID (scoped) ───────────────────────────────────────────────────
-// Previously had no scope check at all — any authenticated user with a
-// non-"none" view permission could fetch ANY job by id, regardless of
-// "own"/"team"/"hierarchy" scoping (the scoping only applied to the list
-// endpoint). Now enforced consistently with the list.
-// export const getJobByIdService = async (id, currentUser) => {
-//     const job = await Job.findById(id)
-//         .populate("createdBy", "username")
-//         .populate("updatedBy", "username");
-
-//     if (!job) {
-//         const err = new Error("Job not found");
-//         err.statusCode = 404;
-//         throw err;
-//     }
-
-//     await ensureJobInScope(currentUser, "view", job);
-
-//     return job;
-// };
 
 // ─── UPDATE JOB (scoped) ──────────────────────────────────────────────────────
 export const updateJobService = async (id, payload, currentUser) => {
