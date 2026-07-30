@@ -108,7 +108,7 @@ export const LandingContact = () => {
                                     /* Success panel replaces the entire form — the min-height
                                     keeps the card the same size as the filled-in form so
                                     the surrounding layout doesn't jump on submit. */
-                                    <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+                                    <div className="flex min-h-75 flex-col items-center justify-center text-center">
                                         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
                                             <svg
                                                 viewBox="0 0 24 24"
