@@ -31,19 +31,19 @@ export const getAllClients = asyncHandler(async (req, res) => {
 
 // ─── GET CLIENT BY ID ─────────────────────────────────────────────────────────
 export const getClientById = asyncHandler(async (req, res) => {
-    const client = await getClientByIdService(req.params.id);
+    const client = await getClientByIdService(req.params.id, req.user);
     res.json({ client });
 });
 
 // ─── UPDATE CLIENT ────────────────────────────────────────────────────────────
 export const updateClient = asyncHandler(async (req, res) => {
-    const client = await updateClientService(req.params.id, req.body, req.user.id);
+    const client = await updateClientService(req.params.id, req.body, req.user);
     res.json({ message: "Client updated successfully", client });
 });
 
 // ─── DELETE CLIENT ────────────────────────────────────────────────────────────
 export const deleteClient = asyncHandler(async (req, res) => {
-    await deleteClientService(req.params.id);
+    await deleteClientService(req.params.id, req.user);
     res.json({ message: "Client deleted successfully" });
 }); 
 
