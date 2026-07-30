@@ -1,7 +1,7 @@
 import Client from "../models/Client.js";
 import { uploadToS3, getSignedFileUrl } from "./s3Service.js";
 import { generateNextCode } from "../utils/generateCode.js";
-import { buildScopeFilter  } from "../utils/permissionScope.js";
+import { buildScopeFilter } from "../utils/permissionScope.js";
 
 // ─── HELPER: strip frontend-only `id` from subdocs ────────────────────────────
 const stripFrontendIds = (arr = []) => arr.map(({ id, ...rest }) => rest);
