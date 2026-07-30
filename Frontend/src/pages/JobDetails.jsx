@@ -219,14 +219,20 @@ const JobDetails = () => {
                         >
                             <Icon d={icons.submit} size={13} /> Submit Candidate
                         </button>
-                        <Link to={`${roleBase}/jobs/edit/${id}`}
-                            className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
-                            <Icon d={icons.edit} size={13} /> Edit
-                        </Link>
-                        <button onClick={handleDelete}
-                            className="flex items-center gap-1.5 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition">
-                            <Icon d={icons.trash} size={13} /> Delete
-                        </button>
+
+                        {job._permissions?.canEdit && (
+                            <Link to={`${roleBase}/jobs/edit/${id}`}
+                                className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
+                                <Icon d={icons.edit} size={13} /> Edit
+                            </Link>
+                        )}
+
+                        {job._permissions?.canDelete && (
+                            <button onClick={handleDelete}
+                                className="flex items-center gap-1.5 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition">
+                                <Icon d={icons.trash} size={13} /> Delete
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -366,7 +372,7 @@ const JobDetails = () => {
                 </div>
 
                 {/* ── Right Sidebar ── */}
-                <div className="w-[240px] shrink-0 border-l border-[#E2E8F0] bg-white flex flex-col">
+                <div className="w-60 shrink-0 border-l border-[#E2E8F0] bg-white flex flex-col">
 
                     {/* Status */}
                     <div className="border-b border-[#F1F5F9] p-4">
@@ -607,7 +613,7 @@ const KVField = ({ icon, label, value }) => (
 const SidebarKV = ({ label, value }) => (
     <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] text-[#94A3B8] shrink-0">{label}</span>
-        <span className="text-[11px] font-semibold text-[#1E293B] text-right truncate max-w-[130px]">{value || "—"}</span>
+        <span className="text-[11px] font-semibold text-[#1E293B] text-right truncate max-w-32.5">{value || "—"}</span>
     </div>
 );
 
