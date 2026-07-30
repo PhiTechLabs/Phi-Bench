@@ -24,18 +24,18 @@ export const getAllJobs = asyncHandler(async (req, res) => {
 
 // ─── GET JOB BY ID ────────────────────────────────────────────────────────────
 export const getJobById = asyncHandler(async (req, res) => {
-    const job = await getJobByIdService(req.params.id);
+    const job = await getJobByIdService(req.params.id, req.user);
     res.json({ job });
 });
 
 // ─── UPDATE JOB ───────────────────────────────────────────────────────────────
 export const updateJob = asyncHandler(async (req, res) => {
-    const job = await updateJobService(req.params.id, req.body, req.user.id);
+    const job = await updateJobService(req.params.id, req.body, req.user);
     res.json({ message: "Job updated successfully", job });
 });
 
 // ─── DELETE JOB ───────────────────────────────────────────────────────────────
 export const deleteJob = asyncHandler(async (req, res) => {
-    await deleteJobService(req.params.id);
+    await deleteJobService(req.params.id, req.user);
     res.json({ message: "Job deleted successfully" });
 });
