@@ -45,7 +45,7 @@ const EDGE_ROOM = 64;
 // ── Timing ───────────────────────────────────────────────────────────────
 // One full cycle in the reference ran ~3.9s, of which ~500ms was movement,
 // split into two roughly equal legs either side of the hand-off.
-const HOLD_MS = 3400;  // center card rests before the next role change
+const HOLD_MS = 1500;  // center card rests before the next role change
 const IN_MS = 250;     // side cards travel inward and hide behind the center
 const OUT_MS = 250;    // new side cards travel back out to their slots
 const FADE_MS = 350;   // center card crossfades across the whole hand-off
@@ -202,8 +202,8 @@ export const LandingTestimonial = () => {
         <section id="testimonials" className="scroll-mt-16 min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 bg-[#F8F9FC]">
 
             <div className="text-center mb-16 px-4">
-                <h2 className="text-4xl font-bold text-gray-900 leading-[44px] tracking-tight">What Our Customers Say</h2>
-                <p className="mt-4 max-w-[967px] mx-auto text-gray-500 text-base leading-relaxed">
+                <h2 className="text-4xl font-bold text-gray-900 leading-11 tracking-tight">What Our Customers Say</h2>
+                <p className="mt-4 max-w-241.75 mx-auto text-gray-500 text-base leading-relaxed">
                     How firms that have streamlined their resource management and
                     accelerated deployments with PhiBench.
                 </p>
