@@ -72,11 +72,27 @@ axiosInstance.interceptors.response.use(
 
             } catch (refreshError) {
 
-                // Views are user-scoped (uid_key) so safe to leave — just remove session
-                localStorage.removeItem("user");
+                // Only treat this as "the session is actually invalid" when
+                // the refresh endpoint gave back a real auth rejection
+                // (401/403 — expired/invalid refresh token). A network
+                // failure, timeout, or a Railway cold-start 502/504 has
+                // nothing to do with whether the login was valid — treating
+                // those the same as an auth rejection was force-logging
+                // people out and bouncing them back to /login right after a
+                // successful sign-in, intermittently, whenever the backend
+                // was momentarily slow to respond. Those transient cases
+                // just reject and let the caller retry instead of nuking
+                // the session.
+                const status = refreshError.response?.status;
 
-                // redirect to login
-                window.location.href = "/login";
+                if (status === 401 || status === 403) {
+
+                    // Views are user-scoped (uid_key) so safe to leave — just remove session
+                    localStorage.removeItem("user");
+
+                    // redirect to login
+                    window.location.href = "/login";
+                }
 
                 return Promise.reject(refreshError);
             }

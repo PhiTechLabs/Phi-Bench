@@ -142,6 +142,7 @@ export const updateClientService = async (id, payload, currentUser) => {
         new: true,
         runValidators: true,
     });
+
     return client;
 };
 

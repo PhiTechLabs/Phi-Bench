@@ -1,10 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import LandingPage from "../Landing_Pages/Landing_Page";
 import Login from "../pages/Login";
+
 import Navbar from "./Navbar";
 import ProtectedRoute from "./ProtectedRoute";
 import { roleRoutes } from "../routes/roleRoutes";
+
 import Setup from "../pages/Setup";
 import Unauthorized from "../pages/Unauthorized";
+
 import Personal from "../pages/settings/component/personalSettings";
 import Company from "../pages/settings/component/companyDetails";
 import Email from "../pages/settings/component/emailPage";
@@ -14,26 +19,33 @@ function App() {
     return (
         <Router>
             <Routes>
-                {/* LOGIN */}
-                <Route path="/" element={<Login />} />
 
-                {/* SETUP — accessible by all roles, outside Navbar layout */}
+                {/* PUBLIC LANDING PAGE */}
+                <Route path="/" element={<LandingPage />} />
+
+                {/* LOGIN */}
+                <Route path="/login" element={<Login />} />
+
+                {/* SETUP */}
                 <Route path="/setup" element={<Setup />} />
 
+                {/* UNAUTHORIZED */}
                 <Route
                     path="/unauthorized"
                     element={<Unauthorized />}
                 />
 
-                {/* PROTECTED ROUTES - No role prefix in URL */}
+                {/* PROTECTED ROUTES */}
                 <Route element={<Navbar />}>
 
-                    {/* Dynamic Role Routes */}
                     {roleRoutes.map((route, index) => (
-                        <Route key={index} {...route} />
+                        <Route
+                            key={index}
+                            {...route}
+                        />
                     ))}
 
-                    {/* Settings Pages */}
+                    {/* SETTINGS */}
                     <Route
                         path="/settings/personal"
                         element={
@@ -71,6 +83,7 @@ function App() {
                     />
 
                 </Route>
+
             </Routes>
         </Router>
     );
