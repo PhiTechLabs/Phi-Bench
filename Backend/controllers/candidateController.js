@@ -13,11 +13,11 @@ export const createCandidate = asyncHandler(async (req, res) => {
 
 
     const candidate =
-    await createCandidateService(
-        req.body,
-        req.files,
-        req.user.id
-    );
+        await createCandidateService(
+            req.body,
+            req.files,
+            req.user.id
+        );
 
     res.status(201).json({
         message: "Candidate created successfully",
@@ -37,22 +37,22 @@ export const listCandidates = asyncHandler(async (req, res) => {
 });
 
 export const getCandidateById = asyncHandler(async (req, res) => {
-    const candidate = await getCandidateByIdService(req.params.id);
+    const candidate = await getCandidateByIdService(req.params.id, req.user);
     res.json({ candidate });
 });
 
 export const updateCandidate = asyncHandler(async (req, res) => {
-    const candidate = await updateCandidateService(req.params.id, req.body, req.user.id);
+    const candidate = await updateCandidateService(req.params.id, req.body, req.user);
     res.json({ message: "Candidate updated successfully", candidate });
 });
 
 export const deleteCandidate = asyncHandler(async (req, res) => {
-    await deleteCandidateService(req.params.id);
+    await deleteCandidateService(req.params.id, req.user);
     res.json({ message: "Candidate deleted successfully" });
 });
 
 export const toggleBench = asyncHandler(async (req, res) => {
-    const candidate = await toggleBenchService(req.params.id);
+    const candidate = await toggleBenchService(req.params.id, req.user);
     res.json({ message: "Bench status toggled", candidate });
 });
 
@@ -61,8 +61,9 @@ export const viewResume =
 
         const url =
             await getCandidateResumeService(
-                req.params.id
+                req.params.id,
+                req.user
             );
 
         res.json({ url });
-});
+    });

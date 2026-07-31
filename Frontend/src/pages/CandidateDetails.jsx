@@ -201,27 +201,33 @@ import React, { useEffect, useState } from "react";
             </div>
 
             {/* Header Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-                <button onClick={handleToggleBench}
-                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition ${
-                    candidate.onBench
-                    ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE]"
-                    : "border-[#E2E8F0] bg-white text-[#475569] hover:bg-[#F8FAFC]"
-                }`}>
-                <Icon d={icons.bench} size={13} />
-                {candidate.onBench ? "Remove from Bench" : "Add to Bench"}
-                </button>
-                <Link to={`${roleBase}/candidates/edit/${id}`}
-                className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
-                <Icon d={icons.edit} size={13} />
-                Edit
-                </Link>
-                <button onClick={handleDelete}
-                className="flex items-center gap-1.5 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition">
-                <Icon d={icons.trash} size={13} />
-                Delete
-                </button>
-            </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    {candidate._permissions?.canEdit && (
+                    <button onClick={handleToggleBench}
+                        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition ${
+                        candidate.onBench
+                            ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE]"
+                            : "border-[#E2E8F0] bg-white text-[#475569] hover:bg-[#F8FAFC]"
+                        }`}>
+                        <Icon d={icons.bench} size={13} />
+                        {candidate.onBench ? "Remove from Bench" : "Add to Bench"}
+                    </button>
+                    )}
+                    {candidate._permissions?.canEdit && (
+                    <Link to={`${roleBase}/candidates/edit/${id}`}
+                        className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] transition">
+                        <Icon d={icons.edit} size={13} />
+                        Edit
+                    </Link>
+                    )}
+                    {candidate._permissions?.canDelete && (
+                    <button onClick={handleDelete}
+                        className="flex items-center gap-1.5 rounded-lg border border-[#FECACA] bg-white px-3 py-1.5 text-[12px] font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition">
+                        <Icon d={icons.trash} size={13} />
+                        Delete
+                    </button>
+                    )}
+                </div>
             </div>
 
             {/* Row 2: Tabs */}
@@ -469,36 +475,43 @@ import React, { useEffect, useState } from "react";
                 )}
 
                 {/* Add to Bench - your feature */}
-                <button onClick={handleToggleBench}
-                    className={`w-full flex items-center gap-2.5 rounded-lg border px-4 py-2.5 text-[13px] font-medium transition ${
-                    candidate.onBench
-                        ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE]"
-                        : "border-[#E2E8F0] bg-white text-[#475569] hover:bg-[#F8FAFC]"
-                    }`}>
-                    <Icon d={icons.bench} size={15} />
-                    {candidate.onBench ? "Remove from Bench" : "Add to Bench"}
-                </button>
+                    {candidate._permissions?.canEdit && (
+                    <button onClick={handleToggleBench}
+                        className={`w-full flex items-center gap-2.5 rounded-lg border px-4 py-2.5 text-[13px] font-medium transition ${
+                        candidate.onBench
+                            ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE]"
+                            : "border-[#E2E8F0] bg-white text-[#475569] hover:bg-[#F8FAFC]"
+                        }`}>
+                        <Icon d={icons.bench} size={15} />
+                        {candidate.onBench ? "Remove from Bench" : "Add to Bench"}
+                    </button>
+                    )}
 
                 </div>
             </div>
 
             {/* Change Status Section */}
-            <div className="border-b border-[#F1F5F9] p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8] mb-3">Submission Status</p>
-                <div className="mb-2">
-                <StatusBadge status={candidate.status} />
+                <div className="border-b border-[#F1F5F9] p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8] mb-3">Submission Status</p>
+                    <div className="mb-2">
+                    <StatusBadge status={candidate.status} />
+                    </div>
+                    <select
+                    value={candidate.status || "New"}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    disabled={isUpdatingStatus || !candidate._permissions?.canEdit}
+                    className="mt-2 w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-[12px] font-medium text-[#1E293B] focus:outline-none focus:ring-2 focus:ring-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                    {statusOptions.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                    ))}
+                    </select>
+                    {!candidate._permissions?.canEdit && (
+                    <p className="mt-1.5 text-[10.5px] text-[#94A3B8]">
+                        You don't have permission to change this candidate's status.
+                    </p>
+                    )}
                 </div>
-                <select
-                value={candidate.status || "New"}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                disabled={isUpdatingStatus}
-                className="mt-2 w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-[12px] font-medium text-[#1E293B] focus:outline-none focus:ring-2 focus:ring-[#2563EB] disabled:opacity-50"
-                >
-                {statusOptions.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                ))}
-                </select>
-            </div>
 
             {/* Quick Info Section */}
             <div className="border-b border-[#F1F5F9] p-4">
