@@ -29,31 +29,31 @@ export const listInterviews = asyncHandler(async (req, res) => {
 
 // ─── GET INTERVIEWS FOR A CANDIDATE ──────────────────────────────────────────
 export const getCandidateInterviews = asyncHandler(async (req, res) => {
-    const interviews = await getCandidateInterviewsService(req.params.candidateId);
+    const interviews = await getCandidateInterviewsService(req.params.candidateId, req.user);
     res.json({ count: interviews.length, interviews });
 });
 
 // ─── GET INTERVIEWS FOR A JOB ────────────────────────────────────────────────
 export const getJobInterviews = asyncHandler(async (req, res) => {
-    const interviews = await getJobInterviewsService(req.params.jobId);
+    const interviews = await getJobInterviewsService(req.params.jobId, req.user);
     res.json({ count: interviews.length, interviews });
 });
 
 // ─── GET SINGLE INTERVIEW ─────────────────────────────────────────────────────
 export const getInterview = asyncHandler(async (req, res) => {
-    const interview = await getInterviewByIdService(req.params.id);
+    const interview = await getInterviewByIdService(req.params.id, req.user);
     res.json({ interview });
 });
 
 // ─── UPDATE INTERVIEW ─────────────────────────────────────────────────────────
 export const updateInterview = asyncHandler(async (req, res) => {
-    const interview = await updateInterviewService(req.params.id, req.body, req.user.id);
+    const interview = await updateInterviewService(req.params.id, req.body, req.user);
     res.json({ message: "Interview updated successfully", interview });
 });
 
 // ─── ADD FEEDBACK (drives submission status forward) ─────────────────────────
 export const addFeedback = asyncHandler(async (req, res) => {
-    const interview = await addFeedbackService(req.params.id, req.body, req.user.id);
+    const interview = await addFeedbackService(req.params.id, req.body, req.user);
     res.json({
         message: "Feedback submitted successfully",
         interview,
@@ -62,7 +62,7 @@ export const addFeedback = asyncHandler(async (req, res) => {
 
 // ─── DELETE INTERVIEW ─────────────────────────────────────────────────────────
 export const deleteInterview = asyncHandler(async (req, res) => {
-    await deleteInterviewService(req.params.id);
+    await deleteInterviewService(req.params.id, req.user);
     res.json({ message: "Interview deleted successfully" });
 });
 // ─── UPCOMING INTERVIEWS ─────────────────────────────

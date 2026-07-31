@@ -20,11 +20,13 @@ const StatusChanger = ({ row, onStatusChanged }) => {
   const [open,    setOpen]    = useState(false);
   const [loading, setLoading] = useState(false);
   const [pos,     setPos]     = useState({ x: 0, y: 0 });
+  const [error,   setError]   = useState("");
   const popoverRef = useRef();
   const badgeRef   = useRef(); // ref to the badge element for scroll tracking
 
   const s       = getStatusStyle(row.status);
-  const allowed = getAllowedTransitions(row.status);
+  const canEdit = row._permissions?.canEdit ?? false;
+  const allowed = canEdit ? getAllowedTransitions(row.status) : [];
 
   // Recompute position from the badge's current rect
   const updatePos = useCallback(() => {
@@ -66,11 +68,13 @@ const StatusChanger = ({ row, onStatusChanged }) => {
     e.stopPropagation();
     setLoading(true);
     setOpen(false);
+    setError("");
     try {
       await updateSubmission(row.id, { status: newStatus });
       await onStatusChanged();
     } catch (err) {
       console.error("Status update failed:", err);
+      setError(err?.response?.data?.message || "You don't have permission to change this status.");
     } finally {
       setLoading(false);
     }
@@ -99,16 +103,20 @@ const StatusChanger = ({ row, onStatusChanged }) => {
         )}
       </span>
 
+      {error && (
+        <p className="mt-1 text-[10.5px] font-medium text-red-500">{error}</p>
+      )}
+
       {/* Fixed popover — tracks badge position on scroll */}
       {open && allowed.length > 0 && (
         <>
           <div
-            className="fixed inset-0 z-[70]"
+            className="fixed inset-0 z-70"
             onClick={(e) => { e.stopPropagation(); setOpen(false); }}
           />
           <div
             ref={popoverRef}
-            className="fixed z-[71] w-52 rounded-xl border border-[#E8E6E0] bg-white py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+            className="fixed z-71 w-52 rounded-xl border border-[#E8E6E0] bg-white py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
             style={{ left: pos.x, top: pos.y }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -155,16 +163,27 @@ const Submissions = () => {
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  const [deleteError, setDeleteError] = useState("");
+
   const handleDelete     = (row) => setConfirmDel(row);
   const confirmDelete    = async () => {
-    await deleteSubmission(confirmDel.id);
-    await refresh();
-    setConfirmDel(null);
+    try {
+      await deleteSubmission(confirmDel.id);
+      await refresh();
+      setConfirmDel(null);
+    } catch (err) {
+      setDeleteError(err?.response?.data?.message || "You don't have permission to delete this submission.");
+    }
   };
   const handleBulkDelete = async (ids) => {
-    await Promise.all(ids.map((id) => deleteSubmission(id)));
+    const results = await Promise.allSettled(ids.map((id) => deleteSubmission(id)));
+    const failedCount = results.filter((r) => r.status === "rejected").length;
     await refresh();
+    if (failedCount > 0) {
+      setDeleteError(`${failedCount} of ${ids.length} submission${ids.length > 1 ? "s" : ""} could not be deleted — you don't have permission for ${failedCount === 1 ? "that record" : "those records"}.`);
+    }
   };
+  
 
   const columns = [
     {
@@ -226,6 +245,12 @@ const Submissions = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
+      {deleteError && (
+        <div className="mx-4 mt-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-[12.5px] font-medium text-red-600">
+          {deleteError}
+          <button onClick={() => setDeleteError("")} className="ml-3 text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
       <div className="w-full">
         <DataTable
           columns={columns}

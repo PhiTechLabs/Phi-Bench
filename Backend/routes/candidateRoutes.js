@@ -66,15 +66,15 @@ router.post(
 
 
     
-    (req, res, next) => {
-        console.log("BODY RECEIVED:");
-        console.log(req.body);
+    // (req, res, next) => {
+    //     console.log("BODY RECEIVED:");
+    //     console.log(req.body);
 
-        console.log("FILES RECEIVED:");
-        console.log(req.files);
+    //     console.log("FILES RECEIVED:");
+    //     console.log(req.files);
 
-        next();
-    },
+    //     next();
+    // },
 
     createCandidateRules,
     validate,

@@ -69,14 +69,14 @@ const StatusTimeline = ({ history = [] }) => {
     return (
         <div className="relative">
             {/* Vertical connector line */}
-            <div className="absolute left-[15px] top-4 bottom-4 w-px bg-[#E2E8F0]" />
+            <div className="absolute left-3.75 top-4 bottom-4 w-px bg-[#E2E8F0]" />
             {[...history].reverse().map((h, i, arr) => {
                 const st = getStatusStyle(h.status);
                 const isLatest = i === 0;
                 return (
                     <div key={i} className="relative flex items-start gap-3 py-2.5">
                         {/* Dot */}
-                        <div className="relative z-10 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-2"
+                        <div className="relative z-10 flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-full border-2"
                             style={{
                                 background:  isLatest ? st.bg   : "#F8FAFC",
                                 borderColor: isLatest ? st.dot  : "#E2E8F0",
@@ -143,7 +143,7 @@ const SubmissionCard = ({ sub, context, onChangeStatus, onRowClick }) => {
                     </div>
                     <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                         <StatusPill status={sub.status} />
-                        {onChangeStatus && (
+                        {onChangeStatus && sub._permissions?.canEdit && (
                             <ChangeBtn onClick={() => onChangeStatus(sub)} />
                         )}
                         <span className="text-[11px] text-[#94A3B8]">
@@ -347,7 +347,8 @@ export const InterviewsTable = ({ interviews = [], onFeedback, onRowClick, conte
             filterable:     true,
             defaultVisible: true,
             render: (row) => {
-                const canFeedback = row.status === "Scheduled" || row.status === "Rescheduled";
+                const canFeedback = (row.status === "Scheduled" || row.status === "Rescheduled")
+                    && (row._permissions?.canEdit ?? true);
                 if (canFeedback && onFeedback) {
                     return (
                         <div className="flex items-center gap-2">

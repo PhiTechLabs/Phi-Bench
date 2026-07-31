@@ -6,10 +6,6 @@ import axiosInstance from "./axiosInstance";
 
 export const createClient = async (payload) => {
 
-    console.log(
-    "PAYLOAD DOCUMENTS:",
-    payload.documents
-);
     const form = new FormData();
 
     Object.keys(payload).forEach((key) => {
@@ -45,7 +41,7 @@ export const createClient = async (payload) => {
     }
 
     for (const pair of form.entries()) {
-    console.log(pair[0], pair[1]);
+    // console.log(pair[0], pair[1]);
 }
 
     const { data } =

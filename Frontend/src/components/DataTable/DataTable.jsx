@@ -146,7 +146,7 @@ const DataTable = ({
                     <FilterIcon size={13} />
                     Filters
                     {t.activeFilterCount > 0 && (
-                        <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9.5px] font-bold text-white">
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9.5px] font-bold text-white">
                             {t.activeFilterCount}
                         </span>
                     )}
@@ -319,10 +319,20 @@ const DataTable = ({
                                             {onDelete && (
                                                 <PermissionGuard module={deletePermission?.module} action={deletePermission?.action}>
                                                     <td style={{ width: 44, minWidth: 44 }} className="px-2 py-2 text-right align-middle" onClick={(e) => e.stopPropagation()}>
-                                                        <button onClick={(e) => { e.stopPropagation(); onDelete(row); }}
-                                                            className="inline-flex h-7 w-7 items-center justify-center rounded text-[#9B9890] opacity-0 hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100 transition">
-                                                            <TrashIcon />
-                                                        </button>
+                                                        {/* row._permissions is only present on tables whose backend
+                                                            service computes per-record scope (canDelete/canEdit) — see
+                                                            clients/job/candidate/submissions service patches. When
+                                                            absent, fall back to the module-level PermissionGuard above
+                                                            only, so tables not yet migrated keep their existing
+                                                            behavior. When present, a scoped "delete" permission (e.g.
+                                                            team-only) must not show the trash icon for out-of-scope
+                                                            rows even though the module-level guard passed. */}
+                                                        {row._permissions?.canDelete !== false && (
+                                                            <button onClick={(e) => { e.stopPropagation(); onDelete(row); }}
+                                                                className="inline-flex h-7 w-7 items-center justify-center rounded text-[#9B9890] opacity-0 hover:bg-[#FEF2F2] hover:text-[#DC2626] group-hover:opacity-100 transition">
+                                                                <TrashIcon />
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </PermissionGuard>
                                             )}
@@ -493,7 +503,7 @@ const ViewsTabs = ({ t }) => {
                                                 setMenuId(view.id);
                                             }
                                         }}
-                                        className={`flex h-5 w-5 items-center justify-center rounded opacity-0 transition hover:bg-[#E8EEFF] group-hover:opacity-60 hover:!opacity-100 ${isActive ? "!opacity-50" : ""}`}>
+                                        className={`flex h-5 w-5 items-center justify-center rounded opacity-0 transition hover:bg-[#E8EEFF] group-hover:opacity-60 hover:opacity-100! ${isActive ? "opacity-50!" : ""}`}>
                                         <DotsIcon />
                                     </button>
                                 </div>
@@ -589,9 +599,9 @@ const ViewsTabs = ({ t }) => {
                 overflow-x-auto tab strip and is never clipped */}
             {menuId && (
                 <>
-                    <div className="fixed inset-0 z-[60]" onClick={() => setMenuId(null)} />
+                    <div className="fixed inset-0 z-60" onClick={() => setMenuId(null)} />
                     <div ref={menuRef}
-                        className="fixed z-[61] w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+                        className="fixed z-61 w-44 overflow-hidden rounded-xl border border-[#E8E6E0] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
                         style={{ left: menuPos.x, top: menuPos.y }}
                         onClick={(e) => e.stopPropagation()}>
                         <ViewMenuItem icon={<PencilIcon />} label="Rename"
@@ -669,7 +679,7 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
             <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
 
             {/* panel */}
-            <div className="fixed right-0 top-0 z-50 flex h-full w-[480px] flex-col bg-white shadow-2xl"
+            <div className="fixed right-0 top-0 z-50 flex h-full w-120 flex-col bg-white shadow-2xl"
                 style={{ animation: "slideInRight .18s cubic-bezier(.22,1,.36,1)" }}>
 
                 {/* header */}
@@ -704,7 +714,7 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                 <div className="flex flex-1 min-h-0">
 
                     {/* LEFT — all columns */}
-                    <div className="flex w-[180px] shrink-0 flex-col border-r border-[#F0EDE8]">
+                    <div className="flex w-45 shrink-0 flex-col border-r border-[#F0EDE8]">
                         <div className="px-3 py-2.5 border-b border-[#F5F4F0]">
                             <input type="text" value={panelSearch} onChange={(e) => setPanelSearch(e.target.value)}
                                 placeholder="Find field…"
@@ -729,7 +739,7 @@ const FilterPanel = ({ registry, data, filters, setColumnFilter, clearAllFilters
                                         <span className="flex items-center gap-1 shrink-0 ml-1">
                                             {isDate && <span className="text-[9px] text-[#9B9890]">📅</span>}
                                             {hasFilter && cnt != null && (
-                                                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9px] font-bold text-white">{cnt}</span>
+                                                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1C4ED8] px-1 text-[9px] font-bold text-white">{cnt}</span>
                                             )}
                                             {hasFilter && cnt == null && (
                                                 <span className="h-2 w-2 rounded-full bg-[#1C4ED8]" />
