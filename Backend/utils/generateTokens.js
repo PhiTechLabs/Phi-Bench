@@ -1,13 +1,5 @@
 import jwt from "jsonwebtoken";
 export const generateAccessToken = (user) => {
-//     console.log(
-//     "JWT ROLE",
-//     JSON.stringify(
-//         user.roleId,
-//         null,
-//         2
-//     )
-// );
     return jwt.sign(
     {
         id: user._id,

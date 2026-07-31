@@ -94,13 +94,6 @@ export const loginUser = async (req, res) => {
                     "username email"
                 );
 
-            //     console.log(
-            //     JSON.stringify(
-            //         populatedUser.roleId,
-            //         null,
-            //         2
-            //     )
-            // );
 
         return res.status(200).json({
 

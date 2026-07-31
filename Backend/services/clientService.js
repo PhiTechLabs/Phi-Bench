@@ -38,10 +38,10 @@ const ensureClientInScope = async (currentUser, action, client) => {
     const ownerId = (client.createdBy?._id ?? client.createdBy)?.toString();
 
         // ── TEMP DEBUG ──────────────────────────────────────────────
-        console.log("DEBUG action:", action);
-        console.log("DEBUG currentUser._id:", currentUser._id?.toString());
-        console.log("DEBUG client.createdBy (ownerId):", ownerId);
-        console.log("DEBUG allowedIds:", allowedIds);
+        // console.log("DEBUG action:", action);
+        // console.log("DEBUG currentUser._id:", currentUser._id?.toString());
+        // console.log("DEBUG client.createdBy (ownerId):", ownerId);
+        // console.log("DEBUG allowedIds:", allowedIds);
         // ─────────────────────────────────────────────────────────────
  
     if (!ownerId || !allowedIds.includes(ownerId)) {
