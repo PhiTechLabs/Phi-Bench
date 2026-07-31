@@ -13,6 +13,42 @@ const validateTransition = (current, next) => {
     return allowed.includes(next);
 };
 
+// ─── HELPER: check if a record is in scope (non-throwing) ────────────────────
+// Used to compute canEdit/canDelete flags for the frontend so it can hide
+// action buttons that would fail anyway, instead of only finding out after
+// clicking Save/Delete.
+const isSubmissionInScope = async (currentUser, action, submission) => {
+    const scopeFilter = await buildScopeFilter(currentUser, "submissions", action);
+
+    // "none"/unconfigured permission for this action — never allowed
+    if (scopeFilter === false) return false;
+
+    // "all" scope — always allowed
+    if (scopeFilter === null) return true;
+
+    const allowedIds = scopeFilter.createdBy.$in.map((id) => id.toString());
+
+    // submission.createdBy may be a populated sub-document ({ _id, username })
+    // or a bare ObjectId, depending on which service function fetched it.
+    const ownerId = (submission.createdBy?._id ?? submission.createdBy)?.toString();
+
+    return !!ownerId && allowedIds.includes(ownerId);
+};
+
+// ─── HELPER: enforce record-level scope (throwing) ────────────────────────────
+// requirePermission (route middleware) only checks that the permission value
+// isn't "none" — it has no idea which record is being touched. This compares
+// a SPECIFIC submission's createdBy against the caller's resolved scope
+// (own / team / hierarchy / all) for a given action.
+const ensureSubmissionInScope = async (currentUser, action, submission) => {
+    const inScope = await isSubmissionInScope(currentUser, action, submission);
+    if (!inScope) {
+        const err = new Error("You do not have permission to modify this record");
+        err.statusCode = 403;
+        throw err;
+    }
+};
+
 // ─── CREATE SUBMISSION ────────────────────────────────────────────────────────
 export const createSubmissionService = async (payload, userId) => {
 
@@ -72,20 +108,40 @@ export const createSubmissionService = async (payload, userId) => {
 };
 
 // ─── LIST ALL SUBMISSIONS (scoped) ──────────────────────────────────────────────
+// Also attaches per-row `_permissions` (canEdit, canDelete) so the frontend's
+// standalone Submissions table can hide/disable the inline status-changer and
+// delete action for rows the user can view but not modify.
 export const listSubmissionsService = async (currentUser) => {
-    const scopeFilter = await buildScopeFilter(currentUser, "submissions");
+    const scopeFilter = await buildScopeFilter(currentUser, "submissions", "view");
     if (scopeFilter === false) return [];
     const query = scopeFilter ?? {};
-    return await Submission.find(query)
+    const submissions = await Submission.find(query)
         .populate("candidate", "firstName lastName email jobTitle")
         .populate("job", "title client status")
         .populate("createdBy", "username")
         .populate("updatedBy", "username")
         .sort({ createdAt: -1 });
+
+    return Promise.all(submissions.map(async (sub) => {
+        const [canEdit, canDelete] = await Promise.all([
+            isSubmissionInScope(currentUser, "edit", sub),
+            isSubmissionInScope(currentUser, "delete", sub),
+        ]);
+        const subObj = sub.toObject();
+        subObj._permissions = { canEdit, canDelete };
+        return subObj;
+    }));
 };
 
-// ─── GET ALL SUBMISSIONS FOR A CANDIDATE ─────────────────────────────────────
-export const getCandidateSubmissionsService = async (candidateId) => {
+// ─── GET ALL SUBMISSIONS FOR A CANDIDATE (scoped) ────────────────────────────
+// Previously had no scope check at all — any authenticated user with a
+// non-"none" view permission could see EVERY submission for any candidate,
+// regardless of "own"/"team"/"hierarchy" scoping (scoping only applied to
+// the standalone list endpoint).
+//
+// Also attaches per-row `_permissions.canEdit` so the frontend's "Change"
+// status button can be hidden for submissions the user can view but not edit.
+export const getCandidateSubmissionsService = async (candidateId, currentUser) => {
     const candidate = await Candidate.findById(candidateId);
     if (!candidate) {
         const err = new Error("Candidate not found");
@@ -93,15 +149,26 @@ export const getCandidateSubmissionsService = async (candidateId) => {
         throw err;
     }
 
-    return await Submission.find({ candidate: candidateId })
+    const scopeFilter = await buildScopeFilter(currentUser, "submissions", "view");
+    if (scopeFilter === false) return [];
+    const query = { candidate: candidateId, ...(scopeFilter ?? {}) };
+
+    const submissions = await Submission.find(query)
         .populate("job", "title client status jobType city country")
         .populate("createdBy", "username")
         .populate("statusHistory.changedBy", "username")
         .sort({ createdAt: -1 });
+
+    return Promise.all(submissions.map(async (sub) => {
+        const canEdit = await isSubmissionInScope(currentUser, "edit", sub);
+        const subObj = sub.toObject();
+        subObj._permissions = { canEdit };
+        return subObj;
+    }));
 };
 
-// ─── GET ALL SUBMISSIONS FOR A JOB ───────────────────────────────────────────
-export const getJobSubmissionsService = async (jobId) => {
+// ─── GET ALL SUBMISSIONS FOR A JOB (scoped) ──────────────────────────────────
+export const getJobSubmissionsService = async (jobId, currentUser) => {
     const job = await Job.findById(jobId);
     if (!job) {
         const err = new Error("Job not found");
@@ -109,15 +176,30 @@ export const getJobSubmissionsService = async (jobId) => {
         throw err;
     }
 
-    return await Submission.find({ job: jobId })
+    const scopeFilter = await buildScopeFilter(currentUser, "submissions", "view");
+    if (scopeFilter === false) return [];
+    const query = { job: jobId, ...(scopeFilter ?? {}) };
+
+    const submissions = await Submission.find(query)
         .populate("candidate", "firstName lastName email jobTitle experienceYears skills")
         .populate("createdBy", "username")
         .populate("statusHistory.changedBy", "username")
         .sort({ createdAt: -1 });
+
+    return Promise.all(submissions.map(async (sub) => {
+        const canEdit = await isSubmissionInScope(currentUser, "edit", sub);
+        const subObj = sub.toObject();
+        subObj._permissions = { canEdit };
+        return subObj;
+    }));
 };
 
-// ─── GET SINGLE SUBMISSION ────────────────────────────────────────────────────
-export const getSubmissionByIdService = async (id) => {
+// ─── GET SINGLE SUBMISSION (scoped) ──────────────────────────────────────────
+// Previously had no scope check at all — any authenticated user with a
+// non-"none" view permission could fetch ANY submission by id.
+// Also attaches `_permissions` so the frontend can hide Edit/Delete buttons
+// for records the user can view but not modify.
+export const getSubmissionByIdService = async (id, currentUser) => {
     const submission = await Submission.findById(id)
         .populate("candidate", "firstName lastName email phone jobTitle experienceYears skills")
         .populate("job", "title client status jobType city country salary")
@@ -130,11 +212,21 @@ export const getSubmissionByIdService = async (id) => {
         throw err;
     }
 
-    return submission;
+    await ensureSubmissionInScope(currentUser, "view", submission);
+
+    const [canEdit, canDelete] = await Promise.all([
+        isSubmissionInScope(currentUser, "edit", submission),
+        isSubmissionInScope(currentUser, "delete", submission),
+    ]);
+
+    const submissionObj = submission.toObject();
+    submissionObj._permissions = { canEdit, canDelete };
+
+    return submissionObj;
 };
 
-// ─── UPDATE SUBMISSION (status change + notes) ────────────────────────────────
-export const updateSubmissionService = async (id, payload, userId) => {
+// ─── UPDATE SUBMISSION (status change + notes) — scoped ──────────────────────
+export const updateSubmissionService = async (id, payload, currentUser) => {
 
     const submission = await Submission.findById(id);
     if (!submission) {
@@ -142,6 +234,11 @@ export const updateSubmissionService = async (id, payload, userId) => {
         err.statusCode = 404;
         throw err;
     }
+
+    // Enforce edit scope BEFORE applying any changes — this is the check
+    // that was missing entirely, which let a scoped "edit" permission
+    // (e.g. team-only) update any submission system-wide.
+    await ensureSubmissionInScope(currentUser, "edit", submission);
 
     const updates = {};
 
@@ -161,7 +258,7 @@ export const updateSubmissionService = async (id, payload, userId) => {
             statusHistory: {
                 status:    payload.status,
                 changedAt: new Date(),
-                changedBy: userId,
+                changedBy: currentUser._id,
                 note:      payload.statusNote || "",
             },
         };
@@ -172,7 +269,7 @@ export const updateSubmissionService = async (id, payload, userId) => {
     if (payload.clientFeedback !== undefined) updates.clientFeedback = payload.clientFeedback;
 
     // Track who last updated this submission
-    if (userId) updates.updatedBy = userId;
+    updates.updatedBy = currentUser._id;
 
     // If nothing to update
     if (Object.keys(updates).length === 0) return submission;
@@ -198,22 +295,30 @@ export const updateSubmissionService = async (id, payload, userId) => {
     return updated;
 };
 
-// ─── FORCE STATUS (admin override, bypass transition rules) ──────────────────
-export const forceStatusService = async (id, status, userId, note) => {
-    if (!SUBMISSION_STATUS_TRANSITIONS.hasOwnProperty(status) &&
-        !Object.values(SUBMISSION_STATUS_TRANSITIONS).flat().includes(status)) {
-        // Check it's a valid status at all
+// ─── FORCE STATUS (admin override, bypass transition rules) — scoped ─────────
+// This bypasses validateTransition on purpose (that's the whole point of a
+// force-override), but it must NOT bypass record-level scope — a scoped
+// "edit" permission shouldn't be able to force-set status on out-of-scope
+// submissions just by hitting this route instead of the normal update route.
+export const forceStatusService = async (id, status, currentUser, note) => {
+    const submission = await Submission.findById(id);
+    if (!submission) {
+        const err = new Error("Submission not found");
+        err.statusCode = 404;
+        throw err;
     }
+
+    await ensureSubmissionInScope(currentUser, "edit", submission);
 
     const updated = await Submission.findByIdAndUpdate(
         id,
         {
-            $set:  { status, updatedBy: userId },
+            $set:  { status, updatedBy: currentUser._id },
             $push: {
                 statusHistory: {
                     status,
                     changedAt: new Date(),
-                    changedBy: userId,
+                    changedBy: currentUser._id,
                     note:      note || "Admin override",
                 },
             },
@@ -221,25 +326,24 @@ export const forceStatusService = async (id, status, userId, note) => {
         { new: true, runValidators: true }
     );
 
-    if (!updated) {
-        const err = new Error("Submission not found");
-        err.statusCode = 404;
-        throw err;
-    }
-
     // Sync the candidate's overall status to reflect the forced change
     await syncCandidateStatus(updated.candidate);
 
     return updated;
 };
 
-// ─── DELETE SUBMISSION ────────────────────────────────────────────────────────
-export const deleteSubmissionService = async (id) => {
-    const submission = await Submission.findByIdAndDelete(id);
+// ─── DELETE SUBMISSION (scoped) ──────────────────────────────────────────────
+export const deleteSubmissionService = async (id, currentUser) => {
+    const submission = await Submission.findById(id);
     if (!submission) {
         const err = new Error("Submission not found");
         err.statusCode = 404;
         throw err;
     }
+
+    await ensureSubmissionInScope(currentUser, "delete", submission);
+
+    await Submission.findByIdAndDelete(id);
+
     return submission;
 };

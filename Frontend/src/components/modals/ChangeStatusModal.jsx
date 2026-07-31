@@ -69,7 +69,7 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
             style={{ background: "rgba(2,6,23,0.55)", backdropFilter: "blur(6px)" }}>
             <div className="absolute inset-0" onClick={() => !saving && onClose()} />
 
-            <div className="relative w-full max-w-[410px] rounded-2xl bg-white overflow-hidden"
+            <div className="relative w-full max-w-102.5 rounded-2xl bg-white overflow-hidden"
                 style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)", animation: "fadeUp .16s cubic-bezier(.22,1,.36,1)" }}>
 
                 {/* ── HEADER ─────────────────────────────────────────────── */}
@@ -80,7 +80,7 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
                             <p className="text-white font-bold text-[15.5px] tracking-tight leading-tight">
                                 Move Status
                             </p>
-                            <p className="mt-0.5 text-[11.5px] font-medium truncate max-w-[280px]"
+                            <p className="mt-0.5 text-[11.5px] font-medium truncate max-w-70"
                                 style={{ color: "rgba(148,197,255,0.85)" }}>
                                 {submission.candidateName || submission.jobTitle || "Submission"}
                             </p>
@@ -125,11 +125,11 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
                                     </div>
                                     <div>
                                         <p className="text-[13.5px] font-bold text-slate-700">Interview Pending</p>
-                                        <p className="text-[12px] text-slate-500 mt-1 max-w-[230px] leading-relaxed">
+                                        <p className="text-[12px] text-slate-500 mt-1 max-w-57.5 leading-relaxed">
                                             No further status change allowed until the interview is conducted and feedback is submitted.
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[11.5px] font-medium text-amber-700 max-w-[260px]"
+                                    <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[11.5px] font-medium text-amber-700 max-w-65"
                                         style={{ background: "#FFFBEB", border: "1px solid #FDE68A" }}>
                                         <Ico d={D.lock} size={13} />
                                         Schedule the interview first, then submit feedback to unlock.
@@ -148,7 +148,7 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 gap-1.5 max-h-[240px] overflow-y-auto pr-0.5"
+                        <div className="grid grid-cols-2 gap-1.5 max-h-60 overflow-y-auto pr-0.5"
                             style={{ scrollbarWidth: "thin", scrollbarColor: "#CBD5E1 transparent" }}>
                             {allowed.map((s) => {
                                 const st  = getStatusStyle(s);
@@ -176,7 +176,7 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
                                             }
                                         }}>
                                         <div className="flex items-center gap-2 leading-snug">
-                                            <span className="h-[18px] w-[3px] rounded-full shrink-0 transition-all duration-150"
+                                            <span className="h-4.5 w-0.75 rounded-full shrink-0 transition-all duration-150"
                                                 style={{ background: sel ? st.dot : "#D1D5DB" }} />
                                             <span className="text-[11.5px] font-semibold leading-tight transition-colors duration-150"
                                                 style={{ color: sel ? st.text : "#4B5563" }}>
@@ -184,7 +184,7 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
                                             </span>
                                         </div>
                                         {sel && (
-                                            <span className="absolute top-2 right-2 flex h-[18px] w-[18px] items-center justify-center rounded-full"
+                                            <span className="absolute top-2 right-2 flex h-4.5 w-4.5 items-center justify-center rounded-full"
                                                 style={{ background: st.dot }}>
                                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none"
                                                     stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -230,7 +230,7 @@ export default function ChangeStatusModal({ submission, onClose, onSuccess }) {
                         </button>
                         {allowed.length > 0 && (
                             <button onClick={save} disabled={saving || !selected || done}
-                                className="flex-[2] flex items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="flex-2 flex items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                                 style={{
                                     background: selStyle
                                         ? `linear-gradient(135deg, ${selStyle.dot}, ${selStyle.dot}cc)`
