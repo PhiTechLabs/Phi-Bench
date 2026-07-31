@@ -33,11 +33,6 @@ const handleApi = async (cb) => {
         return await cb();
     } catch (err) {
 
-        // console.log("FULL ERROR", err);
-        // console.log("STATUS", err.response?.status);
-        // console.log("DATA", err.response?.data);
-
-        // console.error(err);
         throw err;
     }
 };

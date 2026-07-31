@@ -347,7 +347,8 @@ export const InterviewsTable = ({ interviews = [], onFeedback, onRowClick, conte
             filterable:     true,
             defaultVisible: true,
             render: (row) => {
-                const canFeedback = row.status === "Scheduled" || row.status === "Rescheduled";
+                const canFeedback = (row.status === "Scheduled" || row.status === "Rescheduled")
+                    && (row._permissions?.canEdit ?? true);
                 if (canFeedback && onFeedback) {
                     return (
                         <div className="flex items-center gap-2">

@@ -93,6 +93,7 @@ const Interviews = () => {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [actionError, setActionError] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -104,7 +105,6 @@ const Interviews = () => {
   const refresh = useCallback(async () => {
     try {
       const data = await listInterviews();
-      console.log("INTERVIEW DATA:", data);
       const normalized = data.map((item) => ({
         ...item,
         id: item.id || item._id,
@@ -160,18 +160,23 @@ const Interviews = () => {
       setConfirmDel(null);
     } catch (err) {
       console.error("Failed to delete interview:", err);
+      setActionError(err?.response?.data?.message || "You don't have permission to delete this interview.");
+      setConfirmDel(null);
     }
   };
 
   const handleBulkDelete = async (ids) => {
-    try {
-      await Promise.all(ids.map((id) => deleteInterview(id)));
+    const results = await Promise.allSettled(ids.map((id) => deleteInterview(id)));
+    const failedIds = ids.filter((_, i) => results[i].status === "rejected");
 
-      setInterviews((prev) =>
-        prev.filter((item) => !ids.includes(item.id))
+    setInterviews((prev) =>
+      prev.filter((item) => !ids.includes(item.id) || failedIds.includes(item.id))
+    );
+
+    if (failedIds.length > 0) {
+      setActionError(
+        `${failedIds.length} of ${ids.length} interview${ids.length > 1 ? "s" : ""} could not be deleted — you don't have permission for ${failedIds.length === 1 ? "that record" : "those records"}.`
       );
-    } catch (err) {
-      console.error("Bulk delete failed:", err);
     }
   };
 
@@ -192,6 +197,7 @@ const Interviews = () => {
       );
 
       console.error("Status update failed:", err);
+      setActionError(err?.response?.data?.message || "You don't have permission to change this interview's status.");
     }
   };
 
@@ -212,6 +218,7 @@ const Interviews = () => {
       );
 
       console.error("Round update failed:", err);
+      setActionError(err?.response?.data?.message || "You don't have permission to change this interview's round.");
     }
   };
 
@@ -232,6 +239,7 @@ const Interviews = () => {
       );
 
       console.error("Mode update failed:", err);
+      setActionError(err?.response?.data?.message || "You don't have permission to change this interview's mode.");
     }
   };
 
@@ -410,6 +418,13 @@ const Interviews = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0] font-sans">
+      {actionError && (
+        <div className="mx-4 mt-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-[12.5px] font-medium text-red-600">
+          {actionError}
+          <button onClick={() => setActionError("")} className="ml-3 text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
+
       <div className="w-full">
         <DataTable
           columns={columns}
