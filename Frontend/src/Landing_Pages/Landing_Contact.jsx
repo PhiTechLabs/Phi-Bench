@@ -41,6 +41,13 @@ const SocialCircle = ({ children, href = '#' }) => (
 const FIELD_CLASS =
     'w-full rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#1A3989]/40 transition';
 
+// Same smooth-scroll behavior as the navbar's scrollToSection — used by the
+// footer's Platform links so they scroll instead of jumping instantly.
+const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
 export const LandingContact = () => {
     const [form, setForm] = useState({
         fullName: '',
@@ -239,11 +246,11 @@ export const LandingContact = () => {
                         <div>
                             <h4 className="text-sm font-bold text-gray-900 mb-4">Platform</h4>
                             <ul className="space-y-3 text-sm text-gray-500">
-                                <li><a href="#home" className="hover:text-[#1A3989] transition-colors">Home</a></li>
-                                <li><a href="#features" className="hover:text-[#1A3989] transition-colors">Features</a></li>
-                                <li><a href="#industries" className="hover:text-[#1A3989] transition-colors">Industries</a></li>
-                                <li><a href="#contact" className="hover:text-[#1A3989] transition-colors">Contact Us</a></li>
-                                <li><a href="#testimonials" className="hover:text-[#1A3989] transition-colors">Testimonials</a></li>
+                                <li><button onClick={() => scrollToSection('home')} className="hover:text-[#1A3989] transition-colors cursor-pointer">Home</button></li>
+                                <li><button onClick={() => scrollToSection('features')} className="hover:text-[#1A3989] transition-colors cursor-pointer">Features</button></li>
+                                <li><button onClick={() => scrollToSection('industries')} className="hover:text-[#1A3989] transition-colors cursor-pointer">Industries</button></li>
+                                <li><button onClick={() => scrollToSection('contact')} className="hover:text-[#1A3989] transition-colors cursor-pointer">Contact Us</button></li>
+                                <li><button onClick={() => scrollToSection('testimonials')} className="hover:text-[#1A3989] transition-colors cursor-pointer">Testimonials</button></li>
                             </ul>
                         </div>
 
