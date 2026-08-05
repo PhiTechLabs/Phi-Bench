@@ -26,7 +26,12 @@ export const validateClientForm = ({ formData, pocs }) => {
         errors.linkedin = "LinkedIn must be a valid URL";
     }
 
-    // ─── POC VALIDATION (only if POCs are added) ─────────────────────────────
+    // ─── POC VALIDATION ───────────────────────────────────────────────────────
+    // At least one POC is mandatory.
+    if (!pocs || pocs.length === 0) {
+        errors.pocs = "At least one POC is required";
+    }
+
     pocs.forEach((poc, idx) => {
         const prefix = `poc_${idx}`;
         if (!poc.firstName?.trim()) {
@@ -55,6 +60,40 @@ export const validateClientForm = ({ formData, pocs }) => {
         valid: Object.keys(errors).length === 0,
         errors,
     };
+};
+
+// ─── SINGLE POC VALIDATION ─────────────────────────────────────────────────
+// Same rules as the per-POC checks inside validateClientForm above, but for
+// validating exactly one POC in isolation (no index prefix on the field
+// keys or messages). Used by the standalone "Add POC" modal on the Client
+// Details page, where only one POC is being filled in at a time.
+//
+// Returns: { fieldName: "error message", ... } — empty object means valid.
+export const validateSinglePoc = (poc) => {
+    const errors = {};
+
+    if (!poc.firstName?.trim()) {
+        errors.firstName = "First name is required";
+    }
+    if (!poc.lastName?.trim()) {
+        errors.lastName = "Last name is required";
+    }
+    if (!poc.email?.trim()) {
+        errors.email = "Email is required";
+    } else if (!isValidEmail(poc.email)) {
+        errors.email = "Invalid email";
+    }
+    if (!poc.designation?.trim()) {
+        errors.designation = "Designation is required";
+    }
+    if (!poc.location?.trim()) {
+        errors.location = "Location is required";
+    }
+    if (poc.linkedin?.trim() && !isValidUrl(poc.linkedin)) {
+        errors.linkedin = "Invalid LinkedIn URL";
+    }
+
+    return errors;
 };
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import {
 import { listJobs } from "../api/jobsApi";
 import { getAvatarProps } from "../utils/avatar";
 import useRoleBase from "../hooks/useRoleBase";
+import AddPocModal from "../components/client/AddPocModal";
 
 
 // ─── ICON ─────────────────────────────────────────────────────────────────────
@@ -81,6 +82,7 @@ const ClientDetails = () => {
     const [error, setError]         = useState("");
     const [activeTab, setActiveTab] = useState("overview");
     const [statusLoading, setStatusLoading] = useState(false);
+    const [showAddPoc, setShowAddPoc] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -392,7 +394,7 @@ const ClientDetails = () => {
 
                     {/* ── CONTACTS TAB ── */}
                     {activeTab === "contacts" && (
-                        <ContactsTab pocs={client.pocs || []} />
+                        <ContactsTab pocs={client.pocs || []} onAddPoc={() => setShowAddPoc(true)} />
                     )}
 
                     {/* ── DOCUMENTS TAB ── */}
@@ -456,6 +458,11 @@ const ClientDetails = () => {
                                 count={client.documents?.length || 0}
                                 onClick={() => setActiveTab("documents")}
                             />
+                            <SidebarAction
+                                icon={icons.people}
+                                label="Add POC"
+                                onClick={() => setShowAddPoc(true)}
+                            />
                         </div>
                     </div>
 
@@ -489,6 +496,19 @@ const ClientDetails = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ── Add POC Modal ── */}
+            {showAddPoc && (
+                <AddPocModal
+                    clientId={id}
+                    existingPocs={client.pocs || []}
+                    onClose={() => setShowAddPoc(false)}
+                    onAdded={(updatedClient) => {
+                        setClient(updatedClient);
+                        setShowAddPoc(false);
+                    }}
+                />
+            )}
         </div>
     );
 };
@@ -639,14 +659,21 @@ const LocationsTab = ({ locations }) => {
 };
 
 // ─── CONTACTS TAB ─────────────────────────────────────────────────────────────
-const ContactsTab = ({ pocs }) => {
+const ContactsTab = ({ pocs, onAddPoc }) => {
     if (!pocs.length) return (
         <EmptyState icon={icons.people} title="No contacts"
-            message="No points of contact have been added for this client." />
+            message="No points of contact have been added for this client."
+            actionLabel="Add POC" onAction={onAddPoc} />
     );
 
     return (
         <div className="space-y-4">
+            <div className="flex justify-end">
+                <button onClick={onAddPoc}
+                    className="flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-[#1D4ED8] transition">
+                    <span className="text-base leading-none">+</span> Add POC
+                </button>
+            </div>
             {pocs.map((poc, index) => (
                 <div key={poc._id || index}
                     className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm overflow-hidden">
@@ -828,11 +855,17 @@ const SidebarAction = ({ icon, label, count, onClick }) => (
     </button>
 );
 
-const EmptyState = ({ icon, title, message }) => (
+const EmptyState = ({ icon, title, message, actionLabel, onAction }) => (
     <div className="rounded-xl bg-white border border-[#E2E8F0] shadow-sm p-12 text-center">
         <Icon d={icon} size={40} className="mx-auto text-[#CBD5E1] mb-4" />
         <p className="text-[15px] font-semibold text-[#1E293B]">{title}</p>
         <p className="text-[13px] text-[#94A3B8] mt-1">{message}</p>
+        {actionLabel && onAction && (
+            <button onClick={onAction}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#1D4ED8] transition">
+                <span className="text-base leading-none">+</span> {actionLabel}
+            </button>
+        )}
     </div>
 );
 
