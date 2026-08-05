@@ -22,7 +22,7 @@ const sanitizeArrays = (payload) => {
     }
 
     if (Array.isArray(clean.experience)) {
-        clean.experience = clean.experience.map(
+        clean.experience = clean.experience.map(   
             ({ _id, id, ...rest }) => rest
         );
     }
@@ -217,7 +217,6 @@ export const getCandidateByIdService = async (
         .populate("updatedBy", "username");
 
     if (!candidate) {
-
         const err = new Error(
             "Candidate not found"
         );

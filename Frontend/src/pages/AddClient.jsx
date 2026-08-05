@@ -139,6 +139,7 @@ const AddClient = () => {
                     onShowAndAddFirst={form.showPocAndAddFirst}
                     onAdd={form.addPoc}
                     onRemove={form.removePoc}
+                    error={fieldErrors.pocs}
                 />
 
                 <AttachmentSection

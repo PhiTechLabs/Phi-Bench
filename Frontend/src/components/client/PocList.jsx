@@ -3,7 +3,7 @@ import PocSection from "./PocSection";
 
 // ─── POC LIST MANAGER ─────────────────────────────────────────────────────────
 // Handles three states:
-//   1. POC section hidden  → show "+ Add POC" button only
+//   1. POC section hidden  → show "+ Add POC" button only (+ error if none added)
 //   2. POC section visible → render all POC cards + "+ Add POC" button below
 const PocList = ({
     pocs,
@@ -12,6 +12,7 @@ const PocList = ({
     onShowAndAddFirst,
     onAdd,
     onRemove,
+    error,
 }) => {
     // ─── INITIAL STATE: just the "Add POC" button ─────────────────────────────
     if (!showPocSection) {
@@ -20,10 +21,17 @@ const PocList = ({
                 <button
                     type="button"
                     onClick={onShowAndAddFirst}
-                    className="flex items-center gap-2 text-sm font-medium text-blue-700 border border-blue-200 rounded-xl px-4 py-2 bg-white hover:bg-blue-50 transition-all duration-150"
+                    className={`flex items-center gap-2 text-sm font-medium border rounded-xl px-4 py-2 bg-white transition-all duration-150 ${
+                        error
+                            ? "text-red-700 border-red-300 hover:bg-red-50"
+                            : "text-blue-700 border-blue-200 hover:bg-blue-50"
+                    }`}
                 >
                     <span className="text-lg leading-none">+</span> Add POC
                 </button>
+                {error && (
+                    <p className="mt-2 text-xs text-red-600">{error}</p>
+                )}
             </div>
         );
     }
